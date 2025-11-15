@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000") // permitir conexión desde React
 public class UserController {
 
     private final UserService userService;
@@ -24,7 +24,7 @@ public class UserController {
 
 
 
-    // ✅ 1. Listar todos los usuarios
+    //  1. Listar todos los usuarios
 @GetMapping
 public List<UserDTO> getAllUsers() {
     return userService.getAllUsers()
@@ -41,25 +41,25 @@ public List<UserDTO> getAllUsers() {
 }
 
 
-    // ✅ 2. Obtener un usuario por ID
+    //  2. Obtener un usuario por ID
     @GetMapping("/{id}")
     public Usuario getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 
-    // ✅ 3. Crear usuario
+    //  3. Crear usuario
     @PostMapping
     public ResponseEntity<Usuario> createUser(@Valid @RequestBody Usuario user) {
         return ResponseEntity.ok(userService.createUser(user));
     }
 
-    // ✅ 4. Actualizar usuario
+    //  4. Actualizar usuario
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> updateUser(@PathVariable Long id, @Validated(Usuario.OnUpdate.class) @RequestBody Usuario user) {
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
 
-    // ✅ 5. Eliminar usuario
+    //  5. Eliminar usuario
     @DeleteMapping("/{id}")
     public String deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
