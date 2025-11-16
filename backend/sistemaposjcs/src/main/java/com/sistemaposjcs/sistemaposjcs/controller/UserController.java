@@ -24,21 +24,42 @@ public class UserController {
 
 
 
-    // ✅ 1. Listar todos los usuarios
+// ✅ 1. Listar solo usuarios ACTIVOS
 @GetMapping
-public List<UserDTO> getAllUsers() {
-    return userService.getAllUsers()
+public List<UserDTO> getAllActiveUsers() {
+    return userService.getAllActiveUsers()
         .stream()
-        .map(u -> new UserDTO(            u.getIdUsuario(),
+        .map(u -> new UserDTO(
+            u.getIdUsuario(),
             u.getUsername(),
             u.getNombre(),
             u.getApellido(),
             u.getDocumento(),
-            u.getRole(),
+            u.getRol(),
             u.getEmail(),
-            u.getTelefono()))
+            u.getTelefono(),
+            u.getEstado()))
         .toList();
 }
+
+@GetMapping("/inactivos")
+public List<UserDTO> getInactiveUsers() {
+    return userService.getAllUsers()
+        .stream()
+        .filter(u -> u.getEstado() == false)
+        .map(u -> new UserDTO(
+            u.getIdUsuario(),
+            u.getUsername(),
+            u.getNombre(),
+            u.getApellido(),
+            u.getDocumento(),
+            u.getRol(),
+            u.getEmail(),
+            u.getTelefono(),
+            u.getEstado()))
+        .toList();
+}
+
 
 
     // ✅ 2. Obtener un usuario por ID
@@ -61,9 +82,14 @@ public List<UserDTO> getAllUsers() {
 
     // ✅ 5. Eliminar usuario
     @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return "Usuario eliminado correctamente";
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/activar")
+    public ResponseEntity<Usuario> activarUsuario(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.activarUsuario(id));
     }
 
 

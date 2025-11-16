@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Button, InputAdornment, IconButton, Select,
-  MenuItem, InputLabel, FormControl, Box
+  TextField, Button, InputAdornment, IconButton,
+  FormControl, InputLabel, Select, MenuItem, Box
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
@@ -10,74 +10,101 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { userSchema } from "../../validation/validationSchema";
 import { createUser, updateUser } from "../../services/userService";
 
-const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loadUsers }) => {
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [changePassword, setChangePassword] = React.useState(false); // 👈 NUEVO
+const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loadUsers, showMessage }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
+  const [roles, setRoles] = useState([]);
 
   const {
     register,
     handleSubmit,
     setError,
     reset,
-    formState: { errors, isSubmitting },
+    setValue,
+    watch,
+    formState: { errors, isSubmitting }
   } = useForm({
     resolver: yupResolver(userSchema),
     context: { isEditing: editing },
     defaultValues: defaultValues || {},
   });
 
-  React.useEffect(() => {
-    reset(defaultValues || {});
-    setChangePassword(false); // resetea el estado cada vez que se abre el diálogo
-  }, [defaultValues, reset]);
+  // Cargar roles
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:8080/api/roles", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setRoles(data);
+      } catch (e) {
+        console.error("Error cargando roles:", e);
+      }
+    };
+    fetchRoles();
+  }, []);
 
-  const onTogglePassword = () => setShowPassword((prev) => !prev);
+  // Resetear valores cuando se abre o cambia defaultValues
+  useEffect(() => {
+    reset(defaultValues || {});
+    if (defaultValues?.rol) {
+      setValue("rolId", defaultValues.rol.id);
+    }
+    setChangePassword(false);
+  }, [defaultValues, reset, setValue]);
 
   const onSubmit = async (data) => {
+
     try {
-      // ⚙️ Evita enviar password vacío
+      if (!data.rolId) {
+        return alert("Debe seleccionar un rol.");
+      }
+
+      data.rol = { id: data.rolId };
+      delete data.rolId;
+
       if (!data.password) delete data.password;
 
       if (editing) {
         await updateUser(selectedId, data);
+        showMessage("Usuario actualizado exitosamente", "success");
       } else {
         await createUser(data);
+        showMessage("Usuario creado exitosamente", "success");
       }
-
-      alert(editing ? "Usuario actualizado con éxito" : "Usuario creado con éxito");
       onClose();
       loadUsers();
     } catch (error) {
-      console.error("❌ Error al guardar usuario:", error);
+      console.error("❌ Error:", error);
 
-      // 🔹 Validaciones (nombre, apellido, documento, etc.)
       if (error.type === "validation" && error.errors) {
-        Object.entries(error.errors).forEach(([campo, mensaje]) => {
-          setError(campo, { type: "server", message: mensaje });
+        Object.entries(error.errors).forEach(([field, message]) => {
+          setError(field, { type: "server", message });
         });
         return;
       }
 
-      // 🔹 Duplicados (correo, username, documento)
-      if (error.type === "duplicate" && error.errors) {
-        Object.entries(error.errors).forEach(([campo, mensaje]) => {
-          setError(campo, { type: "server", message: mensaje });
+      if (error.type === "duplicate") {
+        Object.entries(error.errors).forEach(([field, message]) => {
+          setError(field, { type: "server", message });
         });
         return;
       }
 
-      // 🔹 Otros errores
-      alert(error.message || "⚠️ Error inesperado");
+      alert(error.message || "Error desconocido");
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{editing ? "Editar usuario" : "Registrar nuevo usuario"}</DialogTitle>
+      <DialogTitle>{editing ? "Editar Usuario" : "Registrar Usuario"}</DialogTitle>
+
       <DialogContent>
+        {/* 🚀 AHORA EL FORMulario engloba también LOS BOTONES */}
         <Box
           component="form"
-          id="user-form"
           onSubmit={handleSubmit(onSubmit)}
           noValidate
           sx={{ display: "grid", gap: 2, mt: 1 }}
@@ -89,9 +116,8 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
             helperText={errors.username?.message}
           />
 
-          {/* 🔒 Campo de contraseña */}
+          {/* Contraseña */}
           {!editing ? (
-            // Crear usuario → contraseña obligatoria
             <TextField
               label="Contraseña"
               type={showPassword ? "text" : "password"}
@@ -101,7 +127,7 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={onTogglePassword} edge="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -109,20 +135,14 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
               }}
             />
           ) : (
-            // Editar usuario → opción de cambiar contraseña
             <>
               {!changePassword ? (
-                <Button
-                  type="button"
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => setChangePassword(true)}
-                >
+                <Button variant="outlined" onClick={() => setChangePassword(true)}>
                   Cambiar contraseña
                 </Button>
               ) : (
                 <TextField
-                  label="Nueva contraseña (opcional)"
+                  label="Nueva contraseña"
                   type={showPassword ? "text" : "password"}
                   {...register("password")}
                   error={!!errors.password}
@@ -130,7 +150,7 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={onTogglePassword} edge="end">
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </InputAdornment>
@@ -141,7 +161,6 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
             </>
           )}
 
-          {/* 🔹 Resto de campos */}
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
             <TextField
               label="Nombre"
@@ -164,21 +183,22 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
               error={!!errors.documento}
               helperText={errors.documento?.message}
             />
-            <FormControl error={!!errors.role}>
-              <InputLabel id="role-label">Rol</InputLabel>
+
+            <FormControl fullWidth error={!!errors.rolId}>
+              <InputLabel>Rol</InputLabel>
               <Select
-                labelId="role-label"
                 label="Rol"
-                defaultValue=""
-                {...register("role")}
+                value={watch("rolId") || ""}
+                onChange={(e) => setValue("rolId", e.target.value)}
               >
-                <MenuItem value="ADMINISTRADOR">Administrador</MenuItem>
-                <MenuItem value="CAJERO">Cajero</MenuItem>
+                {roles.map((r) => (
+                  <MenuItem key={r.id} value={r.id}>
+                    {r.nombre}
+                  </MenuItem>
+                ))}
               </Select>
-              {errors.role && (
-                <p style={{ color: "red", fontSize: "0.8rem", marginTop: 4 }}>
-                  {errors.role.message}
-                </p>
+              {errors.rolId && (
+                <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.rolId.message}</p>
               )}
             </FormControl>
           </Box>
@@ -197,22 +217,19 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
               helperText={errors.telefono?.message}
             />
           </Box>
+
+          {/* 🔥 AHORA LOS BOTONES ESTÁN DENTRO DEL <form> */}
+          <DialogActions sx={{ px: 0 }}>
+            <Button onClick={onClose}>Cancelar</Button>
+            <Button type="submit" variant="contained" disabled={isSubmitting}>
+              {editing ? "Guardar" : "Crear"}
+            </Button>
+          </DialogActions>
         </Box>
       </DialogContent>
-
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button
-          type="submit"
-          form="user-form"
-          variant="contained"
-          disabled={isSubmitting}
-        >
-          {editing ? "Guardar" : "Crear"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
 
 export default UserFormDialog;
+

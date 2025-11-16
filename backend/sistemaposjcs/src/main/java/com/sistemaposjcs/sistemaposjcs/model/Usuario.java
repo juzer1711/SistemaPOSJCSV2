@@ -65,9 +65,9 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String documento;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role; // ADMINISTRADOR o CAJERO
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "rol_id", nullable = false)
+    private Rol rol;
 
     @Email(message = "El correo no tiene un formato válido")
     @Column(unique = true)
@@ -76,6 +76,8 @@ public class Usuario {
     @Size(max = 15, message = "El teléfono no debe tener más de 15 caracteres")
     @Column(length = 15)
     private String telefono;
+
+    private Boolean estado = true;
 }
 
 

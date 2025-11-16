@@ -1,11 +1,11 @@
 import React from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Paper, IconButton
+  TableRow, Paper, IconButton, Button
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 
-const UserTable = ({ users, onEdit, onDelete, loading }) => (
+const UserTable = ({ users, onEdit, onDelete, onActivate, loading }) => (
   <TableContainer component={Paper}>
     <Table size="small">
       <TableHead>
@@ -30,17 +30,26 @@ const UserTable = ({ users, onEdit, onDelete, loading }) => (
               <TableCell>{u.nombre}</TableCell>
               <TableCell>{u.apellido}</TableCell>
               <TableCell>{u.documento}</TableCell>
-              <TableCell>{u.role}</TableCell>
+              <TableCell>{u.rol.nombre}</TableCell>
               <TableCell>{u.email}</TableCell>
               <TableCell>{u.telefono}</TableCell>
+
               <TableCell align="center">
                 <IconButton size="small" onClick={() => onEdit(u)}>
                   <Edit />
                 </IconButton>
-                <IconButton size="small" color="error" onClick={() => onDelete(u.idUsuario)}>
-                  <Delete />
-                </IconButton>
+
+                {u.estado ? (
+                  <Button variant="outlined" color="error" onClick={() => onDelete(u.idUsuario)}>
+                    Desactivar
+                  </Button>
+                ) : (
+                  <Button variant="outlined" color="primary" onClick={() => onActivate(u.idUsuario)}>
+                    Activar
+                  </Button>
+                )}
               </TableCell>
+
             </TableRow>
           ))
         ) : (

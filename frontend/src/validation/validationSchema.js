@@ -32,9 +32,10 @@ export const userSchema = yup.object().shape({
     .required("El documento es obligatorio")
     .matches(/^[0-9]{6,12}$/, "El documento debe tener entre 6 y 12 dígitos numéricos"),
 
-  role: yup
-    .string()
+  rolId: yup
+    .number()
     .required("El rol es obligatorio"),
+
 
   email: yup
     .string()

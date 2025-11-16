@@ -10,14 +10,14 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // 🔐 Clave secreta — cambia por una más larga y segura (al menos 32 caracteres)
+    // 🔐 Clave secreta (al menos 32 caracteres)
     private static final String SECRET_KEY = "JuanCristianSimon1234@SistemaPosJCSKey!5678";
 
     // Generar token
-    public String generateToken(String username, String role) {
+    public String generateToken(String username, String rol) {
         return Jwts.builder()
                 .setSubject(username)
-                .claim("role", role)
+                .claim("role", rol)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hora
                 .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), SignatureAlgorithm.HS256)

@@ -1,6 +1,6 @@
 package com.sistemaposjcs.sistemaposjcs.dto;
 
-import com.sistemaposjcs.sistemaposjcs.model.Role;
+import com.sistemaposjcs.sistemaposjcs.model.Rol;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +12,8 @@ public class UserDTO {
     private String nombre;
     private String apellido;
     private String documento;
-    private Role role;
+    private Rol rol;
     private String email;
     private String telefono;
+    private Boolean estado;
 }
