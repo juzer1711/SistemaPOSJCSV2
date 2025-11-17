@@ -46,3 +46,30 @@ export const userSchema = yup.object().shape({
     .required("El teléfono es obligatorio")
     .matches(/^[0-9]{7,10}$/, "El teléfono debe tener entre 7 y 10 dígitos"),
 });
+
+export const productSchema = yup.object().shape({
+  nombre: yup
+    .string()
+    .required("El nombre del producto es obligatorio"),
+
+  categoria: yup
+    .string()
+    .required("La categoría es obligatoria"),
+
+  costo: yup
+    .number()
+    .typeError("El costo debe ser un número")
+    .positive("El costo debe ser mayor a 0")
+    .required("El costo es obligatorio"),
+
+  precioventa: yup
+    .number()
+    .typeError("El precio de venta debe ser un número")
+    .positive("El precio debe ser mayor a 0")
+    .required("El precio de venta es obligatorio"),
+
+  estado: yup
+    .string()
+    .oneOf(["ACTIVO", "INACTIVO"])
+    .required("El estado es obligatorio"),
+});

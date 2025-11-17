@@ -5,6 +5,8 @@ import PrivateRoute from "./PrivateRoute";
 import AdminDashboard from "../pages/AdminDashboard";
 import CajeroDashboard from "../pages/CajeroDashboard";
 import UserManagement from "../pages/UserManagement"; // tu CRUD de usuarios
+import ProductManagement from "../pages/ProductManagement"; // tu CRUD de productos
+
 
 function AppRoutes() {
   return (
@@ -51,6 +53,16 @@ function AppRoutes() {
             </PrivateRoute>
           }
         />
+        
+        {/* 🔹 Ruta CRUD productos (solo para administradores) */}
+        <Route
+          path="/productos"
+          element={
+            <PrivateRoute role="ADMINISTRADOR">
+              <ProductManagement />
+            </PrivateRoute>
+          }
+        />        
       </Routes>
     </Router>
   );

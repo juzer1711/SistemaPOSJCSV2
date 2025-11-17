@@ -16,6 +16,12 @@ const AdminDashboard = () => {
       action: () => navigate("/gestion-usuarios"),
     },
     {
+      title: "Gestión de Productos",
+      description: "Administra y gestiona todos los productos.",
+      icon: <PeopleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
+      action: () => navigate("/gestion-productos"),
+    },
+    {
       title: "Reportes",
       description: "Consulta reportes detallados de ventas y actividades.",
       icon: <BarChartIcon sx={{ fontSize: 40, color: "primary.main" }} />,
