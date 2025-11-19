@@ -9,7 +9,7 @@ import UserTable from "../components/CrudUsuarios/UserTable";
 import UserFormDialog from "../components/CrudUsuarios/UserFormDialog";
 import UserSearchBar from "../components/CrudUsuarios/UserSearchBar";
 import { Box, Toolbar, Typography } from "@mui/material";
-import ConfirmDialog from "../components/CrudUsuarios/ConfirmDialog";
+import ConfirmDialog from "../components/ConfirmDialog";
 import { Snackbar, Alert } from "@mui/material";
 
 

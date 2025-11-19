@@ -74,3 +74,25 @@ export const productSchema = yup.object().shape({
     .oneOf(["ACTIVO", "INACTIVO"])
     .required("El estado es obligatorio"),
 });
+
+export const clientSchema = yup.object().shape({
+  nombre: yup
+    .string()
+    .required("El nombre del cliente es obligatorio")
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El nombre solo puede contener letras y espacios"),
+
+  documento: yup
+    .string()
+    .required("El documento es obligatorio")
+    .matches(/^[0-9]{6,12}$/, "El documento debe tener entre 6 y 12 dígitos numéricos"),
+
+  email: yup
+    .string()
+    .email("El correo no es válido")
+    .required("El correo es obligatorio"),
+
+  telefono: yup
+    .string()
+    .required("El teléfono es obligatorio")
+    .matches(/^[0-9]{7,10}$/, "El teléfono debe tener entre 7 y 10 dígitos"),
+});

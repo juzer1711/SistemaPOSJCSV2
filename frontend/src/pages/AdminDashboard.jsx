@@ -21,6 +21,12 @@ const AdminDashboard = () => {
       icon: <PeopleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
       action: () => navigate("/gestion-productos"),
     },
+        {
+      title: "Gestión de Clientes",  // Nueva tarjeta para gestionar clientes
+      description: "Administra y gestiona los clientes del sistema.",
+      icon: <PeopleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
+      action: () => navigate("/gestion-clientes"),  // Redirige a la nueva página
+    },
     {
       title: "Reportes",
       description: "Consulta reportes detallados de ventas y actividades.",

@@ -1,12 +1,12 @@
+// AppRoutes.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginContainer from "../containers/LoginContainer";
-import Dashboard from "../pages/Dashboard";
-import PrivateRoute from "./PrivateRoute";
 import AdminDashboard from "../pages/AdminDashboard";
 import CajeroDashboard from "../pages/CajeroDashboard";
-import UserManagement from "../pages/UserManagement"; // tu CRUD de usuarios
-import ProductManagement from "../pages/ProductManagement"; // tu CRUD de productos
-
+import UserManagement from "../pages/UserManagement"; // CRUD de usuarios
+import ProductManagement from "../pages/ProductManagement"; // CRUD de productos
+import ClientManagement from "../pages/ClientManagement"; // CRUD de clientes
+import PrivateRoute from "./PrivateRoute"; // Componente para proteger rutas
 
 function AppRoutes() {
   return (
@@ -15,19 +15,9 @@ function AppRoutes() {
         {/* 🔹 Ruta pública (login) */}
         <Route path="/" element={<LoginContainer />} />
 
-        {/* 🔹 Ruta general protegida (acceso según rol) */}
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
-
         {/* 🔹 Rutas específicas según tipo de usuario */}
         <Route
-          path="/admin"
+          path="/admin-dashboard"
           element={
             <PrivateRoute rol="ADMINISTRADOR">
               <AdminDashboard />
@@ -36,7 +26,7 @@ function AppRoutes() {
         />
 
         <Route
-          path="/cajero"
+          path="/cajero-dashboard"
           element={
             <PrivateRoute rol="CAJERO">
               <CajeroDashboard />
@@ -46,7 +36,7 @@ function AppRoutes() {
 
         {/* 🔹 Ruta CRUD usuarios (solo para administradores) */}
         <Route
-          path="/usuarios"
+          path="/gestion-usuarios"
           element={
             <PrivateRoute rol="ADMINISTRADOR">
               <UserManagement />
@@ -56,10 +46,20 @@ function AppRoutes() {
         
         {/* 🔹 Ruta CRUD productos (solo para administradores) */}
         <Route
-          path="/productos"
+          path="/gestion-productos"
           element={
-            <PrivateRoute role="ADMINISTRADOR">
+            <PrivateRoute rol="ADMINISTRADOR">
               <ProductManagement />
+            </PrivateRoute>
+          }
+        />
+
+        {/* 🔹 Ruta CRUD clientes (solo para administradores) */}
+        <Route
+          path="/gestion-clientes"
+          element={
+            <PrivateRoute rol="ADMINISTRADOR">
+              <ClientManagement />
             </PrivateRoute>
           }
         />        
