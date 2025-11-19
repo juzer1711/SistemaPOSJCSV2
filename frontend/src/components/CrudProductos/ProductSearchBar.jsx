@@ -2,7 +2,8 @@ import React from "react";
 import { Box, TextField, InputAdornment, Button } from "@mui/material";
 import { Add, Search } from "@mui/icons-material";
 
-const ProductSearchBar = ({ filter, onFilterChange, onAdd }) => (
+const ProductSearchBar = ({ filter, onFilterChange, onAdd, showInactive, onToggleInactive }) => {
+  return (
   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
     <TextField
       size="small"
@@ -17,10 +18,28 @@ const ProductSearchBar = ({ filter, onFilterChange, onAdd }) => (
         ),
       }}
     />
-    <Button variant="contained" startIcon={<Add />} onClick={onAdd}>
-      Nuevo producto
-    </Button>
-  </Box>
-);
+      {/* Botones */}
+      <Box>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<Add />} 
+          sx={{ mr: 1 }}
+          onClick={onAdd}
+        >
+          Agregar
+        </Button>
+
+        <Button 
+          variant="outlined" 
+          onClick={onToggleInactive}
+        >
+          {showInactive ? "Ver activos" : "Ver inactivos"}
+        </Button>
+      </Box>
+
+    </Box>
+  );
+};
 
 export default ProductSearchBar;

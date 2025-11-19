@@ -1,7 +1,6 @@
 package com.sistemaposjcs.sistemaposjcs.service;
 
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
-import com.sistemaposjcs.sistemaposjcs.model.EstadoProducto;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,20 +15,24 @@ public class ProductoService {
         this.productoRepository = productoRepository;
     }
 
-    // ✔ Listar todos los productos
-    public List<Producto> getAllProductos() {
-        return productoRepository.findAll();
-    }
-
     // ✔ Obtener un producto por ID
     public Producto getProductoById(Long id) {
         return productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
     }
 
+    // ✅ Listar todos los usuarios inactivos
+    public List<Producto> getInactiveProductos() {
+        return productoRepository.findByEstadoFalse();
+    }
+
+    public List<Producto> getActiveProductos() {
+        return productoRepository.findByEstadoTrue();
+    }
+
+
     // ✔ Crear producto
     public Producto createProducto(Producto producto) {
-        producto.setEstado(EstadoProducto.ACTIVO);
         return productoRepository.save(producto);
     }
 
@@ -45,17 +48,19 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
-    // ✔ Desactivar producto 
     public void desactivarProducto(Long id) {
-        Producto producto = getProductoById(id);
-        producto.setEstado(EstadoProducto.INACTIVO);
-        productoRepository.save(producto);
+        Producto p = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        p.setEstado(false);    // 🔥 Inactiva
+        productoRepository.save(p);
     }
 
-    // ✔ Activar producto 
-    public void activarProducto(Long id) {
-        Producto producto = getProductoById(id);
-        producto.setEstado(EstadoProducto.ACTIVO);
-        productoRepository.save(producto);
+    public Producto activarProducto(Long id) {
+    Producto p = productoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+    p.setEstado(true);     // 🔥 Activa
+    return productoRepository.save(p);
     }
 }

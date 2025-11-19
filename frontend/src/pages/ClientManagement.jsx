@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { getActiveClients, getInactiveClients, deactivateClient, activateClient } from "../services/clientservice";
+import { getActiveClients, getInactiveClients, deactivateClient, activateClient } from "../services/clientService";
 import ClientTable from "../components/CrudClientes/ClientTable";
 import ClientFormDialog from "../components/CrudClientes/ClientFormDialog";
 import ClientSearchBar from "../components/CrudClientes/ClientSearchBar";
 import { Box, Toolbar, Typography } from "@mui/material";
 import ConfirmDialog from "../components/ConfirmDialog"; 
-import SuccessDialog from "../components/SuccessDialog";
 import { Snackbar, Alert } from "@mui/material";
 
 
@@ -15,13 +14,16 @@ const ClientManagement = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [showInactive, setShowInactive] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogInfo, setDialogInfo] = useState({});
   const [selectedId, setSelectedId] = useState(null);
-  const [showInactive, setShowInactive] = useState(false);
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [snackbar, setSnackbar] = useState({open: false,message: "",severity: "success",});
+
+
+    useEffect(() => {
+    loadClients();
+  }, [showInactive]);
 
 
   // Función que recarga los clientes
@@ -33,30 +35,21 @@ const ClientManagement = () => {
   setClients(res.data);
 };
 
-  // Función que muestra los mensajes de éxito 
-  const showMessage = (msg, type = "success") => {
-    setSnackbar({ open: true, message: msg, severity: type });
+  // Abre el formulario en modo "Agregar nuevo cliente"
+  const handleAdd = () => {
+    setEditing(false);
+    setSelectedClient(null);
+    setOpen(true);
   };
 
-  useEffect(() => {
-    loadClients();
-  }, [showInactive]);
+  const handleEdit = (client) => {
+    setEditing(true); // Esto indica que estamos editando, no creando un nuevo cliente
+    setSelectedClient(client); // Guardamos los datos del cliente que se está editando
+    setOpen(true); // Abrimos el formulario de edición
+    };
 
 
-
-
-  const handleSearch = async (searchTerm) => {
-    setFilter(searchTerm);
-    if (searchTerm) {
-      const response = await getActiveClients();
-      setClients(response.data.filter((client) => client.nombre.includes(searchTerm) || client.documento.includes(searchTerm) || client.email.includes(searchTerm)));
-    } else {
-      const response = await getActiveClients();
-      setClients(response.data);
-    }
-  };
-
-  const openDeactivateDialog = (id) => {
+    const openDeactivateDialog = (id) => {
     setSelectedId(id);
     setDialogInfo({
       title: "¿Desactivar cliente?",
@@ -67,6 +60,7 @@ const ClientManagement = () => {
     setDialogOpen(true);
   };
 
+  
   const openActivateDialog = (id) => {
     setSelectedId(id);
     setDialogInfo({
@@ -88,22 +82,28 @@ const ClientManagement = () => {
       await activateClient(selectedId);
       showMessage("Cliente activado correctamente");
     }
+    loadClients();  
+  };
 
-    await loadClients();  
+  const handleInactive = (id) => {
+    openDeactivateDialog(id);
+  };
+
+  const handleActivate = (id) => {
+    openActivateDialog(id);
   };
 
 
-  const toggleInactive = () => {
-    setShowInactive(prev => !prev);
+    // Función que muestra los mensajes de éxito 
+  const showMessage = (msg, type = "success") => {
+    setSnackbar({ open: true, message: msg, severity: type });
   };
 
 
-    const handleEdit = (client) => {
-    // Cuando se hace clic en el botón de editar, se marca que estamos en modo de edición
-    setEditing(true); // Esto indica que estamos editando, no creando un nuevo cliente
-    setSelectedClient(client); // Guardamos los datos del cliente que se está editando
-    setOpen(true); // Abrimos el formulario de edición
-    };
+  const filtered = clients.filter((c) =>
+    `${c.nombre} ${c.apellido} ${c.idCliente} ${c.documento}`.toLowerCase().includes(filter.toLowerCase())
+  );
+
 
   return (
   <Box sx={{ p: 3 }}>
@@ -114,18 +114,19 @@ const ClientManagement = () => {
 
     {/* === BARRA DE BUSQUEDA + ACCIONES === */}
     <ClientSearchBar
-      onSearch={handleSearch}
-      onAdd={() => setOpen(true)}
-      showInactive={showInactive}
-      onToggleInactive={toggleInactive}
+        filter={filter}
+        onFilterChange={setFilter}
+        onAdd={handleAdd}
+        showInactive={showInactive}
+        onToggleInactive={() => setShowInactive(prev => !prev)}
     />
 
     {/* === TABLA DE CLIENTES === */}
     <ClientTable
-      clients={clients}
+      clients={filtered}
       onEdit={handleEdit}
-      onDelete={openDeactivateDialog}
-      onActivate={openActivateDialog}
+      onDelete={handleInactive}
+      onActivate={handleActivate}
     />
 
     {/* === FORMULARIO AL CREAR/EDITAR === */}
@@ -134,7 +135,11 @@ const ClientManagement = () => {
       editing={editing}
       selectedId={selectedClient?.idCliente}
       defaultValues={selectedClient}
-      onClose={() => setOpen(false)}
+      onClose={() => {
+        setOpen(false);
+        setEditing(false);
+        setSelectedClient(null);
+      }}
       loadClients={loadClients}
       showMessage={showMessage}
     />

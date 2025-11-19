@@ -2,73 +2,88 @@ import axios from "axios";
 
 const API_URL = "http://localhost:8080/api/productos";
 
-//  Obtener todos los productos
-export const getProducts = async () => {
-  return await axios.get(API_URL);
+// Obtener headers dinámicamente
+const getAuthHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
+// Obtener todos los productos activos
+export const getActiveProducts = async () => {
+  return await axios.get(`${API_URL}`, {
+    headers: getAuthHeaders(),
+  });
+};
+
+// Obtener todos los productos inactivos
+export const getInactiveProducts = async () => {
+  return await axios.get(`${API_URL}/inactivos`, {
+    headers: getAuthHeaders(),
+  });
 };
 
 //  Obtener producto por ID
 export const getProductoById = async (id) => {
-  return await axios.get(`${API_URL}/${id}`);
+   return await axios.get(`${API_URL}/${id}`, {
+    headers: getAuthHeaders(),
+  });
+};
+
+// Desactivar producto (borrado lógico)
+export const deactivateProduct = async (id) => {
+  return await axios.delete(`${API_URL}/desactivar/${id}`, {
+    headers: getAuthHeaders(),
+  });
+};
+
+// Activar producto
+export const activateProduct = async (id) => {
+  return await axios.put(`${API_URL}/activar/${id}`, {}, {
+    headers: getAuthHeaders(),
+  });
 };
 
 //  Crear producto
-export const createProduct = async (data) => {
+export const createProduct = async (productData) => {
   try {
-    const res = await axios.post(API_URL, data);
+    const res = await axios.post(API_URL, productData, {
+      headers: getAuthHeaders(),
+    });
     return res.data;
   } catch (error) {
-    if (error.response) {
-      const { status, data } = error.response;
-
-      //  Errores de validación
-      if (status === 400 && typeof data === "object") {
-        throw { type: "validation", errors: data };
-      }
-
-      //  Errores por duplicados
-      if (status === 409 && typeof data === "object") {
-        throw { type: "duplicate", errors: data };
-      }
-
-      //  Otros errores
-      throw { type: "server", message: data?.message || "Error en el servidor" };
-    }
-
-    throw { type: "network", message: "No se pudo conectar con el servidor" };
+    throw formatAxiosError(error);
   }
 };
 
 //  Actualizar producto
-export const updateProduct = async (id, data) => {
+export const updateProduct = async (id, productData) => {
   try {
-    const res = await axios.put(`${API_URL}/${id}`, data);
+    const res = await axios.put(`${API_URL}/${id}`, productData, {
+      headers: getAuthHeaders(),
+    });
     return res.data;
   } catch (error) {
-    if (error.response) {
-      const { status, data } = error.response;
-
-      if (status === 400 && typeof data === "object") {
-        throw { type: "validation", errors: data };
-      }
-
-      if (status === 409 && typeof data === "object") {
-        throw { type: "duplicate", errors: data };
-      }
-
-      throw { type: "server", message: data?.message || "Error en el servidor" };
-    }
-
-    throw { type: "network", message: "Error de conexión" };
+    throw formatAxiosError(error);
   }
 };
 
-//  Desactivar producto
-export const desactivarProducto = async (id) => {
-  return await axios.put(`${API_URL}/desactivar/${id}`);
-};
+// Manejo de errores
+function formatAxiosError(error) {
+  if (error.response) {
+    const data = error.response.data;
 
-//  Activar producto
-export const activarProducto = async (id) => {
-  return await axios.put(`${API_URL}/activar/${id}`);
-};
+    // Detecta el mensaje del backend
+    const backendMessage =
+      data?.message ||
+      Object.values(data)?.[0] ||   // si viene { campo: "error" }
+      JSON.stringify(data) ||
+      "Error desconocido";
+
+    const err = new Error(backendMessage);
+    err.status = error.response.status;
+    err.raw = data;
+    return err;
+  }
+
+  return new Error("No se pudo conectar al servidor");
+}

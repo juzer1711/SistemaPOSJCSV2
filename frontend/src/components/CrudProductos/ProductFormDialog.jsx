@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Button, Box
@@ -13,31 +13,23 @@ import {
   updateProduct
 } from "../../services/productService";
 
-const ProductFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loadProducts }) => {
-
-  const {
-    register,
-    handleSubmit,
-    setError,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm({
+const ProductFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loadProducts, showMessage }) => {
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: yupResolver(productSchema),
     defaultValues: defaultValues || {},
   });
 
-React.useEffect(() => {
-  if (editing && defaultValues) {
-    reset(defaultValues);
-  } else {
+useEffect(() => {
+  if (!editing) {
     reset({
       nombre: "",
       categoria: "",
       costo: "",
       precioVenta: "",
-      estado: "ACTIVO",
     });
-  }
+  }else {
+      reset(defaultValues || {});
+    }
 }, [defaultValues, editing, reset]);
 
 
@@ -45,37 +37,18 @@ React.useEffect(() => {
     try {
       if (editing) {
         await updateProduct(selectedId, data);
+        showMessage("Producto actualizado con éxito", "success");
       } else {
         await createProduct(data);
+        showMessage("Producto creado con éxito", "success");
       }
-
-      alert(editing ? "Producto actualizado con éxito" : "Producto creado con éxito");
-
+      reset({});
       onClose();
       loadProducts();
 
     } catch (error) {
-      console.error("❌ Error al guardar producto:", error);
-
-      // Errores de validación desde backend
-      if (error.type === "validation" && error.errors) {
-        Object.entries(error.errors).forEach(([campo, mensaje]) => {
-          setError(campo, { type: "server", message: mensaje });
-        });
-        return;
-      }
-
-      // Errores de duplicado
-      if (error.type === "duplicate" && error.errors) {
-        Object.entries(error.errors).forEach(([campo, mensaje]) => {
-          setError(campo, { type: "server", message: mensaje });
-        });
-        return;
-      }
-
-      // Otros errores
-      alert(error.message || "⚠️ Error inesperado");
-    }
+  showMessage(error.message, "error");
+  }
   };
 
   return (
@@ -121,27 +94,17 @@ React.useEffect(() => {
               helperText={errors.precioventa?.message}
             />
 
-            <TextField
-              label="Estado"
-              {...register("estado")}
-              error={!!errors.estado}
-              helperText={errors.estado?.message}
-            />
-
+            <DialogActions>
+              <Button onClick={onClose}>Cancelar</Button>
+              <Button
+                type="submit"
+                variant="contained"
+              >
+                {editing ? "Guardar" : "Crear"}
+              </Button>
+          </DialogActions>
         </Box>
       </DialogContent>
-
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button
-          type="submit"
-          form="product-form"
-          variant="contained"
-          disabled={isSubmitting}
-        >
-          {editing ? "Guardar" : "Crear"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };

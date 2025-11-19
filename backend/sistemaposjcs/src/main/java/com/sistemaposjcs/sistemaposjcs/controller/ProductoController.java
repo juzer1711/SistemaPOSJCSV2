@@ -1,13 +1,11 @@
 package com.sistemaposjcs.sistemaposjcs.controller;
 
+import com.sistemaposjcs.sistemaposjcs.dto.ProductoDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
 import com.sistemaposjcs.sistemaposjcs.service.ProductoService;
-
 import jakarta.validation.Valid;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -21,25 +19,49 @@ public class ProductoController {
         this.productoService = productoService;
     }
 
-    //  Crear producto
-    @PostMapping
-    public ResponseEntity<Producto> createProducto(@Valid @RequestBody Producto producto) {
-        return ResponseEntity.ok(productoService.createProducto(producto));
-    }
-
-    //  Obtener todos los productos
+    //  1. Listar todos los usuarios
     @GetMapping
-    public ResponseEntity<List<Producto>> getAllProductos() {
-        return ResponseEntity.ok(productoService.getAllProductos());
+    public List<ProductoDTO> getActiveProductos() {
+        return productoService.getActiveProductos()
+            .stream()
+            .map(p -> new ProductoDTO(
+                p.getIdProducto(),
+                p.getNombre(),
+                p.getCategoria(),
+                p.getCosto(),
+                p.getPrecioventa(),
+                p.getEstado()))
+            .toList();
     }
 
-    //  Obtener producto por ID
+    @GetMapping("/inactivos")
+    public List<ProductoDTO> getInactiveProductos() {
+        return productoService.getInactiveProductos()
+            .stream()
+            .filter(p -> p.getEstado() == false)
+            .map(p -> new ProductoDTO(
+                p.getIdProducto(),
+                p.getNombre(),
+                p.getCategoria(),
+                p.getCosto(),
+                p.getPrecioventa(),
+                p.getEstado()))
+            .toList();
+    }
+
+    // 2. Obtener producto por ID
     @GetMapping("/{id}")
     public ResponseEntity<Producto> getProductoById(@PathVariable Long id) {
         return ResponseEntity.ok(productoService.getProductoById(id));
     }
 
-    //  Actualizar producto
+    //  3. Crear producto
+    @PostMapping
+    public ResponseEntity<Producto> createProducto(@Valid @RequestBody Producto producto) {
+        return ResponseEntity.ok(productoService.createProducto(producto));
+    }
+
+    //  4. Actualizar producto
     @PutMapping("/{id}")
     public ResponseEntity<Producto> updateProducto(
             @PathVariable Long id,
@@ -48,18 +70,16 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.updateProducto(id, producto));
     }
 
-    //  Desactivar producto (eliminación lógica)
-    @PutMapping("/desactivar/{id}")
-    public ResponseEntity<String> desactivarProducto(@PathVariable Long id) {
+    //  5. Activar/Desactivar usuario
+    @DeleteMapping("/desactivar/{id}")
+    public ResponseEntity<Void> desactivarProducto(@PathVariable Long id) {
         productoService.desactivarProducto(id);
-        return ResponseEntity.ok("Producto desactivado correctamente");
+        return ResponseEntity.noContent().build();
     }
 
-    //  Activar producto
     @PutMapping("/activar/{id}")
-    public ResponseEntity<String> activarProducto(@PathVariable Long id) {
-        productoService.activarProducto(id);
-        return ResponseEntity.ok("Producto activado correctamente");
+    public ResponseEntity<Producto> activarProducto(@PathVariable Long id) {
+        return ResponseEntity.ok(productoService.activarProducto(id));
     }
 }
 

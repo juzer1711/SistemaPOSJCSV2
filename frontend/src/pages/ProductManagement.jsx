@@ -1,24 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { getProducts, desactivarProducto, activarProducto } from "../services/productService";
+import { getActiveProducts, getInactiveProducts, deactivateProduct, activateProduct } from "../services/productService";
 import ProductTable from "../components/CrudProductos/ProductTable";
 import ProductFormDialog from "../components/CrudProductos/ProductFormDialog";
 import ProductSearchBar from "../components/CrudProductos/ProductSearchBar";
 import { Box, Toolbar, Typography } from "@mui/material";
+import ConfirmDialog from "../components/ConfirmDialog"; 
+import { Snackbar, Alert } from "@mui/material";
 
-export default function ProductManagement() {
+const ProductManagement = () => {
   const [products, setProducts] = useState([]); // Lista de productos
   const [filter, setFilter] = useState(""); // Texto del buscador
   const [open, setOpen] = useState(false); // Control del modal
   const [editing, setEditing] = useState(false); // Modo edición/crear
   const [selectedProduct, setSelectedProduct] = useState(null); // Producto seleccionado
+  const [showInactive, setShowInactive] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogInfo, setDialogInfo] = useState({});
+  const [selectedId, setSelectedId] = useState(null);
+  const [snackbar, setSnackbar] = useState({open: false,message: "",severity: "success",});
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [showInactive]);
 
   // Cargar productos del backend
   const loadProducts = async () => {
-    const res = await getProducts();
+    const res = showInactive
+        ? await getInactiveProducts()
+        : await getActiveProducts();
     setProducts(res.data);
   };
 
@@ -36,25 +45,56 @@ export default function ProductManagement() {
     setOpen(true);
   };
 
-// Activar o desactivar producto
-const handleToggleStatus = async (producto) => {
-  const accion =
-    producto.estado === "ACTIVO" ? "desactivar" : "activar";
 
-  if (window.confirm(`¿Deseas ${accion} este producto?`)) {
-    try {
-      if (producto.estado === "ACTIVO") {
-        await desactivarProducto(producto.idProducto);
-      } else {
-        await activarProducto(producto.idProducto);
-      }
+    const openDeactivateDialog = (id) => {
+    setSelectedId(id);
+    setDialogInfo({
+      title: "¿Desactivar producto?",
+      message: "Usted no podrá acceder a los datos del producto.",
+      confirmText: "Desactivar",
+      confirmColor: "error",
+    });
+    setDialogOpen(true);
+  };
 
-      loadProducts(); // recargar la tabla
-    } catch (error) {
-      console.error("Error al cambiar estado del producto", error);
+  
+  const openActivateDialog = (id) => {
+    setSelectedId(id);
+    setDialogInfo({
+      title: "¿Activar producto?",
+      message: "Usted podrá acceder a los datos del producto nuevamente.",
+      confirmText: "Activar",
+      confirmColor: "primary",
+    });
+    setDialogOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    setDialogOpen(false);
+
+    if (dialogInfo.confirmText === "Desactivar") {
+      await deactivateProduct(selectedId);
+      showMessage("Producto desactivado correctamente");
+    } else {
+      await activateProduct(selectedId);
+      showMessage("Producto activado correctamente");
     }
-  }
-};
+    loadProducts();  
+  };
+
+  const handleInactive = (id) => {
+    openDeactivateDialog(id);
+  };
+
+  const handleActivate = (id) => {
+    openActivateDialog(id);
+  };
+
+
+    // Función que muestra los mensajes de éxito 
+  const showMessage = (msg, type = "success") => {
+    setSnackbar({ open: true, message: msg, severity: type });
+  };
 
   // Filtro de búsqueda
   const filtered = products.filter((p) =>
@@ -69,12 +109,17 @@ const handleToggleStatus = async (producto) => {
         <Typography variant="h6">Gestión de Productos</Typography>
       </Toolbar>
 
-      <ProductSearchBar filter={filter} onFilterChange={setFilter} onAdd={handleAdd} />
+      <ProductSearchBar filter={filter} 
+      onFilterChange={setFilter} 
+      onAdd={handleAdd} 
+      showInactive={showInactive} 
+      onToggleInactive={() => setShowInactive(prev => !prev)} />
 
       <ProductTable
         products={filtered}
         onEdit={handleEdit}
-        onToggleState={handleToggleStatus}
+        onDelete={handleInactive}
+        onActivate={handleActivate}
       />
 
       <ProductFormDialog
@@ -82,9 +127,39 @@ const handleToggleStatus = async (producto) => {
         editing={editing}
         selectedId={selectedProduct?.idProducto}
         defaultValues={selectedProduct}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+        setOpen(false);
+        setEditing(false);
+        setSelectedProduct(null);
+      }}
         loadProducts={loadProducts}
+        showMessage={showMessage}
       />
+      <ConfirmDialog
+        open={dialogOpen}
+        title={dialogInfo.title}
+        message={dialogInfo.message}
+        confirmText={dialogInfo.confirmText}
+        confirmColor={dialogInfo.confirmColor}
+        onClose={() => setDialogOpen(false)}
+        onConfirm={handleConfirm}
+      />
+      
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2500}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
-}
+};
+
+export default ProductManagement;

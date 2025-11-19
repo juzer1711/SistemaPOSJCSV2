@@ -37,7 +37,5 @@ public class Producto {
     @Column(nullable = false)
     private Double precioventa;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoProducto estado = EstadoProducto.ACTIVO;
+    private Boolean estado = true;
 }

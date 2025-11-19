@@ -89,7 +89,7 @@ const handleConfirm = async () => {
   loadUsers();
 };
 
-const handleDelete = (id) => {
+const handleInactive = (id) => {
   openDeactivateDialog(id);
 };
 
@@ -122,7 +122,7 @@ const showMessage = (msg, type = "success") => {
       <UserTable
         users={filtered}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={handleInactive}
         onActivate={handleActivate}
       />
 
@@ -132,7 +132,11 @@ const showMessage = (msg, type = "success") => {
         editing={editing}
         selectedId={selectedUser?.idUsuario}
         defaultValues={selectedUser}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+          setEditing(false);
+          setSelectedUser(null);
+        }}
         loadUsers={loadUsers}
         showMessage={showMessage}
       />

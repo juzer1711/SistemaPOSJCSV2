@@ -74,27 +74,13 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
         await createUser(data);
         showMessage("Usuario creado exitosamente", "success");
       }
+      reset({});
       onClose();
       loadUsers();
     } catch (error) {
-      console.error("❌ Error:", error);
-
-      if (error.type === "validation" && error.errors) {
-        Object.entries(error.errors).forEach(([field, message]) => {
-          setError(field, { type: "server", message });
-        });
-        return;
-      }
-
-      if (error.type === "duplicate") {
-        Object.entries(error.errors).forEach(([field, message]) => {
-          setError(field, { type: "server", message });
-        });
-        return;
-      }
-
-      alert(error.message || "Error desconocido");
+      showMessage(error.message, "error");
     }
+
   };
 
   return (

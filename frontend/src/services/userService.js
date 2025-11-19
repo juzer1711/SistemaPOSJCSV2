@@ -24,14 +24,14 @@ export const getInactiveUsers = async () => {
 
 // Desactivar usuario (borrado lógico)
 export const deactivateUser = async (id) => {
-  return await axios.delete(`${API_URL}/${id}`, {
+  return await axios.delete(`${API_URL}/desactivar/${id}`, {
     headers: getAuthHeaders()
   });
 };
 
 // Activar usuario
 export const activateUser = async (id) => {
-  return await axios.put(`${API_URL}/${id}/activar`, {}, {
+  return await axios.put(`${API_URL}/activar/${id}`, {}, {
     headers: getAuthHeaders()
   });
 };
@@ -73,13 +73,20 @@ export const updateUser = async (id, userData) => {
 // Manejo de errores
 function formatAxiosError(error) {
   if (error.response) {
-    const { status, data } = error.response;
+    const data = error.response.data;
 
-    if (status === 400) return { type: "validation", errors: data };
-    if (status === 409) return { type: "duplicate", errors: data };
+    // Detecta el mensaje del backend
+    const backendMessage =
+      data?.message ||
+      Object.values(data)?.[0] ||   // si viene { campo: "error" }
+      JSON.stringify(data) ||
+      "Error desconocido";
 
-    return { type: "server", message: data?.message || "Error del servidor" };
+    const err = new Error(backendMessage);
+    err.status = error.response.status;
+    err.raw = data;
+    return err;
   }
 
-  return { type: "network", message: "No se pudo conectar al servidor" };
+  return new Error("No se pudo conectar al servidor");
 }

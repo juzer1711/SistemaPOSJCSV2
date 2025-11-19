@@ -22,8 +22,6 @@ public class UserController {
         this.userService = userService;
     }
 
-
-
     //  1. Listar todos los usuarios
 @GetMapping
 public List<UserDTO> getActiveUsers() {
@@ -81,13 +79,13 @@ public List<UserDTO> getInactiveUsers() {
     }
 
     //  5. Activar/Desactivar usuario
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/desactivar/{id}")
     public ResponseEntity<Void> desactivarUsuario(@PathVariable Long id) {
         userService.desactivarUsuario(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/activar")
+    @PutMapping("/activar/{id}")
     public ResponseEntity<Usuario> activarUsuario(@PathVariable Long id) {
         return ResponseEntity.ok(userService.activarUsuario(id));
     }

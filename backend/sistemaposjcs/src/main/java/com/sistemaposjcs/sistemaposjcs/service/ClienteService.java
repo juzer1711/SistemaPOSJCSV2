@@ -20,12 +20,12 @@ public class ClienteService {
     }
 
     // ✅ Listar todos los usuarios
-    public List<Cliente> getAllInactiveClientes() {
-        return clienteRepository.findAll();
+    public List<Cliente> getInactiveClientes() {
+        return clienteRepository.findByEstadoFalse();
     }
 
     
-    public List<Cliente> getAllActiveClientes() {
+    public List<Cliente> getActiveClientes() {
     return clienteRepository.findByEstadoTrue();
     }
 
