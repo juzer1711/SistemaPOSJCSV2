@@ -101,10 +101,6 @@ const showMessage = (msg, type = "success") => {
   setSnackbar({ open: true, message: msg, severity: type });
 };
 
-
-
-
-
   // Aplica el filtro de búsqueda (nombre, apellido, id, rol o documento)
   const filtered = users.filter((u) =>
     `${u.nombre} ${u.apellido} ${u.idUsuario} ${u.rol.nombre} ${u.documento}`.toLowerCase().includes(filter.toLowerCase())

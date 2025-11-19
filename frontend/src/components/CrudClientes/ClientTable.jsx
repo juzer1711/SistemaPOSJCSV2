@@ -4,33 +4,6 @@ import { Edit, Delete, Add, Search } from "@mui/icons-material";
 
 const ClientTable = ({ clients, onEdit, onDelete, onActivate, loading, onSearch, searchTerm, onClear }) => (
   <>
-    {/* Barra de búsqueda y botones */}
-    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-      {/* Barra de búsqueda */}
-      <TextField
-        size="small"
-        placeholder="Buscar cliente..."
-        value={searchTerm}
-        onChange={(e) => onSearch(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search />
-            </InputAdornment>
-          ),
-        }}
-      />
-      {/* Botones */}
-      <Box>
-        <Button variant="contained" color="primary" startIcon={<Add />} sx={{ mr: 1 }}>
-          Agregar
-        </Button>
-        <Button variant="outlined" onClick={onClear}>
-          Limpiar
-        </Button>
-      </Box>
-    </Box>
-
     {/* Tabla de Clientes */}
     <TableContainer component={Paper}>
       <Table size="small">
@@ -38,6 +11,7 @@ const ClientTable = ({ clients, onEdit, onDelete, onActivate, loading, onSearch,
           <TableRow>
             <TableCell>ID</TableCell>
             <TableCell>Nombre</TableCell>
+            <TableCell>Apellido</TableCell>
             <TableCell>Documento</TableCell>
             <TableCell>Email</TableCell>
             <TableCell>Teléfono</TableCell>
@@ -50,6 +24,7 @@ const ClientTable = ({ clients, onEdit, onDelete, onActivate, loading, onSearch,
               <TableRow key={c.idCliente}>
                 <TableCell>{c.idCliente}</TableCell>
                 <TableCell>{c.nombre}</TableCell>
+                <TableCell>{c.apellido}</TableCell>
                 <TableCell>{c.documento}</TableCell>
                 <TableCell>{c.email}</TableCell>
                 <TableCell>{c.telefono}</TableCell>

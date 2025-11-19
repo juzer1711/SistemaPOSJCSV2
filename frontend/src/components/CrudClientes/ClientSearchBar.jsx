@@ -1,38 +1,73 @@
 import React, { useState } from "react";
-import { TextField, Box, Button, Grid } from "@mui/material";
+import { TextField, Box, Button, InputAdornment  } from "@mui/material";
+import { Add, Search } from "@mui/icons-material";
 
-const ClientSearchBar = ({ onSearch }) => {
+const ClientSearchBar = ({
+  onSearch,
+  onAdd,
+  showInactive,
+  onToggleInactive,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearch = () => {
-    onSearch(searchTerm);  // Llamamos a la función onSearch para filtrar
+    onSearch(searchTerm);
   };
 
   const handleClear = () => {
-    setSearchTerm("");  // Limpiar la búsqueda
-    onSearch("");  // Volver a cargar todos los clientes
+    setSearchTerm("");
+    onSearch("");
   };
 
   return (
-    <Box sx={{ mb: 2 }}>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} sm={8} md={10}>
-          <TextField
-            label="Buscar Cliente"
-            fullWidth
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            variant="outlined"
-            size="small"
-          />
-        </Grid>
-        <Grid item xs={12} sm={4} md={2} display="flex" justifyContent="flex-end">
-          <Button variant="contained" onClick={handleSearch}>Buscar</Button>
-          <Button variant="outlined" onClick={handleClear} sx={{ ml: 1 }}>
-            Limpiar
-          </Button>
-        </Grid>
-      </Grid>
+    <Box
+      sx={{
+        display: "flex",
+        gap: 2,
+        flexWrap: "wrap",
+        alignItems: "center",
+        mb: 3,
+      }}
+    >
+      {/* Campo de búsqueda */}
+      <TextField
+        size="small"
+        placeholder="Buscar cliente..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+      />
+
+
+      {/* Botón Buscar */}
+      <Button variant="contained" onClick={handleSearch}>
+        Buscar
+      </Button>
+
+      {/* Botón Limpiar */}
+      <Button variant="outlined" onClick={handleClear}>
+        Limpiar
+      </Button>
+
+      {/* Botón Agregar */}
+      <Button
+        variant="contained"
+        startIcon={<Add />}
+        onClick={onAdd}
+      >
+        Agregar
+      </Button>
+
+      {/* Botón Mostrar activos/inactivos */}
+      <Button variant="outlined" onClick={onToggleInactive}>
+        {showInactive ? "Mostrar Activos" : "Mostrar Inactivos"}
+      </Button>
     </Box>
   );
 };

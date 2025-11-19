@@ -26,8 +26,8 @@ public class UserController {
 
     //  1. Listar todos los usuarios
 @GetMapping
-public List<UserDTO> getAllActiveUsers() {
-    return userService.getAllActiveUsers()
+public List<UserDTO> getActiveUsers() {
+    return userService.getActiveUsers()
         .stream()
         .map(u -> new UserDTO(
             u.getIdUsuario(),
@@ -44,7 +44,7 @@ public List<UserDTO> getAllActiveUsers() {
 
 @GetMapping("/inactivos")
 public List<UserDTO> getInactiveUsers() {
-    return userService.getAllUsers()
+    return userService.getInactiveUsers()
         .stream()
         .filter(u -> u.getEstado() == false)
         .map(u -> new UserDTO(
@@ -80,10 +80,10 @@ public List<UserDTO> getInactiveUsers() {
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
 
-    //  5. Eliminar usuario
+    //  5. Activar/Desactivar usuario
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<Void> desactivarUsuario(@PathVariable Long id) {
+        userService.desactivarUsuario(id);
         return ResponseEntity.noContent().build();
     }
 

@@ -3,9 +3,11 @@ import { getActiveClients, getInactiveClients, deactivateClient, activateClient 
 import ClientTable from "../components/CrudClientes/ClientTable";
 import ClientFormDialog from "../components/CrudClientes/ClientFormDialog";
 import ClientSearchBar from "../components/CrudClientes/ClientSearchBar";
-import { Box, Button } from "@mui/material";
-import ConfirmDialog from "../components/ConfirmDialog";  // Usando tu ConfirmDialog existente
-import SuccessDialog from "../components/SuccessDialog";  // Usando tu SuccessDialog existente
+import { Box, Toolbar, Typography } from "@mui/material";
+import ConfirmDialog from "../components/ConfirmDialog"; 
+import SuccessDialog from "../components/SuccessDialog";
+import { Snackbar, Alert } from "@mui/material";
+
 
 const ClientManagement = () => {
   const [clients, setClients] = useState([]);
@@ -19,32 +21,29 @@ const ClientManagement = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [snackbar, setSnackbar] = useState({open: false,message: "",severity: "success",});
+
 
   // Función que recarga los clientes
   const loadClients = async () => {
-    const response = showInactive ? await getInactiveClients() : await getActiveClients();
-    setClients(response.data);
-  };
+  const res = showInactive
+    ? await getInactiveClients()
+    : await getActiveClients();
 
-  // Función que muestra los mensajes de éxito o error
-  const showMessage = (message, type) => {
-    if (type === "success") {
-      setSuccessMessage(message);
-      setSuccessDialogOpen(true);
-    } else {
-      // Aquí podrías manejar los errores si lo necesitas
-      console.error(message);
-    }
+  setClients(res.data);
+};
+
+  // Función que muestra los mensajes de éxito 
+  const showMessage = (msg, type = "success") => {
+    setSnackbar({ open: true, message: msg, severity: type });
   };
 
   useEffect(() => {
-    const loadClients = async () => {
-      const response = showInactive ? await getInactiveClients() : await getActiveClients();
-      setClients(response.data);
-    };
-
     loadClients();
   }, [showInactive]);
+
+
+
 
   const handleSearch = async (searchTerm) => {
     setFilter(searchTerm);
@@ -84,23 +83,20 @@ const ClientManagement = () => {
 
     if (dialogInfo.confirmText === "Desactivar") {
       await deactivateClient(selectedId);
-      setSuccessMessage("Cliente desactivado correctamente.");
+      showMessage("Cliente desactivado correctamente");
     } else {
       await activateClient(selectedId);
-      setSuccessMessage("Cliente activado correctamente.");
+      showMessage("Cliente activado correctamente");
     }
 
-    setSuccessDialogOpen(true);
-
-    const response = await getActiveClients();
-    setClients(response.data);
+    await loadClients();  
   };
 
-  const handleSuccessDialogClose = () => {
-    setSuccessDialogOpen(false);
+
+  const toggleInactive = () => {
+    setShowInactive(prev => !prev);
   };
 
-  const toggleInactive = () => setShowInactive(!showInactive);
 
     const handleEdit = (client) => {
     // Cuando se hace clic en el botón de editar, se marca que estamos en modo de edición
@@ -110,48 +106,67 @@ const ClientManagement = () => {
     };
 
   return (
-    <Box>
-      <Button onClick={() => setOpen(true)}>Agregar Cliente</Button>
-      <Button onClick={toggleInactive}>
-        {showInactive ? "Mostrar Activos" : "Mostrar Inactivos"}
-      </Button>
+  <Box sx={{ p: 3 }}>
+    {/* === ENCABEZADO === */}
+    <Toolbar sx={{ justifyContent: "space-between" }}>
+      <Typography variant="h6">Gestión de Clientes</Typography>
+    </Toolbar>
 
-      <ClientSearchBar onSearch={handleSearch} />
+    {/* === BARRA DE BUSQUEDA + ACCIONES === */}
+    <ClientSearchBar
+      onSearch={handleSearch}
+      onAdd={() => setOpen(true)}
+      showInactive={showInactive}
+      onToggleInactive={toggleInactive}
+    />
 
-      <ClientTable
-        clients={clients}
-        onEdit={handleEdit}
-        onDelete={openDeactivateDialog}
-        onActivate={openActivateDialog}
-      />
+    {/* === TABLA DE CLIENTES === */}
+    <ClientTable
+      clients={clients}
+      onEdit={handleEdit}
+      onDelete={openDeactivateDialog}
+      onActivate={openActivateDialog}
+    />
 
-      <ClientFormDialog
-        open={open}
-        editing={editing}
-        selectedId={selectedClient?.idCliente}
-        defaultValues={selectedClient}
-        onClose={() => setOpen(false)}
-        loadClients={loadClients}  
-        showMessage={showMessage}
-      />
+    {/* === FORMULARIO AL CREAR/EDITAR === */}
+    <ClientFormDialog
+      open={open}
+      editing={editing}
+      selectedId={selectedClient?.idCliente}
+      defaultValues={selectedClient}
+      onClose={() => setOpen(false)}
+      loadClients={loadClients}
+      showMessage={showMessage}
+    />
 
-      {/* ConfirmDialog para desactivar/activar cliente */}
-      <ConfirmDialog
-        open={dialogOpen}
-        title={dialogInfo.title}
-        message={dialogInfo.message}
-        confirmText={dialogInfo.confirmText}
-        confirmColor={dialogInfo.confirmColor}
-        onClose={() => setDialogOpen(false)}
-        onConfirm={handleConfirm}
-      />
+    {/* === CONFIRMACIONES === */}
+    <ConfirmDialog
+      open={dialogOpen}
+      title={dialogInfo.title}
+      message={dialogInfo.message}
+      confirmText={dialogInfo.confirmText}
+      confirmColor={dialogInfo.confirmColor}
+      onClose={() => setDialogOpen(false)}
+      onConfirm={handleConfirm}
+    />
 
-      {/* SuccessDialog para mostrar mensaje de éxito */}
-      <SuccessDialog
-        open={successDialogOpen}
-        message={successMessage}
-      />
-    </Box>
+    {/* === MENSAJE DE ÉXITO === */}
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={2500}
+      onClose={() => setSnackbar({ ...snackbar, open: false })}
+    >
+      <Alert
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        variant="filled"
+      >
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+
+  </Box>
+
   );
 };
 

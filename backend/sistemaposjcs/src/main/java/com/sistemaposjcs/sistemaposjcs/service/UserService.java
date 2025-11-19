@@ -19,15 +19,19 @@ public class UserService {
         this.rolRepository = rolRepository;
     }
 
-    // ✅ Listar todos los usuarios
-    public List<Usuario> getAllUsers() {
-        return userRepository.findAll();
-    }
-
     // ✅ Obtener usuario por ID
     public Usuario getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    // ✅ Listar todos los usuarios inactivos
+    public List<Usuario> getInactiveUsers() {
+        return userRepository.findByEstadoFalse();
+    }
+
+    public List<Usuario> getActiveUsers() {
+        return userRepository.findByEstadoTrue();
     }
 
     // ✅ Crear usuario
@@ -72,12 +76,10 @@ public class UserService {
         return userRepository.save(usuario);
     }
 
-    public List<Usuario> getAllActiveUsers() {
-    return userRepository.findByEstadoTrue();
-    }
 
 
-    public void deleteUser(Long id) {
+
+    public void desactivarUsuario(Long id) {
         Usuario u = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 

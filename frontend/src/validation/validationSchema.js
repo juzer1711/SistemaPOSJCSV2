@@ -81,6 +81,11 @@ export const clientSchema = yup.object().shape({
     .required("El nombre del cliente es obligatorio")
     .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El nombre solo puede contener letras y espacios"),
 
+  apellido: yup
+    .string()
+    .required("El apellido del cliente es obligatorio")
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El apellido solo puede contener letras y espacios"),
+
   documento: yup
     .string()
     .required("El documento es obligatorio")

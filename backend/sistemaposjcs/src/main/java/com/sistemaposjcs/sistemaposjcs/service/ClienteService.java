@@ -12,17 +12,23 @@ public class ClienteService {
     public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
     }
-
-    // ✅ Listar todos los usuarios
-    public List<Cliente> getAllClientes() {
-        return clienteRepository.findAll();
-    }
-
+    
     // ✅ Obtener usuario por ID
     public Cliente getClienteById(Long id) {
         return clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
     }
+
+    // ✅ Listar todos los usuarios
+    public List<Cliente> getAllInactiveClientes() {
+        return clienteRepository.findAll();
+    }
+
+    
+    public List<Cliente> getAllActiveClientes() {
+    return clienteRepository.findByEstadoTrue();
+    }
+
 
     // ✅ Crear cliente
     public Cliente createCliente(Cliente cliente) {
@@ -41,10 +47,6 @@ public class ClienteService {
         cliente.setTelefono(clienteDetails.getTelefono());
 
         return clienteRepository.save(cliente);
-    }
-
-    public List<Cliente> getAllActiveClientes() {
-    return clienteRepository.findByEstadoTrue();
     }
 
 

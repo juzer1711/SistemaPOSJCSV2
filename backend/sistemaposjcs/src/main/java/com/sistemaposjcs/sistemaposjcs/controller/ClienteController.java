@@ -23,12 +23,6 @@ private final ClienteService clienteService;
         this.clienteService = clienteService;
     }
 
-    //  Crear cliente
-    @PostMapping
-    public ResponseEntity<Cliente> createCliente(@Valid @RequestBody Cliente cliente) {
-        return ResponseEntity.ok(clienteService.createCliente(cliente));
-    }
-
     // ✅ 1. Listar solo usuarios ACTIVOS
 @GetMapping
 public List<ClienteDTO> getAllActiveClientes() {
@@ -47,7 +41,7 @@ public List<ClienteDTO> getAllActiveClientes() {
 
     @GetMapping("/inactivos")
 public List<ClienteDTO> getInactiveClientes() {
-    return clienteService.getAllClientes()
+    return clienteService.getAllInactiveClientes()
         .stream()
         .filter(u -> u.getEstado() == false)
         .map(u -> new ClienteDTO(
@@ -63,8 +57,14 @@ public List<ClienteDTO> getInactiveClientes() {
 
     //  Obtener cliente por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> getProductoById(@PathVariable Long id) {
+    public ResponseEntity<Cliente> getClienteById(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.getClienteById(id));
+    }
+
+        //  Crear cliente
+    @PostMapping
+    public ResponseEntity<Cliente> createCliente(@Valid @RequestBody Cliente cliente) {
+        return ResponseEntity.ok(clienteService.createCliente(cliente));
     }
 
     //  Actualizar cliente
@@ -78,7 +78,7 @@ public List<ClienteDTO> getInactiveClientes() {
 
     // ✅ 5. Desactivar cliente
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> desactivarCliente(@PathVariable Long id) {
         clienteService.desactivarCliente(id);
         return ResponseEntity.noContent().build();
     }
