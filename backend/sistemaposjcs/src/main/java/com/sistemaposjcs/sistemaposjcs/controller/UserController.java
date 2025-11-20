@@ -3,6 +3,7 @@ package com.sistemaposjcs.sistemaposjcs.controller;
 import com.sistemaposjcs.sistemaposjcs.dto.UserDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Usuario;
 import com.sistemaposjcs.sistemaposjcs.service.UserService;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
 
 import jakarta.validation.Valid;
 
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -30,8 +32,11 @@ public List<UserDTO> getActiveUsers() {
         .map(u -> new UserDTO(
             u.getIdUsuario(),
             u.getUsername(),
-            u.getNombre(),
-            u.getApellido(),
+            u.getPrimerNombre(),
+            u.getSegundoNombre(),
+            u.getPrimerApellido(),
+            u.getSegundoApellido(),
+            u.getTipoDocumento(),
             u.getDocumento(),
             u.getRol(),
             u.getEmail(),
@@ -48,8 +53,11 @@ public List<UserDTO> getInactiveUsers() {
         .map(u -> new UserDTO(
             u.getIdUsuario(),
             u.getUsername(),
-            u.getNombre(),
-            u.getApellido(),
+            u.getPrimerNombre(),
+            u.getSegundoNombre(),
+            u.getPrimerApellido(),
+            u.getSegundoApellido(),
+            u.getTipoDocumento(),
             u.getDocumento(),
             u.getRol(),
             u.getEmail(),
@@ -89,6 +97,12 @@ public List<UserDTO> getInactiveUsers() {
     public ResponseEntity<Usuario> activarUsuario(@PathVariable Long id) {
         return ResponseEntity.ok(userService.activarUsuario(id));
     }
+
+    @GetMapping("/tipos-documento")
+    public TipoDocumento[] listarTiposDocumento() {
+        return TipoDocumento.values();
+    }
+
 
 
 }

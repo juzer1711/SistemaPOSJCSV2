@@ -17,15 +17,28 @@ export const userSchema = yup.object().shape({
       otherwise: (schema) => schema.notRequired(),
     }),
 
-  nombre: yup
+  primerNombre: yup
     .string()
-    .required("El nombre es obligatorio")
-    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El nombre solo puede contener letras y espacios"),
+    .required("El primer nombre es obligatorio")
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El nombre solo puede contener letras"),
 
-  apellido: yup
+  segundoNombre: yup
     .string()
-    .required("El apellido es obligatorio")
-    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El apellido solo puede contener letras y espacios"),
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El segundo nombre solo puede contener letras"),
+
+  primerApellido: yup
+    .string()
+    .required("El primer apellido es obligatorio")
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El primer apellido solo puede contener letras"),
+  
+  segundoApellido: yup
+    .string()
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El segundo apellido solo puede contener letras"),
+
+  tipoDocumento: yup
+    .string()
+    .oneOf(["CEDULA_CIUDADANIA", "CEDULA_EXTRANJERIA", "TARJETA_EXTRANJERIA", "PASAPORTE", "NIT"], "Tipo de documento inválido")
+    .required("El tipo de documento es obligatorio"),
 
   documento: yup
     .string()
@@ -34,6 +47,7 @@ export const userSchema = yup.object().shape({
 
   rolId: yup
     .number()
+    .oneOf([1, 2, 3], "Rol inválido")
     .required("El rol es obligatorio"),
 
 

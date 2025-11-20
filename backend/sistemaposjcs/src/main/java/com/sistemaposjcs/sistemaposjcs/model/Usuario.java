@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.validation.groups.Default;
 import lombok.*;
 import jakarta.validation.constraints.Pattern;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
 
 @Entity
 @Table(
@@ -31,7 +32,7 @@ public class Usuario {
     @Column(name = "id_usuario")
     private Long idUsuario;
 
-    @NotBlank(message = "El nombre de usuario es obligatorio")
+    @NotBlank(message = "El username de usuario es obligatorio")
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -41,21 +42,40 @@ public class Usuario {
     @Column(nullable = false)
     private String password;
 
-    @NotBlank(message = "El nombre es obligatorio")
+    @NotBlank(message = "El primer nombre es obligatorio")
     @Pattern(
         regexp = "^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",
-        message = "El nombre solo puede contener letras y espacios"
+        message = "El primer nombre solo puede contener letras"
     )
     @Column(nullable = false)
-    private String nombre;
+    private String primerNombre;
 
-    @NotBlank(message = "El apellido es obligatorio")
     @Pattern(
         regexp = "^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",
-        message = "El apellido solo puede contener letras y espacios"
+        message = "El segundo nombre solo puede contener letras"
+    )
+    @Column(nullable = true)
+    private String segundoNombre;
+
+    @NotBlank(message = "El primer apellido es obligatorio")
+    @Pattern(
+        regexp = "^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",
+        message = "El apellido solo puede contener letras"
     )
     @Column(nullable = false)
-    private String apellido;
+    private String primerApellido;
+    
+    @Pattern(
+        regexp = "^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",
+        message = "El segundo apellido solo puede contener letras"
+    )
+    @Column(nullable = true)
+    private String segundoApellido;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoDocumento tipoDocumento;
+
 
     @NotBlank(message = "El documento es obligatorio")
     @Pattern(

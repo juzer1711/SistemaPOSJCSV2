@@ -24,6 +24,8 @@ export default function UserManagement() {
   const [dialogInfo, setDialogInfo] = useState({});
   const [selectedId, setSelectedId] = useState(null);
   const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
+  const [tiposDocumento, setTiposDocumento] = useState([]);
+  const [selectedTipoDocumento, setselectedTipoDocumento] = useState('');
 
 
 
@@ -82,8 +84,10 @@ const handleConfirm = async () => {
 
   if (dialogInfo.confirmText === "Desactivar") {
     await deactivateUser(selectedId);
+    showMessage("Usuario desactivado correctamente");
   } else {
     await activateUser(selectedId);
+    showMessage("Usuario activado correctamente");
   }
 
   loadUsers();
@@ -101,9 +105,16 @@ const showMessage = (msg, type = "success") => {
   setSnackbar({ open: true, message: msg, severity: type });
 };
 
+useEffect(() => {
+        fetch('http://localhost:8080/api/users/tipos-documento')
+            .then(response => response.json())
+            .then(data => setTiposDocumento(data))
+            .catch(error => console.error('Error al obtener tipos de documento:', error));
+    }, []);
+
   // Aplica el filtro de búsqueda (nombre, apellido, id, rol o documento)
   const filtered = users.filter((u) =>
-    `${u.nombre} ${u.apellido} ${u.idUsuario} ${u.rol.nombre} ${u.documento}`.toLowerCase().includes(filter.toLowerCase())
+    `${u.nombre} ${u.apellido} ${u.idUsuario} ${u.rol.nombre} ${u.documento} ${u.tipoDocumento}`.toLowerCase().includes(filter.toLowerCase())
   );
 
   return (
@@ -139,6 +150,7 @@ const showMessage = (msg, type = "success") => {
         }}
         loadUsers={loadUsers}
         showMessage={showMessage}
+        tiposDocumento={tiposDocumento}
       />
         <ConfirmDialog
         open={dialogOpen}

@@ -17,6 +17,7 @@ const ClientTable = ({ clients, onEdit, onDelete, onActivate, loading }) => (
           <TableCell>Email</TableCell>
           <TableCell>Teléfono</TableCell>
           <TableCell>Estado</TableCell>
+          <TableCell>Acciones</TableCell>
         </TableRow>
       </TableHead>
 

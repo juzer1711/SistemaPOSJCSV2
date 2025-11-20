@@ -10,24 +10,21 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { userSchema } from "../../validation/validationSchema";
 import { createUser, updateUser } from "../../services/userService";
 
-const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loadUsers, showMessage }) => {
+const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loadUsers, showMessage, tiposDocumento }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
   const [roles, setRoles] = useState([]);
+  
 
   const {
     register,
     handleSubmit,
-    setError,
-    reset,
     setValue,
     watch,
-    formState: { errors, isSubmitting }
-  } = useForm({
-    resolver: yupResolver(userSchema),
-    context: { isEditing: editing },
-    defaultValues: defaultValues || {},
-  });
+    reset, formState: { errors } } = useForm({
+        resolver: yupResolver(userSchema),
+        defaultValues: defaultValues || {},
+      });
 
   // Cargar roles
   useEffect(() => {
@@ -46,14 +43,31 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
     fetchRoles();
   }, []);
 
-  // Resetear valores cuando se abre o cambia defaultValues
-  useEffect(() => {
-    reset(defaultValues || {});
-    if (defaultValues?.rol) {
-      setValue("rolId", defaultValues.rol.id);
-    }
-    setChangePassword(false);
-  }, [defaultValues, reset, setValue]);
+useEffect(() => {
+  if (!editing) {
+    // Modo crear → valores vacíos sin intentar leer rol
+    reset({
+      username: "",
+      password: "",
+      primerNombre: "",
+      segundoNombre: "",
+      primerApellido: "",
+      segundoApellido: "",
+      tipoDocumento: "",
+      documento: "",
+      rolId: "",
+      email: "",
+      telefono: "",
+    });
+  } else if (defaultValues) {
+    // Modo editar → traer datos enviados desde la tabla
+    reset({
+      ...defaultValues,
+      rolId: defaultValues.rol?.id || "", // <--- evita el error
+    });
+  }
+}, [editing, defaultValues, reset]);
+
 
   const onSubmit = async (data) => {
 
@@ -88,7 +102,6 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
       <DialogTitle>{editing ? "Editar Usuario" : "Registrar Usuario"}</DialogTitle>
 
       <DialogContent>
-        {/* 🚀 AHORA EL FORMulario engloba también LOS BOTONES */}
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
@@ -149,20 +162,56 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
 
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
             <TextField
-              label="Nombre"
-              {...register("nombre")}
-              error={!!errors.nombre}
-              helperText={errors.nombre?.message}
+              label="Primer Nombre"
+              {...register("primerNombre")}
+              error={!!errors.PrimerNombre}
+              helperText={errors.PrimerNombre?.message}
             />
             <TextField
-              label="Apellido"
-              {...register("apellido")}
-              error={!!errors.apellido}
-              helperText={errors.apellido?.message}
+              label="Segundo Nombre"
+              {...register("segundoNombre")}
+              error={!!errors.SegundoNombre}
+              helperText={errors.SegundoNombre?.message}
+            />
+            <TextField
+              label="Primer Apellido"
+              {...register("primerApellido")}
+              error={!!errors.PrimerApellido}
+              helperText={errors.PrimerApellido?.message}
+            />
+            <TextField
+              label="Segundo Apellido"
+              {...register("segundoApellido")}
+              error={!!errors.SegundoApellido}
+              helperText={errors.SegundoApellido?.message}
             />
           </Box>
 
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel>Tipo de Documento</InputLabel>
+              <Select
+                label="Tipo de Documento"
+                value={watch("tipoDocumento") || ""}
+                {...register("tipoDocumento")}
+                onChange={(e) => setValue("tipoDocumento", e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>Seleccione...</em>
+                </MenuItem>
+
+                {tiposDocumento?.map((tipo) => (
+                  <MenuItem key={tipo} value={tipo}>
+                    {tipo.replace(/_/g, " ")} {/* Mostrar bonito */}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.tipoDocumento && (
+                <p style={{ color: "red", fontSize: "0.8rem" }}>
+                  {errors.tipoDocumento.message}
+                </p>
+              )}
+            </FormControl>
             <TextField
               label="Documento"
               {...register("documento")}
@@ -207,7 +256,7 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
           {/* 🔥 AHORA LOS BOTONES ESTÁN DENTRO DEL <form> */}
           <DialogActions sx={{ px: 0 }}>
             <Button onClick={onClose}>Cancelar</Button>
-            <Button type="submit" variant="contained" disabled={isSubmitting}>
+            <Button type="submit" variant="contained">
               {editing ? "Guardar" : "Crear"}
             </Button>
           </DialogActions>

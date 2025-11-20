@@ -24,6 +24,7 @@ const ProductTable = ({ products, onEdit, onDelete, onActivate, loading }) => (
           <TableCell>Precio venta</TableCell>
           <TableCell>Costo</TableCell>
           <TableCell>Estado</TableCell>
+          <TableCell>Acciones</TableCell>
         </TableRow>
       </TableHead>
 

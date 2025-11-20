@@ -55,8 +55,11 @@ public class UserService {
         Usuario usuario = getUserById(id);
 
         usuario.setUsername(userDetails.getUsername());
-        usuario.setNombre(userDetails.getNombre());
-        usuario.setApellido(userDetails.getApellido());
+        usuario.setPrimerNombre(userDetails.getPrimerNombre());
+        usuario.setSegundoNombre(userDetails.getSegundoNombre());
+        usuario.setPrimerApellido(userDetails.getPrimerApellido());
+        usuario.setSegundoApellido(userDetails.getSegundoApellido());
+        usuario.setTipoDocumento(userDetails.getTipoDocumento());
         usuario.setDocumento(userDetails.getDocumento());
         usuario.setEmail(userDetails.getEmail());
         usuario.setTelefono(userDetails.getTelefono());
