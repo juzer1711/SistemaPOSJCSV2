@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { getActiveClients, getInactiveClients, deactivateClient, activateClient } from "../services/clientService";
 import ClientTable from "../components/CrudClientes/ClientTable";
 import ClientFormDialog from "../components/CrudClientes/ClientFormDialog";
@@ -19,7 +19,49 @@ const ClientManagement = () => {
   const [dialogInfo, setDialogInfo] = useState({});
   const [selectedId, setSelectedId] = useState(null);
   const [snackbar, setSnackbar] = useState({open: false,message: "",severity: "success",});
+  const [tiposDocumento, setTiposDocumento] = useState([]);
+  const [selectedTipoDocumento, setselectedTipoDocumento] = useState('');
 
+
+const ALL_COLUMNS = {
+  idCliente: "ID",
+  tipoCliente: "Tipo Cliente",
+  primerNombre: "Primer Nombre",
+  segundoNombre: "Segundo Nombre",
+  primerApellido: "Primer Apellido",
+  segundoApellido: "Segundo Apellido",
+  razonSocial: "Razón Social",
+  tipoDocumento: "Tipo Documento",
+  documento: "Documento",
+  identificadorNit: "DV",
+  direccion: "Dirección",
+  email: "Email",
+  telefono: "Teléfono",
+  estado: "Estado",
+  acciones: "Acciones",
+};
+
+
+const [visibleColumns, setVisibleColumns] = useState(() => {
+  // por defecto: mostrar todas excepto tal vez DV (ajusta si quieres)
+  const defaults = {};
+  Object.keys(ALL_COLUMNS).forEach((k) => (defaults[k] = true));
+  return defaults;
+});
+
+const [sortBy, setSortBy] = useState({ key: "primerApellido", direction: "asc" }); // default
+const [advancedFilters, setAdvancedFilters] = useState({
+  tipoCliente: "", // e.g. "Persona Natural" | "Empresa"
+  tipoDocumento: "",
+  estado: "", // "activo" | "inactivo" | ""
+  // otros filtros que quieras
+});
+
+const handleShowAll = () => {
+  const all = {};
+  Object.keys(visibleColumns).forEach(k => all[k] = true);
+  setVisibleColumns(all);
+};
 
     useEffect(() => {
     loadClients();
@@ -100,9 +142,57 @@ const ClientManagement = () => {
   };
 
 
-  const filtered = clients.filter((c) =>
-    `${c.nombre} ${c.apellido} ${c.idCliente} ${c.documento}`.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredSortedClients = useMemo(() => {
+  const q = filter?.trim().toLowerCase();
+
+  // 1) Aplicar showInactive toggle (ya lo cargas por efecto, así que aquí solo filtramos por estado si advancedFilters lo solicita)
+  let result = [...clients];
+
+  // 2) Aplicar filtros avanzados
+  if (advancedFilters.tipoCliente) {
+    result = result.filter(c => (c.tipoCliente || "").toLowerCase() === advancedFilters.tipoCliente.toLowerCase());
+  }
+  if (advancedFilters.tipoDocumento) {
+    result = result.filter(c => (c.tipoDocumento || "").toLowerCase() === advancedFilters.tipoDocumento.toLowerCase());
+  }
+  if (advancedFilters.estado) {
+    const wantActive = advancedFilters.estado === "activo";
+    result = result.filter(c => !!c.estado === wantActive);
+  }
+
+  // 3) Búsqueda en campos específicos (si q está)
+  if (q) {
+    result = result.filter((c) => {
+      const fields = [
+        c.primerNombre,
+        c.segundoNombre,
+        c.primerApellido,
+        c.segundoApellido,
+        c.razonSocial,
+        c.idCliente?.toString(),
+        c.documento,
+        c.tipoCliente,
+        c.email,
+        c.telefono,
+      ];
+      return fields.some(f => (f || "").toString().toLowerCase().includes(q));
+    });
+  }
+
+  // 4) Ordenar
+  const { key, direction } = sortBy || {};
+  if (key) {
+    result.sort((a, b) => {
+      const A = (a[key] || "").toString().toLowerCase();
+      const B = (b[key] || "").toString().toLowerCase();
+      if (A < B) return direction === "asc" ? -1 : 1;
+      if (A > B) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
+
+  return result;
+}, [clients, filter, advancedFilters, sortBy]);
 
 
   return (
@@ -114,20 +204,32 @@ const ClientManagement = () => {
 
     {/* === BARRA DE BUSQUEDA + ACCIONES === */}
     <ClientSearchBar
-        filter={filter}
-        onFilterChange={setFilter}
-        onAdd={handleAdd}
-        showInactive={showInactive}
-        onToggleInactive={() => setShowInactive(prev => !prev)}
+      filter={filter}
+      onFilterChange={setFilter}
+      onAdd={handleAdd}
+      showInactive={showInactive}
+      onToggleInactive={() => setShowInactive(prev => !prev)}
+      visibleColumns={visibleColumns}
+      setVisibleColumns={setVisibleColumns}
+      sortBy={sortBy}
+      setSortBy={setSortBy}
+      advancedFilters={advancedFilters}
+      setAdvancedFilters={setAdvancedFilters}
+      handleShowAll={handleShowAll}
+      ALL_COLUMNS={ALL_COLUMNS}
     />
 
     {/* === TABLA DE CLIENTES === */}
+
     <ClientTable
-      clients={filtered}
+      clients={filteredSortedClients}
       onEdit={handleEdit}
       onDelete={handleInactive}
       onActivate={handleActivate}
+      visibleColumns={visibleColumns}
+      loading={false}
     />
+
 
     {/* === FORMULARIO AL CREAR/EDITAR === */}
     <ClientFormDialog

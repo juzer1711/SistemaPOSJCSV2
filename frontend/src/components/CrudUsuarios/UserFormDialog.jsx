@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from "react";
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Button, InputAdornment, IconButton,
-  FormControl, InputLabel, Select, MenuItem, Box
+  Dialog,
+  DialogTitle,
+  DialogContent, 
+  DialogActions,
+  TextField, 
+  Button,
+  Box,
+  MenuItem, 
+  InputAdornment, 
+  IconButton,
+  FormControl, 
+  InputLabel, 
+  Select, 
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
@@ -10,21 +20,54 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { userSchema } from "../../validation/validationSchema";
 import { createUser, updateUser } from "../../services/userService";
 
-const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loadUsers, showMessage, tiposDocumento }) => {
+const UserFormDialog = ({ 
+  open, 
+  editing, 
+  selectedId, 
+  defaultValues, 
+  onClose, 
+  loadUsers, 
+  showMessage, 
+  tiposDocumento }) => {
+
   const [showPassword, setShowPassword] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
   const [roles, setRoles] = useState([]);
-  
-
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    reset, formState: { errors } } = useForm({
+    reset, 
+    formState: { errors }, 
+  } = useForm({
         resolver: yupResolver(userSchema),
         defaultValues: defaultValues || {},
       });
+
+  useEffect(() => {
+  if (!editing) {
+    if (!open) return
+    reset({
+      username: "",
+      password: "",
+      primerNombre: "",
+      segundoNombre: "",
+      primerApellido: "",
+      segundoApellido: "",
+      tipoDocumento: "",
+      documento: "",
+      rolId: "",
+      email: "",
+      telefono: "",
+    });
+  } else if (defaultValues) {
+    reset({
+      ...defaultValues,
+      rolId: defaultValues.rol?.id || "",
+    });
+  }
+}, [editing, defaultValues, reset, open]);
 
   // Cargar roles
   useEffect(() => {
@@ -43,44 +86,15 @@ const UserFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loa
     fetchRoles();
   }, []);
 
-useEffect(() => {
-  if (!editing) {
-    // Modo crear → valores vacíos sin intentar leer rol
-    reset({
-      username: "",
-      password: "",
-      primerNombre: "",
-      segundoNombre: "",
-      primerApellido: "",
-      segundoApellido: "",
-      tipoDocumento: "",
-      documento: "",
-      rolId: "",
-      email: "",
-      telefono: "",
-    });
-  } else if (defaultValues) {
-    // Modo editar → traer datos enviados desde la tabla
-    reset({
-      ...defaultValues,
-      rolId: defaultValues.rol?.id || "", // <--- evita el error
-    });
-  }
-}, [editing, defaultValues, reset]);
-
-
   const onSubmit = async (data) => {
 
     try {
       if (!data.rolId) {
         return alert("Debe seleccionar un rol.");
       }
-
       data.rol = { id: data.rolId };
       delete data.rolId;
-
       if (!data.password) delete data.password;
-
       if (editing) {
         await updateUser(selectedId, data);
         showMessage("Usuario actualizado exitosamente", "success");

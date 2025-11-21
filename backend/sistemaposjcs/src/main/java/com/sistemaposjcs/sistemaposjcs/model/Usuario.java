@@ -51,7 +51,7 @@ public class Usuario {
     private String primerNombre;
 
     @Pattern(
-        regexp = "^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",
+        regexp = "^$|^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",
         message = "El segundo nombre solo puede contener letras"
     )
     @Column(nullable = true)
@@ -66,7 +66,7 @@ public class Usuario {
     private String primerApellido;
     
     @Pattern(
-        regexp = "^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",
+        regexp = "^$|^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$",
         message = "El segundo apellido solo puede contener letras"
     )
     @Column(nullable = true)

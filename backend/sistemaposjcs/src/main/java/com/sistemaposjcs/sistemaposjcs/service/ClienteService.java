@@ -2,12 +2,23 @@ package com.sistemaposjcs.sistemaposjcs.service;
 
 import com.sistemaposjcs.sistemaposjcs.model.Cliente;
 import com.sistemaposjcs.sistemaposjcs.repository.ClienteRepository;
+
+import jakarta.validation.Validator;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Set;
+
 
 @Service
 public class ClienteService {
     private final ClienteRepository clienteRepository;
+
+    @Autowired
+    private Validator validator;
 
     public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
@@ -37,34 +48,59 @@ public class ClienteService {
 
 
     // ✅ Actualizar cliente
-    public Cliente updateCliente(Long id, Cliente clienteDetails) {
-        Cliente cliente = getClienteById(id);
+    public Cliente updateCliente(Long id, Cliente data) {
+                Cliente c = getClienteById(id);
 
-        cliente.setNombre(clienteDetails.getNombre());
-        cliente.setApellido(clienteDetails.getApellido());
-        cliente.setDocumento(clienteDetails.getDocumento());
-        cliente.setEmail(clienteDetails.getEmail());
-        cliente.setTelefono(clienteDetails.getTelefono());
+        // Tipo Cliente
+        c.setTipoCliente(data.getTipoCliente());
 
-        return clienteRepository.save(cliente);
+        // ====================
+        // PERSONA NATURAL
+        // ====================
+        c.setPrimerNombre(data.getPrimerNombre());
+        c.setSegundoNombre(data.getSegundoNombre());
+        c.setPrimerApellido(data.getPrimerApellido());
+        c.setSegundoApellido(data.getSegundoApellido());
+
+        // ====================
+        // EMPRESA
+        // ====================
+        c.setRazonSocial(data.getRazonSocial());
+        c.setIdentificadorNit(data.getIdentificadorNit());
+
+        // ====================
+        // COMUNES
+        // ====================
+        c.setTipoDocumento(data.getTipoDocumento());
+        c.setDocumento(data.getDocumento());
+        c.setEmail(data.getEmail());
+        c.setTelefono(data.getTelefono());
+        c.setDireccion(data.getDireccion());
+
+        // 🔥 Validar nuevamente entidad completa
+        Set<ConstraintViolation<Cliente>> violations = validator.validate(c);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+
+        return clienteRepository.save(c);
     }
 
 
     public void desactivarCliente(Long id) {
-        Cliente u = clienteRepository.findById(id)
+        Cliente c = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-        u.setEstado(false);    // 🔥 Inactiva
-        clienteRepository.save(u);
+        c.setEstado(false);    // 🔥 Inactiva
+        clienteRepository.save(c);
     }
 
     public Cliente activarCliente(Long id) {
-    Cliente u = clienteRepository.findById(id)
+    Cliente c = clienteRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-    u.setEstado(true);     // 🔥 Activa
-    return clienteRepository.save(u);
+    c.setEstado(true);     // 🔥 Activa
+    return clienteRepository.save(c);
 }
-
-    
+ 
 }

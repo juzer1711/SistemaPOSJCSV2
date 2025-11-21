@@ -28,14 +28,21 @@ private final ClienteService clienteService;
 public List<ClienteDTO> getActiveClientes() {
     return clienteService.getActiveClientes()
         .stream()
-        .map(u -> new ClienteDTO(
-            u.getIdCliente(),
-            u.getNombre(),
-            u.getApellido(),
-            u.getDocumento(),
-            u.getEmail(),
-            u.getTelefono(),
-            u.getEstado()))
+        .map(c -> new ClienteDTO(
+            c.getIdCliente(),
+            c.getTipoCliente(),
+            c.getPrimerNombre(),
+            c.getSegundoNombre(),
+            c.getPrimerApellido(),
+            c.getSegundoApellido(),
+            c.getRazonSocial(),
+            c.getIdentificadorNit(),
+            c.getTipoDocumento(),
+            c.getDocumento(),
+            c.getEmail(),
+            c.getTelefono(),
+            c.getDireccion(),
+            c.getEstado()))
         .toList();
 }
 
@@ -44,14 +51,21 @@ public List<ClienteDTO> getInactiveClientes() {
     return clienteService.getInactiveClientes()
         .stream()
         .filter(u -> u.getEstado() == false)
-        .map(u -> new ClienteDTO(
-            u.getIdCliente(),
-            u.getNombre(),
-            u.getApellido(),
-            u.getDocumento(),
-            u.getEmail(),
-            u.getTelefono(),
-            u.getEstado()))
+        .map(c -> new ClienteDTO(
+            c.getIdCliente(),
+            c.getTipoCliente(),
+            c.getPrimerNombre(),
+            c.getSegundoNombre(),
+            c.getPrimerApellido(),
+            c.getSegundoApellido(),
+            c.getRazonSocial(),
+            c.getIdentificadorNit(),
+            c.getTipoDocumento(),
+            c.getDocumento(),
+            c.getEmail(),
+            c.getTelefono(),
+            c.getDireccion(),
+            c.getEstado()))
         .toList();
 }
 

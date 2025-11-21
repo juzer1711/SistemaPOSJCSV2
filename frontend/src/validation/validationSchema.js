@@ -24,7 +24,9 @@ export const userSchema = yup.object().shape({
 
   segundoNombre: yup
     .string()
-    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El segundo nombre solo puede contener letras"),
+    .nullable() 
+    .notRequired()
+    .matches(/^$|^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El segundo nombre solo puede contener letras"),
 
   primerApellido: yup
     .string()
@@ -33,7 +35,9 @@ export const userSchema = yup.object().shape({
   
   segundoApellido: yup
     .string()
-    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El segundo apellido solo puede contener letras"),
+    .nullable() 
+    .notRequired()
+    .matches(/^$|^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El segundo apellido solo puede contener letras"),
 
   tipoDocumento: yup
     .string()
@@ -90,20 +94,93 @@ export const productSchema = yup.object().shape({
 });
 
 export const clientSchema = yup.object().shape({
-  nombre: yup
+  tipoCliente: yup
     .string()
-    .required("El nombre del cliente es obligatorio")
-    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El nombre solo puede contener letras y espacios"),
+    .oneOf(["PERSONA_NATURAL", "EMPRESA"], "Tipo de cliente no válido")
+    .required("El tipo de cliente es obligatorio"),
 
-  apellido: yup
-    .string()
-    .required("El apellido del cliente es obligatorio")
-    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El apellido solo puede contener letras y espacios"),
+  // ===========================
+  // PERSONA NATURAL
+  // ===========================
+  primerNombre: yup.string().when("tipoCliente", {
+    is: "PERSONA_NATURAL",
+    then: (schema) =>
+      schema
+        .required("El primer nombre es obligatorio")
+        .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "Solo se permiten letras y espacios"),
+    otherwise: (schema) => schema.strip(), // elimina el campo si no aplica
+  }),
+
+  segundoNombre: yup.string()
+  .nullable() 
+  .notRequired()
+  .when("tipoCliente", {
+    is: "PERSONA_NATURAL",
+    then: (schema) =>
+      schema.matches(/^$|^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/, "Solo se permiten letras y espacios"),
+    otherwise: (schema) => schema.strip(),
+  }),
+
+  primerApellido: yup.string().when("tipoCliente", {
+    is: "PERSONA_NATURAL",
+    then: (schema) =>
+      schema
+        .required("El primer apellido es obligatorio")
+        .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "Solo se permiten letras y espacios"),
+    otherwise: (schema) => schema.strip(),
+  }),
+
+  segundoApellido: yup.string()
+  .nullable() 
+  .notRequired()
+  .when("tipoCliente", {
+    is: "PERSONA_NATURAL",
+    then: (schema) =>
+      schema.matches(/^$|^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/, "Solo se permiten letras y espacios"),
+    otherwise: (schema) => schema.strip(),
+  }),
+
+  tipoDocumento: yup.string().when("tipoCliente", {
+    is: "PERSONA_NATURAL",
+    then: (schema) =>
+    schema.oneOf(["CEDULA_CIUDADANIA", "CEDULA_EXTRANJERIA","TARJETA_EXTRANJERIA","PASAPORTE","PEP"], "Tipo de documento no válido")
+    .required("El tipo de documento es obligatorio"),
+    }),
+
+  // ===========================
+  // EMPRESA
+  // ===========================
+  razonSocial: yup.string().when("tipoCliente", {
+    is: "EMPRESA",
+    then: (schema) =>
+      schema.required("La razón social es obligatoria"),
+    otherwise: (schema) => schema.strip(),
+  }),
+
+  identificadorNit: yup.string().when("tipoCliente", {
+    is: "EMPRESA",
+    then: (schema) =>
+      schema
+        .required("El dígito verificador del NIT es obligatorio")
+        .matches(/^[0-9]{1}$/, "Debe ser un dígito entre 0 y 9"),
+    otherwise: (schema) => schema.strip(),
+  }),
+
+  tipoDocumento: yup.string().when("tipoCliente", {
+    is: "EMPRESA",
+    then: (schema) =>
+    schema.oneOf(["NIT"], "Tipo de documento no válido")
+    .required("El tipo de documento es obligatorio"),
+    }),
+
+  // ===========================
+  // CAMPOS COMUNES
+  // ===========================
 
   documento: yup
-    .string()
-    .required("El documento es obligatorio")
-    .matches(/^[0-9]{6,12}$/, "El documento debe tener entre 6 y 12 dígitos numéricos"),
+      .string()
+      .required("El documento es obligatorio")
+      .matches(/^[0-9]{6,12}$/, "El documento debe tener entre 6 y 12 dígitos numéricos"),
 
   email: yup
     .string()
@@ -113,5 +190,6 @@ export const clientSchema = yup.object().shape({
   telefono: yup
     .string()
     .required("El teléfono es obligatorio")
-    .matches(/^[0-9]{7,10}$/, "El teléfono debe tener entre 7 y 10 dígitos"),
+    .matches(/^[0-9]{7,10}$/, "Debe tener entre 7 y 10 dígitos"),
 });
+

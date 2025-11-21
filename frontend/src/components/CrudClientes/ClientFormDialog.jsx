@@ -1,33 +1,61 @@
-import React, { useEffect, useState } from "react";
-import { Dialog, DialogTitle, DialogContent, TextField, Button, Box, DialogActions } from "@mui/material";
-import { useForm } from "react-hook-form";
+import React, { useEffect } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Box,
+  MenuItem,
+} from "@mui/material";
+import { useForm} from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { clientSchema } from "../../validation/validationSchema";  // Definimos validaciones específicas para clientes
-import { createClient, updateClient } from "../../services/clientService"; // Ajusta la ruta si es necesario
+import { clientSchema } from "../../validation/validationSchema";
+import { createClient, updateClient } from "../../services/clientService";
 
-const ClientFormDialog = ({ open, editing, selectedId, defaultValues, onClose, loadClients, showMessage }) => {
-  const { 
+const ClientFormDialog = ({
+  open,
+  editing,
+  selectedId,
+  defaultValues,
+  onClose,
+  loadClients,
+  showMessage }) => {
+  const {
     register,
-    handleSubmit, 
-    reset, formState: { errors } } = useForm({
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({
     resolver: yupResolver(clientSchema),
     defaultValues: defaultValues || {},
   });
 
-useEffect(() => {
+  const tipoCliente = watch("tipoCliente");
+
+  useEffect(() => {
+    if (!open) return
     if (!editing) {
       reset({
-        nombre: "",
-        apellido: "",
+        tipoCliente: "",
+        primerNombre: "",
+        segundoNombre: "",
+        primerApellido: "",
+        segundoApellido: "",
+        razonSocial: "",
+        identificadorNit: "",
+        documento: "",
+        tipoDocumento: "",
         email: "",
         telefono: "",
-        documento: ""
+        direccion: "",
       });
     } else {
       reset(defaultValues || {});
     }
-  }, [editing, defaultValues, reset]);
-
+  }, [editing, defaultValues, reset, open]);
 
   const onSubmit = async (data) => {
     try {
@@ -38,56 +66,143 @@ useEffect(() => {
         await createClient(data);
         showMessage("Cliente creado con éxito", "success");
       }
+
       reset({});
       onClose();
-      loadClients();  // Recargar la lista de clientes
+      loadClients();
     } catch (error) {
-  showMessage(error.message, "error");
-}
-
+      showMessage(error.message, "error");
+    }
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{editing ? "Editar Cliente" : "Registrar Cliente"}</DialogTitle>
+
       <DialogContent>
-        <Box component="form" 
-        onSubmit={handleSubmit(onSubmit)} 
-        noValidate 
-        sx={{ display: "grid", gap: 2, mt: 1}}
+        <Box
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          sx={{ display: "grid", gap: 2, mt: 1 }}
         >
-          <TextField 
-          label="Nombre" 
-          {...register("nombre")} 
-          error={!!errors.nombre} 
-          helperText={errors.nombre?.message} 
+          {/* 🔥 Tipo Cliente */}
+          <TextField
+            select
+            label="Tipo de Cliente"
+            {...register("tipoCliente")}
+            error={!!errors.tipoCliente}
+            helperText={errors.tipoCliente?.message}
+          >
+            <MenuItem value="PERSONA_NATURAL">Persona Natural</MenuItem>
+            <MenuItem value="EMPRESA">Empresa</MenuItem>
+          </TextField>
+
+          {/* ============================== */}
+          {/*        PERSONA NATURAL         */}
+          {/* ============================== */}
+          {tipoCliente === "PERSONA_NATURAL" && (
+            <>
+              <TextField
+                label="Primer Nombre"
+                {...register("primerNombre")}
+                error={!!errors.primerNombre}
+                helperText={errors.primerNombre?.message}
+              />
+
+              <TextField
+                label="Segundo Nombre"
+                {...register("segundoNombre")}
+                error={!!errors.segundoNombre}
+                helperText={errors.segundoNombre?.message}
+              />
+
+              <TextField
+                label="Primer Apellido"
+                {...register("primerApellido")}
+                error={!!errors.primerApellido}
+                helperText={errors.primerApellido?.message}
+              />
+
+              <TextField
+                label="Segundo Apellido"
+                {...register("segundoApellido")}
+                error={!!errors.segundoApellido}
+                helperText={errors.segundoApellido?.message}
+              />
+              <TextField
+                select
+                label="Tipo de Documento"
+                {...register("tipoDocumento")}
+                error={!!errors.tipoDocumento}
+                helperText={errors.tipoDocumento?.message}
+              >
+                <MenuItem value="CEDULA_CIUDADANIA">Cédula Ciudadanía</MenuItem>
+                <MenuItem value="CEDULA_EXTRANJERIA">Cédula Extranjería</MenuItem>
+                <MenuItem value="TARJETA_EXTRANJERIA">Tarjeta Extranjería</MenuItem>
+                <MenuItem value="PASAPORTE">Pasaporte</MenuItem>
+                <MenuItem value="PEP">Permiso Especial de Permanencia</MenuItem>
+              </TextField>
+            </>
+          )}
+
+          {/* ============================== */}
+          {/*            EMPRESA             */}
+          {/* ============================== */}
+          {tipoCliente === "EMPRESA" && (
+            <>
+              <TextField
+                label="Razón Social"
+                {...register("razonSocial")}
+                error={!!errors.razonSocial}
+                helperText={errors.razonSocial?.message}
+              />
+
+              <TextField
+                label="Dígito verificador NIT"
+                {...register("identificadorNit")}
+                error={!!errors.identificadorNit}
+                helperText={errors.identificadorNit?.message}
+              />
+
+              <TextField
+                select
+                label="Tipo de Documento"
+                {...register("tipoDocumento")}
+                error={!!errors.tipoDocumento}
+                helperText={errors.tipoDocumento?.message}
+              >
+                <MenuItem value="NIT">NIT</MenuItem>
+              </TextField>
+            </>
+          )}
+
+          {/* ============================== */}
+          {/*       CAMPOS COMUNES           */}
+          {/* ============================== */}
+
+          <TextField
+            label="Documento"
+            {...register("documento")}
+            disabled={editing}
+            error={!!errors.documento}
+            helperText={errors.documento?.message}
           />
 
-          <TextField label="Apellido" 
-          {...register("apellido")} 
-          error={!!errors.apellido} 
-          helperText={errors.apellido?.message}
+          <TextField
+            label="Email"
+            {...register("email")}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
 
-          {!editing ? (
-            <TextField
-                  label="Documento"
-                  {...register("documento")}
-                  error={!!errors.documento}
-                  helperText={errors.documento?.message}/>) : (null)}
-
-          <TextField label="Email" 
-          {...register("email")} 
-          error={!!errors.email} 
-          helperText={errors.email?.message} 
+          <TextField
+            label="Teléfono"
+            {...register("telefono")}
+            error={!!errors.telefono}
+            helperText={errors.telefono?.message}
           />
 
-          <TextField 
-          label="Teléfono" 
-          {...register("telefono")} 
-          error={!!errors.telefono} 
-          helperText={errors.telefono?.message}
-           />
           <DialogActions sx={{ px: 0 }}>
             <Button onClick={onClose}>Cancelar</Button>
             <Button type="submit" variant="contained">
@@ -101,3 +216,4 @@ useEffect(() => {
 };
 
 export default ClientFormDialog;
+
