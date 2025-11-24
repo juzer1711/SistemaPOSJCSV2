@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { getActiveClients, getInactiveClients, deactivateClient, activateClient } from "../services/clientService";
+import { 
+  getActiveClients, 
+  getInactiveClients, 
+  deactivateClient, 
+  activateClient 
+} from "../services/clientService";
 import ClientTable from "../components/CrudClientes/ClientTable";
 import ClientFormDialog from "../components/CrudClientes/ClientFormDialog";
 import ClientSearchBar from "../components/CrudClientes/ClientSearchBar";
@@ -43,7 +48,6 @@ const ALL_COLUMNS = {
 
 
 const [visibleColumns, setVisibleColumns] = useState(() => {
-  // por defecto: mostrar todas excepto tal vez DV (ajusta si quieres)
   const defaults = {};
   Object.keys(ALL_COLUMNS).forEach((k) => (defaults[k] = true));
   return defaults;
@@ -67,13 +71,11 @@ const handleShowAll = () => {
     loadClients();
   }, [showInactive]);
 
-
   // Función que recarga los clientes
   const loadClients = async () => {
   const res = showInactive
     ? await getInactiveClients()
     : await getActiveClients();
-
   setClients(res.data);
 };
 
@@ -134,7 +136,6 @@ const handleShowAll = () => {
   const handleActivate = (id) => {
     openActivateDialog(id);
   };
-
 
     // Función que muestra los mensajes de éxito 
   const showMessage = (msg, type = "success") => {

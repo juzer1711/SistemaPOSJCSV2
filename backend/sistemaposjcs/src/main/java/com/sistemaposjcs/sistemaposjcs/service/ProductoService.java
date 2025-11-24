@@ -1,6 +1,8 @@
 package com.sistemaposjcs.sistemaposjcs.service;
 
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
+import com.sistemaposjcs.sistemaposjcs.model.Categoria;
+import com.sistemaposjcs.sistemaposjcs.repository.CategoriaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 
@@ -8,11 +10,12 @@ import java.util.List;
 
 @Service
 public class ProductoService {
-
+    private final CategoriaRepository categoriaRepository;
     private final ProductoRepository productoRepository;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
         this.productoRepository = productoRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
     // ✔ Obtener un producto por ID
@@ -33,17 +36,32 @@ public class ProductoService {
 
     // ✔ Crear producto
     public Producto createProducto(Producto producto) {
+        // 🔥 Reemplazar categoria recibida con la REAL de la BD
+        if (producto.getCategoria() != null && producto.getCategoria().getId() != null) {
+            Categoria categoriaReal = categoriaRepository.findById(producto.getCategoria().getId())
+                    .orElseThrow(() -> new RuntimeException("Categoria no encontrado"));
+            producto.setCategoria(categoriaReal);
+        }
+
         return productoRepository.save(producto);
     }
 
     // ✔ Actualizar producto
-    public Producto updateProducto(Long id, Producto detalles) {
+    public Producto updateProducto(Long id, Producto productoDetails) {
         Producto producto = getProductoById(id);
 
-        producto.setNombre(detalles.getNombre());
-        producto.setCategoria(detalles.getCategoria());
-        producto.setPrecioventa(detalles.getPrecioventa());
-        producto.setCosto(detalles.getCosto());
+        producto.setNombre(productoDetails.getNombre());
+        producto.setCodigoBarras(productoDetails.getCodigoBarras());
+        producto.setDescripcion(productoDetails.getDescripcion());
+        producto.setCosto(productoDetails.getCosto());
+        producto.setPrecioventa(productoDetails.getPrecioventa());
+
+        // 🔥 Si viene una categoria en el JSON, la asignamos correctamente
+        if (productoDetails.getCategoria() != null && productoDetails.getCategoria().getId() != null) {
+            Categoria nuevaCategoria = categoriaRepository.findById(productoDetails.getCategoria().getId())
+                    .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
+            producto.setCategoria(nuevaCategoria);
+        }
 
         return productoRepository.save(producto);
     }

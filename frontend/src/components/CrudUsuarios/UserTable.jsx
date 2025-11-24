@@ -5,24 +5,26 @@ import {
 } from "@mui/material";
 import { Edit, CheckCircle, Cancel } from "@mui/icons-material";
 
-const UserTable = ({ users, onEdit, onDelete, onActivate, loading }) => (
+const UserTable = ({ users, onEdit, onDelete, onActivate, loading, visibleColumns }) => {
+  const visibleCount = Object.values(visibleColumns || {}).filter(Boolean).length || 1;
+  return (
   <TableContainer component={Paper} sx={{ maxHeight: 500, overflowX: "auto" }}>
     <Table sx={{ minWidth: 1200 }} size="small">
       <TableHead>
         <TableRow>
-          <TableCell>ID</TableCell>
-          <TableCell>Usuario</TableCell>
-          <TableCell>Primer Nombre</TableCell>
-          <TableCell>Segundo Nombre</TableCell>
-          <TableCell>Primer Apellido</TableCell>
-          <TableCell>Segundo Apellido</TableCell>
-          <TableCell>Tipo Documento</TableCell>
-          <TableCell>Documento</TableCell>
-          <TableCell>Rol</TableCell>
-          <TableCell>Email</TableCell>
-          <TableCell>Teléfono</TableCell>
-          <TableCell>Estado</TableCell>
-          <TableCell>Acciones</TableCell>
+          {visibleColumns.idUsuario && <TableCell>ID</TableCell>}
+          {visibleColumns.username && <TableCell>Tipo Cliente</TableCell>}
+          {visibleColumns.primerNombre && <TableCell>Primer Nombre</TableCell>}
+          {visibleColumns.segundoNombre && <TableCell>Segundo Nombre</TableCell>}
+          {visibleColumns.primerApellido && <TableCell>Primer Apellido</TableCell>}
+          {visibleColumns.segundoApellido && <TableCell>Segundo Apellido</TableCell>}
+          {visibleColumns.tipoDocumento && <TableCell>Tipo Documento</TableCell>}
+          {visibleColumns.documento && <TableCell>Documento</TableCell>}
+          {visibleColumns.rol && <TableCell>Rol</TableCell>}
+          {visibleColumns.email && <TableCell>Email</TableCell>}
+          {visibleColumns.telefono && <TableCell>Teléfono</TableCell>}
+          {visibleColumns.estado && <TableCell>Estado</TableCell>}
+          {visibleColumns.acciones && <TableCell align="center">Acciones</TableCell>}
         </TableRow>
       </TableHead>
       <TableBody>
@@ -31,18 +33,19 @@ const UserTable = ({ users, onEdit, onDelete, onActivate, loading }) => (
             const active = u.estado === 1 || u.estado === true;
             return (
             <TableRow key={u.idUsuario}>
-              <TableCell>{u.idUsuario}</TableCell>
-              <TableCell>{u.username}</TableCell>
-              <TableCell>{u.primerNombre}</TableCell>
-              <TableCell>{u.segundoNombre}</TableCell>
-              <TableCell>{u.primerApellido}</TableCell>
-              <TableCell>{u.segundoApellido}</TableCell>
-              <TableCell>{u.tipoDocumento}</TableCell>
-              <TableCell>{u.documento}</TableCell>
-              <TableCell>{u.rol.nombre}</TableCell>
-              <TableCell>{u.email}</TableCell>
-              <TableCell>{u.telefono}</TableCell>
-              <TableCell>
+              {visibleColumns.idUsuario &&<TableCell>{u.idUsuario}</TableCell>}
+              {visibleColumns.username &&<TableCell>{u.username}</TableCell>}
+              {visibleColumns.primerNombre &&<TableCell>{u.primerNombre}</TableCell>}
+              {visibleColumns.segundoNombre &&<TableCell>{u.segundoNombre}</TableCell>}
+              {visibleColumns.primerApellido &&<TableCell>{u.primerApellido}</TableCell>}
+              {visibleColumns.segundoApellido &&<TableCell>{u.segundoApellido}</TableCell>}
+              {visibleColumns.tipoDocumento &&<TableCell>{u.tipoDocumento}</TableCell>}
+              {visibleColumns.documento &&<TableCell>{u.documento}</TableCell>}
+              {visibleColumns.rol &&<TableCell>{u.rol.nombre}</TableCell>}
+              {visibleColumns.email &&<TableCell>{u.email}</TableCell>}
+              {visibleColumns.telefono &&<TableCell>{u.telefono}</TableCell>}
+              {visibleColumns.estado &&(
+                <TableCell>
                   <Chip
                     icon={active ? <CheckCircle /> : <Cancel />}
                     label={active ? "ACTIVO" : "INACTIVO"}
@@ -58,7 +61,8 @@ const UserTable = ({ users, onEdit, onDelete, onActivate, loading }) => (
                     }}
                   />
                 </TableCell>
-
+              )}
+              {visibleColumns.acciones && (
               <TableCell align="center">
                 <IconButton size="small" onClick={() => onEdit(u)}>
                   <Edit />
@@ -84,6 +88,7 @@ const UserTable = ({ users, onEdit, onDelete, onActivate, loading }) => (
                     </Button>
                   )}
               </TableCell>
+              )}
             </TableRow>
           );
           })
@@ -98,5 +103,5 @@ const UserTable = ({ users, onEdit, onDelete, onActivate, loading }) => (
     </Table>
   </TableContainer>
 );
-
+};
 export default UserTable;

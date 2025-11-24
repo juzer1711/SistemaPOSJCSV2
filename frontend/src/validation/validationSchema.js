@@ -71,10 +71,19 @@ export const productSchema = yup.object().shape({
     .string()
     .required("El nombre del producto es obligatorio"),
 
-  categoria: yup
-    .string()
+  categoriaId: yup
+    .number()
+    .typeError("Debe seleccionar una categoría")
     .required("La categoría es obligatoria"),
-
+  
+  codigoBarras: yup
+    .string()
+    .required("El codigo de barras es obligatorio")
+    .matches(/^[0-9]{6,20}$/, "El codigo de barras debe tener entre 6 y 20 dígitos numéricos"),
+  
+  descripcion: yup
+  .string(),
+    
   costo: yup
     .number()
     .typeError("El costo debe ser un número")
@@ -86,12 +95,12 @@ export const productSchema = yup.object().shape({
     .typeError("El precio de venta debe ser un número")
     .positive("El precio debe ser mayor a 0")
     .required("El precio de venta es obligatorio"),
-
-  estado: yup
-    .string()
-    .oneOf(["ACTIVO", "INACTIVO"])
-    .required("El estado es obligatorio"),
 });
+export const categoriaSchema = yup.object().shape({
+    nombre: yup
+    .string()
+    .required("El nombre de la categoria es obligatorio"),
+})
 
 export const clientSchema = yup.object().shape({
   tipoCliente: yup

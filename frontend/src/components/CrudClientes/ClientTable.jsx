@@ -11,7 +11,7 @@ const ClientTable = ({ clients, onEdit, onDelete, onActivate, loading, visibleCo
 
   return (
     <TableContainer component={Paper} sx={{ maxHeight: 500, overflowX: "auto" }}>
-      <Table size="small">
+      <Table sx={{ minWidth: 1200 }} size="small">
         <TableHead>
           <TableRow>
             {visibleColumns.idCliente && <TableCell>ID</TableCell>}

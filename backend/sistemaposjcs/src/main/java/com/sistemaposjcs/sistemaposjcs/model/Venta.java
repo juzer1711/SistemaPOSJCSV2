@@ -1,4 +1,8 @@
 package com.sistemaposjcs.sistemaposjcs.model;
+/*
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -7,26 +11,28 @@ import lombok.*;
 
 @Entity
 @Table(
-    name = "productos",
+    name = "ventas",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uk_codigo_barras", columnNames = "codigoBarras")
+    @UniqueConstraint(name = "uk_codigo_barras", columnNames = "codigoBarras")
     }   
 )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Producto {
+public class Venta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_producto")
-    private Long idProducto;
+    @Column(name = "id_venta")
+    private Long idVenta;
 
-    @NotBlank(message = "El nombre del producto es obligatorio")
-    @Size(max = 100, message = "El nombre no debe exceder 100 caracteres")
-    @Column(nullable = false)
-    private String nombre;
+    // Almacena fecha y hora: ej. "2025-11-23T23:07:00"
+    @Column(name = "fecha", nullable = false)
+    private LocalDateTime fecha;
+
+    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemFactura> items = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id", nullable = false)
@@ -54,4 +60,16 @@ public class Producto {
     private Double precioventa;
 
     private Boolean estado = true;
+
+// Método de ayuda para añadir items
+    public void addItem(ItemFactura item) {
+        if (item != null) {
+            if (items == null) {
+                items = new ArrayList<>();
+            }
+            items.add(item);
+            item.setVenta(this); // Importante para mantener la consistencia bidireccional
+        }
 }
+}
+*/

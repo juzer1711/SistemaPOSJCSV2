@@ -36,8 +36,8 @@ const UserFormDialog = ({
   const {
     register,
     handleSubmit,
-    setValue,
     watch,
+    setValue,
     reset, 
     formState: { errors }, 
   } = useForm({
@@ -46,21 +46,21 @@ const UserFormDialog = ({
       });
 
   useEffect(() => {
-  if (!editing) {
     if (!open) return
-    reset({
-      username: "",
-      password: "",
-      primerNombre: "",
-      segundoNombre: "",
-      primerApellido: "",
-      segundoApellido: "",
-      tipoDocumento: "",
-      documento: "",
-      rolId: "",
-      email: "",
-      telefono: "",
-    });
+    if (!editing) {
+      reset({
+        username: "",
+        password: "",
+        primerNombre: "",
+        segundoNombre: "",
+        primerApellido: "",
+        segundoApellido: "",
+        tipoDocumento: "",
+        documento: "",
+        rolId: "",
+        email: "",
+        telefono: "",
+      });
   } else if (defaultValues) {
     reset({
       ...defaultValues,
@@ -174,7 +174,6 @@ const UserFormDialog = ({
             </>
           )}
 
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
             <TextField
               label="Primer Nombre"
               {...register("primerNombre")}
@@ -199,60 +198,39 @@ const UserFormDialog = ({
               error={!!errors.SegundoApellido}
               helperText={errors.SegundoApellido?.message}
             />
-          </Box>
+            <TextField
+              select
+              label="Tipo de Documento"
+              {...register("tipoDocumento")}
+              error={!!errors.tipoDocumento}
+              helperText={errors.tipoDocumento?.message}
+            >
+              <MenuItem value="CEDULA_CIUDADANIA">Cédula Ciudadanía</MenuItem>
+              <MenuItem value="CEDULA_EXTRANJERIA">Cédula Extranjería</MenuItem>
+              <MenuItem value="TARJETA_EXTRANJERIA">Tarjeta Extranjería</MenuItem>
+              <MenuItem value="PASAPORTE">Pasaporte</MenuItem>
+              <MenuItem value="PEP">Permiso Especial de Permanencia</MenuItem>
+            </TextField>
 
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>Tipo de Documento</InputLabel>
-              <Select
-                label="Tipo de Documento"
-                value={watch("tipoDocumento") || ""}
-                {...register("tipoDocumento")}
-                onChange={(e) => setValue("tipoDocumento", e.target.value)}
-              >
-                <MenuItem value="">
-                  <em>Seleccione...</em>
-                </MenuItem>
-
-                {tiposDocumento?.map((tipo) => (
-                  <MenuItem key={tipo} value={tipo}>
-                    {tipo.replace(/_/g, " ")} {/* Mostrar bonito */}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.tipoDocumento && (
-                <p style={{ color: "red", fontSize: "0.8rem" }}>
-                  {errors.tipoDocumento.message}
-                </p>
-              )}
-            </FormControl>
             <TextField
               label="Documento"
               {...register("documento")}
+              disabled={editing}
               error={!!errors.documento}
               helperText={errors.documento?.message}
             />
 
-            <FormControl fullWidth error={!!errors.rolId}>
-              <InputLabel>Rol</InputLabel>
-              <Select
-                label="Rol"
-                value={watch("rolId") || ""}
-                onChange={(e) => setValue("rolId", e.target.value)}
-              >
-                {roles.map((r) => (
-                  <MenuItem key={r.id} value={r.id}>
-                    {r.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.rolId && (
-                <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.rolId.message}</p>
-              )}
-            </FormControl>
-          </Box>
+          <TextField
+            select
+            label="Rol"
+            {...register("rolId")}
+            error={!!errors.rolId}
+            helperText={errors.rolId?.message}
+          >
+            <MenuItem value={1}>Administrador</MenuItem>
+            <MenuItem value={2}>Cajero</MenuItem>
+          </TextField>
 
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
             <TextField
               label="Email"
               {...register("email")}
@@ -265,9 +243,6 @@ const UserFormDialog = ({
               error={!!errors.telefono}
               helperText={errors.telefono?.message}
             />
-          </Box>
-
-          {/* 🔥 AHORA LOS BOTONES ESTÁN DENTRO DEL <form> */}
           <DialogActions sx={{ px: 0 }}>
             <Button onClick={onClose}>Cancelar</Button>
             <Button type="submit" variant="contained">

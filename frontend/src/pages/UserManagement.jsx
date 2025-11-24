@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   getActiveUsers,
   getInactiveUsers,
@@ -27,7 +27,39 @@ export default function UserManagement() {
   const [tiposDocumento, setTiposDocumento] = useState([]);
   const [selectedTipoDocumento, setselectedTipoDocumento] = useState('');
 
+const ALL_COLUMNS = {
+  idUsuario: "ID",
+  username: "Usuario",
+  primerNombre: "Primer Nombre",
+  segundoNombre: "Segundo Nombre",
+  primerApellido: "Primer Apellido",
+  segundoApellido: "Segundo Apellido",
+  tipoDocumento: "Tipo Documento",
+  documento: "Documento",
+  rol: "Rol",
+  email: "Email",
+  telefono: "Teléfono",
+  estado: "Estado",
+  acciones: "Acciones",
+};
+const [visibleColumns, setVisibleColumns] = useState(() => {
+  const defaults = {};
+  Object.keys(ALL_COLUMNS).forEach((k) => (defaults[k] = true));
+  return defaults;
+});
 
+const [sortBy, setSortBy] = useState({ key: "primerApellido", direction: "asc" }); // default
+const [advancedFilters, setAdvancedFilters] = useState({
+  rol: "",
+  tipoDocumento: "",
+  estado: "", // "activo" | "inactivo" | ""
+});
+
+const handleShowAll = () => {
+  const all = {};
+  Object.keys(visibleColumns).forEach(k => all[k] = true);
+  setVisibleColumns(all);
+};
 
   useEffect(() => {
   loadUsers();
@@ -35,7 +67,9 @@ export default function UserManagement() {
 
   // Función que obtiene la lista de usuarios desde la API
 const loadUsers = async () => {
-  const res = showInactive ? await getInactiveUsers() : await getActiveUsers();
+  const res = showInactive 
+  ? await getInactiveUsers() 
+  : await getActiveUsers();
   setUsers(res.data);
 };
 
@@ -105,17 +139,57 @@ const showMessage = (msg, type = "success") => {
   setSnackbar({ open: true, message: msg, severity: type });
 };
 
-useEffect(() => {
-        fetch('http://localhost:8080/api/users/tipos-documento')
-            .then(response => response.json())
-            .then(data => setTiposDocumento(data))
-            .catch(error => console.error('Error al obtener tipos de documento:', error));
-    }, []);
+const filteredSortedUsers = useMemo(() => {
+  const q = filter?.trim().toLowerCase();
 
-  // Aplica el filtro de búsqueda (nombre, apellido, id, rol o documento)
-  const filtered = users.filter((u) =>
-    `${u.nombre} ${u.apellido} ${u.idUsuario} ${u.rol.nombre} ${u.documento} ${u.tipoDocumento}`.toLowerCase().includes(filter.toLowerCase())
-  );
+  // 1) Aplicar showInactive toggle (ya lo cargas por efecto, así que aquí solo filtramos por estado si advancedFilters lo solicita)
+  let result = [...users];
+
+  // 2) Aplicar filtros avanzados
+  if (advancedFilters.rol) {
+    result = result.filter(u => (u.rol.nombre || "").toLowerCase() === advancedFilters.rol.toLowerCase());
+  }
+  if (advancedFilters.tipoDocumento) {
+    result = result.filter(u => (u.tipoDocumento || "").toLowerCase() === advancedFilters.tipoDocumento.toLowerCase());
+  }
+  if (advancedFilters.estado) {
+    const wantActive = advancedFilters.estado === "activo";
+    result = result.filter(u => !!u.estado === wantActive);
+  }
+
+  // 3) Búsqueda en campos específicos (si q está)
+  if (q) {
+    result = result.filter((u) => {
+      const fields = [
+        u.username,
+        u.primerNombre,
+        u.segundoNombre,
+        u.primerApellido,
+        u.segundoApellido,
+        u.idUsuario?.toString(),
+        u.documento,
+        u.rol.nombre,
+        u.email,
+        u.telefono,
+      ];
+      return fields.some(f => (f || "").toString().toLowerCase().includes(q));
+    });
+  }
+
+  // 4) Ordenar
+  const { key, direction } = sortBy || {};
+  if (key) {
+    result.sort((a, b) => {
+      const A = (a[key] || "").toString().toLowerCase();
+      const B = (b[key] || "").toString().toLowerCase();
+      if (A < B) return direction === "asc" ? -1 : 1;
+      if (A > B) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
+
+  return result;
+}, [users, filter, advancedFilters, sortBy]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -129,12 +203,22 @@ useEffect(() => {
         onAdd={handleAdd}
         showInactive={showInactive}
         onToggleInactive={() => setShowInactive(prev => !prev)}
+        visibleColumns={visibleColumns}
+        setVisibleColumns={setVisibleColumns}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        advancedFilters={advancedFilters}
+        setAdvancedFilters={setAdvancedFilters}
+        handleShowAll={handleShowAll}
+        ALL_COLUMNS={ALL_COLUMNS}
       />
       <UserTable
-        users={filtered}
-        onEdit={handleEdit}
-        onDelete={handleInactive}
-        onActivate={handleActivate}
+      users={filteredSortedUsers}
+      onEdit={handleEdit}
+      onDelete={handleInactive}
+      onActivate={handleActivate}
+      visibleColumns={visibleColumns}
+      loading={false}
       />
 
 
@@ -150,7 +234,6 @@ useEffect(() => {
         }}
         loadUsers={loadUsers}
         showMessage={showMessage}
-        tiposDocumento={tiposDocumento}
       />
         <ConfirmDialog
         open={dialogOpen}

@@ -1,45 +1,43 @@
 import React from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Button,
-  Chip
+  Table, TableBody, TableCell, TableContainer, TableHead,
+  TableRow, Paper, IconButton, Button, Chip
 } from "@mui/material";
 import { Edit, CheckCircle, Cancel} from "@mui/icons-material";
 
-const ProductTable = ({ products, onEdit, onDelete, onActivate, loading }) => (
-  <TableContainer component={Paper}>
-    <Table size="small">
+const ProductTable = ({ products, onEdit, onDelete, onActivate, loading, visibleColumns }) => {
+const visibleCount = Object.values(visibleColumns || {}).filter(Boolean).length || 1;
+return (
+  <TableContainer component={Paper} sx={{ maxHeight: 500, overflowX: "auto" }}>
+    <Table sx={{ minWidth: 1200 }} size="small">
       <TableHead>
         <TableRow>
-          <TableCell>ID</TableCell>
-          <TableCell>Nombre</TableCell>
-          <TableCell>Categoría</TableCell>
-          <TableCell>Precio venta</TableCell>
-          <TableCell>Costo</TableCell>
-          <TableCell>Estado</TableCell>
-          <TableCell>Acciones</TableCell>
+          {visibleColumns.idProducto && <TableCell>ID</TableCell>}
+          {visibleColumns.nombre && <TableCell>Nombre</TableCell>}
+          {visibleColumns.categoria && <TableCell>Categoria</TableCell>}
+          {visibleColumns.codigoBarras && <TableCell>Codigo de Barras</TableCell>}
+          {visibleColumns.descripcion && <TableCell>Descripcion</TableCell>}
+          {visibleColumns.costo && <TableCell>Costo</TableCell>}
+          {visibleColumns.precioventa && <TableCell>Precio de Venta</TableCell>}
+          {visibleColumns.estado && <TableCell>Estado</TableCell>}
+          {visibleColumns.acciones && <TableCell align="center">Acciones</TableCell>}
         </TableRow>
       </TableHead>
-
       <TableBody>
         {products.length > 0 ? (
           products.map((p) => {
             const active = p.estado === 1 || p.estado === true;
             return (
             <TableRow key={p.idProducto}>
-              <TableCell>{p.idProducto}</TableCell>
-              <TableCell>{p.nombre}</TableCell>
-              <TableCell>{p.categoria}</TableCell>
-              <TableCell>${p.precioventa}</TableCell>
-              <TableCell>${p.costo}</TableCell>
-              <TableCell>
+              {visibleColumns.idProducto && <TableCell>{p.idProducto}</TableCell>}
+              {visibleColumns.nombre && <TableCell>{p.nombre}</TableCell>}
+              {visibleColumns.categoria && <TableCell>{p.categoria.nombre}</TableCell>}
+              {visibleColumns.codigoBarras && <TableCell>{p.codigoBarras}</TableCell>}
+              {visibleColumns.descripcion && <TableCell>{p.descripcion}</TableCell>}
+              {visibleColumns.costo && <TableCell>{p.costo}</TableCell>}
+              {visibleColumns.precioventa && <TableCell>{p.precioventa}</TableCell>}
+              {visibleColumns.estado &&(
+                <TableCell>
                   <Chip
                     icon={active ? <CheckCircle /> : <Cancel />}
                     label={active ? "ACTIVO" : "INACTIVO"}
@@ -54,28 +52,38 @@ const ProductTable = ({ products, onEdit, onDelete, onActivate, loading }) => (
                       borderColor: active ? "success.main" : "text.secondary",
                     }}
                   />
-              </TableCell>
-
+                </TableCell>
+              )}
+              {visibleColumns.acciones && (
               <TableCell align="center">
-                {/* EDITAR */}
                 <IconButton size="small" onClick={() => onEdit(p)}>
                   <Edit />
                 </IconButton>
 
-                {/* ACTIVAR / DESACTIVAR */}
-                {active? (
-                  <Button variant="outlined" color="error" onClick={() => onDelete(p.idProducto)} sx={{ ml: 1 }}>
-                    Desactivar
-                  </Button>
-                ) : (
-                  <Button variant="outlined" color="primary" onClick={() => onActivate(p.idProducto)} sx={{ ml: 1 }}>
-                    Activar
-                  </Button>
-                )}
+                {active ? (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => onDelete(p.idProducto)}
+                      sx={{ ml: 1 }}
+                    >
+                      Desactivar
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => onActivate(p.idProducto)}
+                      sx={{ ml: 1 }}
+                    >
+                      Activar
+                    </Button>
+                  )}
               </TableCell>
+              )}
             </TableRow>
           );
-        }) 
+          })
       ) : (
           <TableRow>
             <TableCell colSpan={7} align="center">
@@ -87,5 +95,5 @@ const ProductTable = ({ products, onEdit, onDelete, onActivate, loading }) => (
     </Table>
   </TableContainer>
 );
-
+};
 export default ProductTable;

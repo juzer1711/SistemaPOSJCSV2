@@ -28,6 +28,8 @@ public class ProductoController {
                 p.getIdProducto(),
                 p.getNombre(),
                 p.getCategoria(),
+                p.getCodigoBarras(),
+                p.getDescripcion(),
                 p.getCosto(),
                 p.getPrecioventa(),
                 p.getEstado()))
@@ -43,6 +45,8 @@ public class ProductoController {
                 p.getIdProducto(),
                 p.getNombre(),
                 p.getCategoria(),
+                p.getCodigoBarras(),
+                p.getDescripcion(),
                 p.getCosto(),
                 p.getPrecioventa(),
                 p.getEstado()))

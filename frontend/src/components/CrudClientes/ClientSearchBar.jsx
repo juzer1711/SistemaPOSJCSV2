@@ -128,7 +128,22 @@ const ClientSearchBar = ({
             <MenuItem value="Empresa">Empresa</MenuItem>
           </Select>
         </FormControl>
-
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Tipo Documento</InputLabel>
+          <Select
+            value={advancedFilters.tipoDocumento || ""}
+            label="Tipo Documento"
+            onChange={(e) => handleAdvFilterChange("tipoDocumento", e.target.value)}
+          >
+            <MenuItem value="">Todos</MenuItem>
+            <MenuItem value="CEDULA_CIUDADANIA">Cedula Ciudadania</MenuItem>
+            <MenuItem value="CEDULA_EXTRANJERIA">Cedula Extranjeria</MenuItem>
+            <MenuItem value="TARJETA_EXTRANJERIA">Tarjeta Extranjeria</MenuItem>
+            <MenuItem value="NIT">NIT</MenuItem>
+            <MenuItem value="PASAPORTE">Pasaporte</MenuItem>
+            <MenuItem value="PEP">Permiso Especial Permanencia</MenuItem>
+          </Select>
+        </FormControl>
         <FormControl size="small" sx={{ minWidth: 160 }} >
           <InputLabel>Estado</InputLabel>
           <Select
