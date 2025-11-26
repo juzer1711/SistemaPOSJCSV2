@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import PeopleIcon from "@mui/icons-material/People";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import SettingsIcon from "@mui/icons-material/Settings";
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -21,11 +22,23 @@ const AdminDashboard = () => {
       icon: <PeopleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
       action: () => navigate("/gestion-productos"),
     },
-        {
+    {
       title: "Gestión de Clientes",  // Nueva tarjeta para gestionar clientes
       description: "Administra y gestiona los clientes del sistema.",
       icon: <PeopleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
       action: () => navigate("/gestion-clientes"),  // Redirige a la nueva página
+    },
+    {
+      title: "Gestión de Ventas",  // Nueva tarjeta para gestionar clientes
+      description: "Administra y gestiona las ventas del sistema.",
+      icon: <PeopleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
+      action: () => navigate("/mostrar-ventas"),  // Redirige a la nueva página
+    },
+    {
+      title: "Nueva Venta",  // Nueva tarjeta para gestionar clientes
+      description: "Registra una nueva venta al sistema.",
+      icon: <ShoppingBagOutlinedIcon sx={{ fontSize: 40, color: "primary.main" }} />,
+      action: () => navigate("/nueva-venta"),  // Redirige a la nueva página
     },
     {
       title: "Reportes",

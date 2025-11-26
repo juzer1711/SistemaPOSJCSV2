@@ -3,6 +3,9 @@ package com.sistemaposjcs.sistemaposjcs.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.math.BigDecimal;
+
 import com.sistemaposjcs.sistemaposjcs.model.Categoria;
 
 
@@ -13,7 +16,7 @@ public class ProductoDTO {
     private Categoria categoria;
     private String codigoBarras;
     private String descripcion;
-    private Double costo;
-    private Double precioventa;
+    private BigDecimal costo;
+    private BigDecimal precio;
     private Boolean estado;
 }

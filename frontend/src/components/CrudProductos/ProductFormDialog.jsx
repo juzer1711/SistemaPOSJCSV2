@@ -41,7 +41,7 @@ useEffect(() => {
       codigoBarras: "",
       descripcion: "",
       costo: "",
-      precioVenta: "",
+      precio: "",
     });
   }else if (defaultValues) {
       reset({
@@ -142,9 +142,9 @@ useEffect(() => {
           />
           <TextField
               label="Precio de venta"
-              {...register("precioventa")}
-              error={!!errors.precioventa}
-              helperText={errors.precioventa?.message}
+              {...register("precio")}
+              error={!!errors.precio}
+              helperText={errors.precio?.message}
           />
 
 

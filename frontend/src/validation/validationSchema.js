@@ -90,7 +90,7 @@ export const productSchema = yup.object().shape({
     .positive("El costo debe ser mayor a 0")
     .required("El costo es obligatorio"),
 
-  precioventa: yup
+  precio: yup
     .number()
     .typeError("El precio de venta debe ser un número")
     .positive("El precio debe ser mayor a 0")
@@ -200,5 +200,28 @@ export const clientSchema = yup.object().shape({
     .string()
     .required("El teléfono es obligatorio")
     .matches(/^[0-9]{7,10}$/, "Debe tener entre 7 y 10 dígitos"),
+});
+
+export const ventaSchema = yup.object().shape({
+  cliente: yup.object()
+    .required("Selecciona un cliente antes de continuar"),
+
+  metodoPago: yup.string()
+    .required("Elige un método de pago"),
+
+  items: yup.array()
+    .min(1, "Agrega al menos un producto a la venta")
+    .of(
+      yup.object().shape({
+        idProducto: yup.number().required(),
+        cantidad: yup.number()
+          .min(1, "Cantidad mínima 1")
+          .required(),
+        precio: yup.number().required(),
+      })
+    ),
+
+  observaciones: yup.string()
+    .max(255, "Máximo 255 caracteres")
 });
 

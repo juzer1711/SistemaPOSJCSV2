@@ -85,5 +85,21 @@ public class Cliente {
     private String direccion;
 
     private Boolean estado = true;
+
+    public String getNombreCompleto() {
+    if (this.tipoCliente == TipoCliente.EMPRESA) {
+        return this.razonSocial;
+    } else {
+        StringBuilder nombre = new StringBuilder();
+
+        if (primerNombre != null) nombre.append(primerNombre).append(" ");
+        if (segundoNombre != null) nombre.append(segundoNombre).append(" ");
+        if (primerApellido != null) nombre.append(primerApellido).append(" ");
+        if (segundoApellido != null) nombre.append(segundoApellido).append(" ");
+
+        return nombre.toString().trim();
+    }
+}
+
 }
 

@@ -38,7 +38,7 @@ const ALL_COLUMNS = {
   codigoBarras: "Codigo de Barras",
   descripcion: "Descripción",
   costo: "Costo",
-  precioventa: "Precio de Venta",
+  precio: "Precio de Venta",
   estado: "Estado",
   acciones: "Acciones",
 };

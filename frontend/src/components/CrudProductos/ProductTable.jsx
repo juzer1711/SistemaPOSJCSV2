@@ -18,7 +18,7 @@ return (
           {visibleColumns.codigoBarras && <TableCell>Codigo de Barras</TableCell>}
           {visibleColumns.descripcion && <TableCell>Descripcion</TableCell>}
           {visibleColumns.costo && <TableCell>Costo</TableCell>}
-          {visibleColumns.precioventa && <TableCell>Precio de Venta</TableCell>}
+          {visibleColumns.precio && <TableCell>Precio de Venta</TableCell>}
           {visibleColumns.estado && <TableCell>Estado</TableCell>}
           {visibleColumns.acciones && <TableCell align="center">Acciones</TableCell>}
         </TableRow>
@@ -35,7 +35,7 @@ return (
               {visibleColumns.codigoBarras && <TableCell>{p.codigoBarras}</TableCell>}
               {visibleColumns.descripcion && <TableCell>{p.descripcion}</TableCell>}
               {visibleColumns.costo && <TableCell>{p.costo}</TableCell>}
-              {visibleColumns.precioventa && <TableCell>{p.precioventa}</TableCell>}
+              {visibleColumns.precio && <TableCell>{p.precio}</TableCell>}
               {visibleColumns.estado &&(
                 <TableCell>
                   <Chip

@@ -88,12 +88,11 @@ const UserSearchBar = ({
           <MenuItem key={k} onClick={() => toggleColumn(k)}>
             <FormControlLabel
               control={<Checkbox checked={!!visibleColumns[k]} />}
-              label={ALL_COLUMNS[k]}   // ← ¡Ahora aparece bonito!
+              label={ALL_COLUMNS[k]} 
             />
           </MenuItem>
         ))}
       </Menu>
-
 
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel>Ordenar</InputLabel>
@@ -103,10 +102,10 @@ const UserSearchBar = ({
             onChange={handleSortChange}
           >
             {SORT_FIELDS.map(s => (
-              <MenuItem key={`${s.value}|asc`} value={`${s.value}|asc`}>{s.label} (A→Z)</MenuItem>
+              <MenuItem key={`${s.value}|asc`} value={`${s.value}|asc`}>{s.label} (Ascendente)</MenuItem>
             ))}
             {SORT_FIELDS.map(s => (
-              <MenuItem key={`${s.value}|desc`} value={`${s.value}|desc`}>{s.label} (Z→A)</MenuItem>
+              <MenuItem key={`${s.value}|desc`} value={`${s.value}|desc`}>{s.label} (Descendente)</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -119,6 +118,7 @@ const UserSearchBar = ({
             label="Rol"
             onChange={(e) => handleAdvFilterChange("rol", e.target.value)}
           >
+            <MenuItem value="">Todos</MenuItem>
             <MenuItem value="ADMINISTRADOR">Administrador</MenuItem>
             <MenuItem value="CAJERO">Cajero</MenuItem>
           </Select>

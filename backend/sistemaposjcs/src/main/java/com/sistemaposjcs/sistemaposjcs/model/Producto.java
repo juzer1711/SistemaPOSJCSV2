@@ -1,5 +1,7 @@
 package com.sistemaposjcs.sistemaposjcs.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -47,11 +49,11 @@ public class Producto {
 
     @Positive(message = "El costo debe ser mayor que cero")
     @Column(nullable = false)
-    private Double costo;
+    private BigDecimal costo;
 
     @Positive(message = "El precio debe ser mayor que cero")
     @Column(nullable = false)
-    private Double precioventa;
+    private BigDecimal precio;
 
     private Boolean estado = true;
 }

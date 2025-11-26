@@ -54,7 +54,7 @@ public class ProductoService {
         producto.setCodigoBarras(productoDetails.getCodigoBarras());
         producto.setDescripcion(productoDetails.getDescripcion());
         producto.setCosto(productoDetails.getCosto());
-        producto.setPrecioventa(productoDetails.getPrecioventa());
+        producto.setPrecio(productoDetails.getPrecio());
 
         // 🔥 Si viene una categoria en el JSON, la asignamos correctamente
         if (productoDetails.getCategoria() != null && productoDetails.getCategoria().getId() != null) {

@@ -7,6 +7,8 @@ import UserManagement from "../pages/UserManagement"; // CRUD de usuarios
 import ProductManagement from "../pages/ProductManagement"; // CRUD de productos
 import ClientManagement from "../pages/ClientManagement"; // CRUD de clientes
 import PrivateRoute from "./PrivateRoute"; // Componente para proteger rutas
+import VentaManagement from "../pages/VentaManagement";
+import VentaPOS from "../components/Ventas/POSVenta";
 
 function AppRoutes() {
   return (
@@ -62,7 +64,23 @@ function AppRoutes() {
               <ClientManagement />
             </PrivateRoute>
           }
-        />        
+        />
+        {/* 🔹 Ruta para ver las ventas */}
+        <Route
+          path="/mostrar-ventas"
+          element={
+              <VentaManagement/>
+          }
+        />
+        {/* 🔹 Ruta para nueva venta */}
+        <Route
+          path="/nueva-venta"
+          element={
+          <PrivateRoute rol="ADMINISTRADOR">
+              <VentaPOS/>
+          </PrivateRoute>
+          }
+        />          
       </Routes>
     </Router>
   );

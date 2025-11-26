@@ -31,7 +31,7 @@ public class ProductoController {
                 p.getCodigoBarras(),
                 p.getDescripcion(),
                 p.getCosto(),
-                p.getPrecioventa(),
+                p.getPrecio(),
                 p.getEstado()))
             .toList();
     }
@@ -48,7 +48,7 @@ public class ProductoController {
                 p.getCodigoBarras(),
                 p.getDescripcion(),
                 p.getCosto(),
-                p.getPrecioventa(),
+                p.getPrecio(),
                 p.getEstado()))
             .toList();
     }

@@ -13,7 +13,7 @@ const UserTable = ({ users, onEdit, onDelete, onActivate, loading, visibleColumn
       <TableHead>
         <TableRow>
           {visibleColumns.idUsuario && <TableCell>ID</TableCell>}
-          {visibleColumns.username && <TableCell>Tipo Cliente</TableCell>}
+          {visibleColumns.username && <TableCell>Username</TableCell>}
           {visibleColumns.primerNombre && <TableCell>Primer Nombre</TableCell>}
           {visibleColumns.segundoNombre && <TableCell>Segundo Nombre</TableCell>}
           {visibleColumns.primerApellido && <TableCell>Primer Apellido</TableCell>}
@@ -94,7 +94,7 @@ const UserTable = ({ users, onEdit, onDelete, onActivate, loading, visibleColumn
           })
         ) : (
           <TableRow>
-            <TableCell colSpan={12} align="center">
+            <TableCell colSpan={visibleCount} align="center">
               {loading ? "Cargando..." : "No hay usuarios"}
             </TableCell>
           </TableRow>
