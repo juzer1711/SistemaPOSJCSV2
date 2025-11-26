@@ -21,7 +21,7 @@ function AppRoutes() {
         <Route
           path="/admin-dashboard"
           element={
-            <PrivateRoute rol="ADMINISTRADOR">
+            <PrivateRoute roles={["ADMINISTRADOR"]}>
               <AdminDashboard />
             </PrivateRoute>
           }
@@ -30,7 +30,7 @@ function AppRoutes() {
         <Route
           path="/cajero-dashboard"
           element={
-            <PrivateRoute rol="CAJERO">
+            <PrivateRoute roles={["CAJERO"]}>
               <CajeroDashboard />
             </PrivateRoute>
           }
@@ -40,7 +40,7 @@ function AppRoutes() {
         <Route
           path="/gestion-usuarios"
           element={
-            <PrivateRoute rol="ADMINISTRADOR">
+            <PrivateRoute roles={["ADMINISTRADOR"]}>
               <UserManagement />
             </PrivateRoute>
           }
@@ -50,7 +50,7 @@ function AppRoutes() {
         <Route
           path="/gestion-productos"
           element={
-            <PrivateRoute rol="ADMINISTRADOR">
+            <PrivateRoute roles={["ADMINISTRADOR"]}>
               <ProductManagement />
             </PrivateRoute>
           }
@@ -60,7 +60,7 @@ function AppRoutes() {
         <Route
           path="/gestion-clientes"
           element={
-            <PrivateRoute rol="ADMINISTRADOR">
+            <PrivateRoute roles={["ADMINISTRADOR"]}>
               <ClientManagement />
             </PrivateRoute>
           }
@@ -69,16 +69,18 @@ function AppRoutes() {
         <Route
           path="/mostrar-ventas"
           element={
+            <PrivateRoute roles={["ADMINISTRADOR"]}>
               <VentaManagement/>
+            </PrivateRoute>
           }
         />
         {/* 🔹 Ruta para nueva venta */}
         <Route
           path="/nueva-venta"
           element={
-          <PrivateRoute rol="ADMINISTRADOR">
+            <PrivateRoute roles={["ADMINISTRADOR","CAJERO"]}>
               <VentaPOS/>
-          </PrivateRoute>
+            </PrivateRoute>
           }
         />          
       </Routes>

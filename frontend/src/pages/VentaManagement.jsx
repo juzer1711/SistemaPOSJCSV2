@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Box, Toolbar, Typography, Snackbar, Alert, Dialog } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import VentaTable from "../components/Ventas/VentaTable";
 import VentaSearchBar from "../components/Ventas/VentaSearchBar";
 import POSVenta from "../components/Ventas/POSVenta";
@@ -9,13 +10,14 @@ import { getActiveProducts } from "../services/productService";
 import { getActiveClients } from "../services/clientService";
 import ConfirmDialog from "../components/ConfirmDialog";
 
-const VentaManagement = () => {
+export default function VentaManagement () {
   const [ventas, setVentas] = useState([]);
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
 
   const [filter, setFilter] = useState("");
   const [showInactive, setShowInactive] = useState(false);
+  const navigate = useNavigate();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogInfo, setDialogInfo] = useState({});
@@ -26,6 +28,11 @@ const VentaManagement = () => {
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
 
   const [openPOS, setOpenPOS] = useState(false);
+
+  const handleOpenPOS = () => {
+    navigate("/nueva-venta");
+    setOpenPOS(true);
+  };
 
 
   const ALL_COLUMNS = {
@@ -205,7 +212,7 @@ const filteredVentas = useMemo(() => {
       <VentaSearchBar 
         filter={filter}
         onFilterChange={setFilter}
-        onAddVenta={() => setOpenPOS(true)}
+        onAddVenta={handleOpenPOS}
         showInactive={showInactive}
         onToggleInactive={() => setShowInactive(p=>!p)}
         visibleColumns={visibleColumns}
@@ -262,4 +269,3 @@ const filteredVentas = useMemo(() => {
   );
 };
 
-export default VentaManagement;

@@ -1,215 +1,82 @@
-import React, { useState } from "react";
-import {
-  Box, TextField, Button, Typography, Divider,
-  Table, TableBody, TableCell, TableHead, TableRow,
-  Paper, Autocomplete, Dialog, DialogTitle, DialogContent, DialogActions, 
-  IconButton, FormControl, MenuItem, InputLabel, Select
-} from "@mui/material";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import { ventaSchema } from "../../validation/validationSchema";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Box } from "@mui/material";
+import ProductSidebar from "./POSVentaComponents/ProductSidebar";
+import CartPanel from "./POSVentaComponents/CartPanel";
+import CheckoutPanel from "./POSVentaComponents/CheckoutPanel";
+import { getActiveProducts } from "../../services/productService";
+import { getActiveClients } from "../../services/clientService";
 
-/* Helpers */
-const getClientId = (c) => c?.idCliente ?? null;
+export default function VentaPOS ({ registrarVenta }) {
+  const [productos, setProductos] = useState([]);
+  const [recomendados, setRecomendados] = useState([]);
+  const [clientes, setClientes] = useState([]);
 
-const getClientName = (c) => {
-  if (!c) return "";
-  if (c.razonSocial) return c.razonSocial;
-  return [c.primerNombre, c.segundoNombre, c.primerApellido, c.segundoApellido]
-    .filter(Boolean)
-    .join(" ");
-};
-
-const POSVenta = ({ productos = [], clientes = [], registrarVenta }) => {
-
-  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  // Estado del carrito vivo (idProducto, nombre, precio, cantidad)
   const [items, setItems] = useState([]);
-  const [busqueda, setBusqueda] = useState("");
-
-  const [openCliente, setOpenCliente] = useState(false);
-  const [clienteDetalle, setClienteDetalle] = useState(null);
-
-  const [observaciones, setObservaciones] = useState("");
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [metodoPago, setMetodoPago] = useState("");
+  const [observaciones, setObservaciones] = useState("");
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    (async () => {
+      try {
+        const p = await getActiveProducts();
+        setProductos(p.data || []);
+        const c = await getActiveClients();
+        setClientes(c.data || []);
+      } catch (err) {
+        console.error("Error cargando datos POS", err);
+      }
+    })();
+  }, []);
 
-
-  /*───────────────────── AGREGAR PRODUCTO ─────────────────────*/
+  // Añadir producto al carrito (incrementa si ya existe)
   const addItem = (prod) => {
-    const idProducto = prod?.idProducto;
-    if (!idProducto) return;
-
-    const existe = items.find(i => i.idProducto === idProducto);
-
-    if (existe) {
-      setItems(items.map(i =>
-        i.idProducto === idProducto ? { ...i, cantidad: i.cantidad + 1 } : i
-      ));
-    } else {
-      setItems(prev => [
-        ...prev, {
-          idProducto,
-          nombre: prod.nombre,
-          precio: Number(prod.precio ?? 0),   // ← precio usado correctamente
-          cantidad: 1
-        }
-      ]);
-    }
+    if (!prod?.idProducto) return;
+    setItems(prev => {
+      const found = prev.find(i => i.idProducto === prod.idProducto);
+      if (found) {
+        return prev.map(i => i.idProducto === prod.idProducto ? { ...i, cantidad: i.cantidad + 1 } : i);
+      }
+      return [...prev, { idProducto: prod.idProducto, nombre: prod.nombre, precio: Number(prod.precio), cantidad: 1 }];
+    });
   };
 
-  /*───────────────────── EDITAR / QUITAR ─────────────────────*/
-  const cambiarCantidad = (id, cant) => {
-    const c = Number(cant);
-    if (c < 1 || isNaN(c)) return;
-    setItems(items.map(i => i.idProducto === id ? { ...i, cantidad:c } : i));
+  const updateQuantity = (idProducto, cantidad) => {
+    setItems(prev => prev.map(i => i.idProducto === idProducto ? { ...i, cantidad } : i));
   };
 
-  const removeItem = (id) => setItems(items.filter(i => i.idProducto !== id));
+  const removeItem = (idProducto) => setItems(prev => prev.filter(i => i.idProducto !== idProducto));
 
-  const total = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0);
+  const clearCart = () => { setItems([]); setClienteSeleccionado(null); setMetodoPago(""); setObservaciones(""); };
 
-  /*───────────────────── CONFIRMAR VENTA ─────────────────────*/
-  const confirmarVenta = async () => {
-
-    const venta = {
-      cliente: { idCliente: clienteSeleccionado.idCliente },
-      metodoPago,
-      observaciones,
-      items: items.map(i => ({
-        producto: { idProducto: i.idProducto }, // ← SE ENVÍA COMO OBJETO
-        cantidad: i.cantidad
-      }))
-    };
-
-
-    try {
-      await registrarVenta(venta);
-      alert("✔ Venta registrada con éxito!");
-      setItems([]);
-      setClienteSeleccionado(null);
-      setMetodoPago("");
-      setObservaciones("");
-      
-    } catch (error) {
-      console.error("❌ Error al registrar:", error);
-      alert("Error en el registro: " + error.message);
-    }
-  };
-
-
-  /*───────────────────── UI ─────────────────────*/
   return (
-    <Box p={3} display="flex" gap={3}>
-      
-      {/* 📌 LISTA DE PRODUCTOS */}
-      <Box flex={2}>
-        <TextField fullWidth label="Buscar producto..." size="small"
-          value={busqueda} onChange={e=>setBusqueda(e.target.value)} />
-
-        <Paper sx={{mt:2,maxHeight:"70vh",overflow:"auto"}}>
-          {productos
-            .filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()))
-            .map(p =>
-              <Box key={p.idProducto} p={1} sx={{cursor:"pointer"}}
-                onClick={()=>addItem(p)} borderBottom="1px solid #ddd">
-                  <b>{p.nombre}</b><br/>
-                  <small>Precio: ${p.precio}</small>
-              </Box>
-            )
-          }
-        </Paper>
+    <Box sx={{
+      p: 3,
+      background: "#f4f6f8",
+      minHeight: "100vh",
+      display: "grid",
+      gridTemplateColumns: "360px 1fr 360px",
+      gap: 3
+    }}>
+      <ProductSidebar productos={productos} onAdd={addItem} />
+      <Box>
+        <CartPanel items={items} onChangeQty={updateQuantity} onRemove={removeItem} />
       </Box>
-
-
-
-      {/* 📌 FACTURACIÓN */}
-      <Box flex={3}>
-        <Typography variant="h6">Venta actual</Typography>
-        <Divider sx={{my:2}}/>
-
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Producto</TableCell><TableCell>Cant.</TableCell>
-              <TableCell>Precio</TableCell><TableCell>Subt.</TableCell><TableCell/>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items.length===0 && <TableRow><TableCell colSpan={5}>🛒 Vacío</TableCell></TableRow>}
-            {items.map(i=>{
-              const sub = i.precio*i.cantidad;
-              return(
-                <TableRow key={i.idProducto}>
-                  <TableCell>{i.nombre}</TableCell>
-                  <TableCell>
-                    <input type="number" min="1" value={i.cantidad}
-                      style={{width:55}} onChange={(e)=>cambiarCantidad(i.idProducto,e.target.value)} />
-                  </TableCell>
-                  <TableCell>${i.precio}</TableCell>
-                  <TableCell>${sub}</TableCell>
-                  <TableCell><Button color="error" size="small" onClick={()=>removeItem(i.idProducto)}>X</Button></TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-
-        <Typography variant="h4" mt={2}>TOTAL: <b>${total}</b></Typography>
-
-
-        {/* 🔍 CLIENTE */}
-        <Autocomplete sx={{mt:2}} options={clientes}
-          value={clienteSeleccionado}
-          onChange={(e,val)=>setClienteSeleccionado(val)}
-          getOptionLabel={(c)=> `${getClientName(c)} | ${c.documento ?? ""}`}
-          isOptionEqualToValue={(o,v)=>o.idCliente===v.idCliente}
-          renderOption={(props,c)=>(
-            <li {...props}>
-              {getClientName(c)} — {c.documento}
-              <IconButton onClick={(e)=>{e.stopPropagation(); setClienteDetalle(c); setOpenCliente(true);}}>
-                <VisibilityIcon/>
-              </IconButton>
-            </li>
-          )}
-          renderInput={p=><TextField {...p} label="Cliente" required/>}
-        />
-
-        <TextField label="Observaciones" fullWidth multiline minRows={2} sx={{mt:2}}
-          value={observaciones} onChange={e=>setObservaciones(e.target.value)} />
-
-        <FormControl fullWidth sx={{mt:2}} required>
-          <InputLabel>Método de Pago</InputLabel>
-          <Select value={metodoPago} label="Metodo" onChange={e=>setMetodoPago(e.target.value)}>
-            <MenuItem value="EFECTIVO">Efectivo</MenuItem>
-            <MenuItem value="TRANSFERENCIA">Transferencia</MenuItem>
-          </Select>
-        </FormControl>
-
-        <Button variant="contained" fullWidth sx={{mt:2}}
-          disabled={!clienteSeleccionado || items.length===0}
-          onClick={confirmarVenta}>
-          Confirmar Venta
-        </Button>
-      </Box>
-
-
-
-      {/* 🔍 DIALOGO CLIENTE */}
-      <Dialog open={openCliente} onClose={()=>setOpenCliente(false)}>
-        <DialogTitle>Datos del Cliente</DialogTitle>
-        <DialogContent>
-          <p><b>Nombre:</b> {getClientName(clienteDetalle)}</p>
-          <p><b>Documento:</b> {clienteDetalle?.documento}</p>
-          <p><b>Teléfono:</b> {clienteDetalle?.telefono || "N/A"}</p>
-          <p><b>Email:</b> {clienteDetalle?.email || "N/A"}</p>
-          <p><b>Dirección:</b> {clienteDetalle?.direccion || "N/A"}</p>
-        </DialogContent>
-        <DialogActions><Button onClick={()=>setOpenCliente(false)}>Cerrar</Button></DialogActions>
-      </Dialog>
-
+      <CheckoutPanel
+        clientes={clientes}
+        items={items}
+        clienteSeleccionado={clienteSeleccionado}
+        setClienteSeleccionado={setClienteSeleccionado}
+        metodoPago={metodoPago}
+        setMetodoPago={setMetodoPago}
+        observaciones={observaciones}
+        setObservaciones={setObservaciones}
+        registrarVenta={registrarVenta}
+        clearCart={clearCart}
+      />
     </Box>
   );
 };
 
-export default POSVenta;
+
