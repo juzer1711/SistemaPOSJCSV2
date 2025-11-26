@@ -38,27 +38,28 @@ public class AuthService {
 
          // Si no se encuentra el usuario, devolvemos una respuesta de error
         if (uOpt.isEmpty()) {
-            return new LoginResponse("error", null, "Usuario no encontrado", null);
+            return new LoginResponse("error", null, null, "Usuario no encontrado", null);
         }
         // Obtenemos el usuario del Optional
         Usuario usuario = uOpt.get();
 
             // 🚨 BLOQUEO DE USUARIOS INACTIVOS
         if (!usuario.getEstado()) {
-            return new LoginResponse("error", null,"El usuario está inactivo. Contacte al administrador.", null);
+            return new LoginResponse("error", null, null,"El usuario está inactivo. Contacte al administrador.", null);
         }
 
         // Verificamos la contraseña usando BCrypt
         if (passwordEncoder.matches(req.getPassword(), usuario.getPassword())) {
              // 🔑 Generar token JWT
+            String userName = usuario.getUsername();
             String roleName = usuario.getRol().getNombre();
             String token = jwtUtil.generateToken(usuario.getUsername(), roleName);
              // Si coincide, devolvemos respuesta exitosa con el rol del usuario
-            return new LoginResponse("ok", roleName, "Login exitoso", token);
+            return new LoginResponse("ok", userName, roleName, "Login exitoso", token);
 
         } else {
             // Si no coincide, devolvemos error de credenciales inválidas
-            return new LoginResponse("error", null, "Credenciales inválidas", null);
+            return new LoginResponse("error",null, null, "Credenciales inválidas", null);
         }
     }
 

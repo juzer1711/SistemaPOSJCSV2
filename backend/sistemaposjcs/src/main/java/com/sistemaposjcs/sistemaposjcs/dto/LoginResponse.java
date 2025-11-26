@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class LoginResponse {
     private String status;  // "ok" o "error"
+    private String username;
     private String role;
     private String message;
     private String token;   // 🔑 Nuevo campo para el JWT
