@@ -5,10 +5,10 @@ import CartPanel from "./POSVentaComponents/CartPanel";
 import CheckoutPanel from "./POSVentaComponents/CheckoutPanel";
 import { getActiveProducts } from "../../services/productService";
 import { getActiveClients } from "../../services/clientService";
+import {registrarVenta} from "../../services/ventaService";
 
-export default function VentaPOS ({ registrarVenta }) {
+export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
-  const [recomendados, setRecomendados] = useState([]);
   const [clientes, setClientes] = useState([]);
 
   // Estado del carrito vivo (idProducto, nombre, precio, cantidad)
@@ -76,6 +76,7 @@ export default function VentaPOS ({ registrarVenta }) {
         clearCart={clearCart}
       />
     </Box>
+
   );
 };
 

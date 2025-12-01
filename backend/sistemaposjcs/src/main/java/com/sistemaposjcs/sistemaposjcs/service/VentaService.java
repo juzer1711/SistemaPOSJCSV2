@@ -48,7 +48,7 @@ public Venta createVenta(Venta venta) {
 
     // Validar cliente real
     Cliente clienteReal = clienteRepository.findById(
-        venta.getCliente().getIdCliente()
+            venta.getCliente().getIdCliente()
     ).orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
     venta.setCliente(clienteReal);
@@ -62,17 +62,21 @@ public Venta createVenta(Venta venta) {
 
     for (ItemFactura item : venta.getItems()) {
 
+        // Buscar producto real
         Producto producto = productoRepository.findById(
-            item.getProducto().getIdProducto()
+                item.getProducto().getIdProducto()
         ).orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
+        // Set precio unitario
         item.setPrecioUnitario(producto.getPrecio());
 
+        // Calcular subtotal
         BigDecimal subtotal = producto.getPrecio()
                 .multiply(BigDecimal.valueOf(item.getCantidad()));
 
         item.setSubtotal(subtotal);
 
+        // Sumar al total
         total = total.add(subtotal);
 
         // Enlazar relaciones
@@ -80,11 +84,11 @@ public Venta createVenta(Venta venta) {
         item.setProducto(producto);
     }
 
+    // Establecer total final
     venta.setTotal(total);
 
     return ventaRepository.save(venta);
 }
-
 
 
 
