@@ -38,7 +38,8 @@ export default function VentaPOS () {
       if (found) {
         return prev.map(i => i.idProducto === prod.idProducto ? { ...i, cantidad: i.cantidad + 1 } : i);
       }
-      return [...prev, { idProducto: prod.idProducto, nombre: prod.nombre, precio: Number(prod.precio), cantidad: 1 }];
+      return [...prev, { idProducto: prod.idProducto, nombre: prod.nombre, precioUnitario: Number(prod.precioventa), ivaPorcentaje: prod.iva.value,         // 0.19 por ejemplo
+        precioSinIva: Number(prod.precioSinIva),cantidad: 1 }];
     });
   };
 

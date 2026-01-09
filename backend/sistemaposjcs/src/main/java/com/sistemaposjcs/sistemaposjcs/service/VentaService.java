@@ -1,6 +1,7 @@
 package com.sistemaposjcs.sistemaposjcs.service;
 
 import com.sistemaposjcs.sistemaposjcs.model.Venta;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.MetodoPago;
 import com.sistemaposjcs.sistemaposjcs.model.Cliente;
 import com.sistemaposjcs.sistemaposjcs.model.ItemFactura;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
@@ -53,12 +54,13 @@ public Venta createVenta(Venta venta) {
 
     venta.setCliente(clienteReal);
 
-    // Validar items
     if (venta.getItems() == null || venta.getItems().isEmpty()) {
         throw new RuntimeException("La venta debe contener al menos un item");
     }
 
-    BigDecimal total = BigDecimal.ZERO;
+    BigDecimal totalVenta = BigDecimal.ZERO;
+    BigDecimal totalIVA = BigDecimal.ZERO;
+    BigDecimal totalSinIVA = BigDecimal.ZERO;
 
     for (ItemFactura item : venta.getItems()) {
 
@@ -67,26 +69,49 @@ public Venta createVenta(Venta venta) {
                 item.getProducto().getIdProducto()
         ).orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-        // Set precio unitario
-        item.setPrecioUnitario(producto.getPrecio());
+        // Precio final (incluye IVA)
+        BigDecimal precioFinal = producto.getPrecioventa();
+        item.setPrecioUnitario(precioFinal);
 
-        // Calcular subtotal
-        BigDecimal subtotal = producto.getPrecio()
-                .multiply(BigDecimal.valueOf(item.getCantidad()));
+        // Precio sin IVA
+        BigDecimal precioSinIVA = producto.getPrecioSinIva();
 
+        // IVA unitario = (precioConIVA - precioSinIVA)
+        BigDecimal ivaUnitario = precioFinal.subtract(precioSinIVA);
+
+        // Subtotal final (con IVA)
+        BigDecimal subtotal = precioFinal.multiply(BigDecimal.valueOf(item.getCantidad()));
         item.setSubtotal(subtotal);
 
-        // Sumar al total
-        total = total.add(subtotal);
+        // IVA total de este Item
+        BigDecimal valorIVA = ivaUnitario.multiply(BigDecimal.valueOf(item.getCantidad()));
+        item.setValorIVA(valorIVA);
 
-        // Enlazar relaciones
+        // Guardar el porcentaje de IVA
+        item.setIvaPorcentaje(producto.getIva().getValue());
+
+        // Acumular
+        totalIVA = totalIVA.add(valorIVA);
+        totalVenta = totalVenta.add(subtotal);
+        totalSinIVA = totalSinIVA.add(precioSinIVA);
+
+        // Enlazar entidades
         item.setVenta(venta);
         item.setProducto(producto);
     }
+    venta.setTotalIVA(totalIVA);
+    venta.setTotal(totalVenta);
+    venta.setTotalSinIVA(totalSinIVA);
 
-    // Establecer total final
-    venta.setTotal(total);
-
+    if (venta.getMetodoPago() == MetodoPago.EFECTIVO) {
+        if (venta.getMontoRecibido() == null) {
+            throw new RuntimeException("Debe enviar el monto recibido para pagos en efectivo.");
+        }
+        if (venta.getMontoRecibido().compareTo(totalVenta) < 0) {
+            throw new RuntimeException("El monto recibido es insuficiente.");
+        }
+        venta.setCambio(venta.getMontoRecibido().subtract(totalVenta));
+    }
     return ventaRepository.save(venta);
 }
 
@@ -125,9 +150,9 @@ public Venta updateVenta(Long id, Venta ventaDetails) {
 
         nuevoItem.setProducto(producto);
         nuevoItem.setCantidad(itemDetails.getCantidad());
-        nuevoItem.setPrecioUnitario(producto.getPrecio());
+        nuevoItem.setPrecioUnitario(producto.getPrecioventa());
 
-        BigDecimal subtotal = producto.getPrecio()
+        BigDecimal subtotal = producto.getPrecioventa()
                 .multiply(BigDecimal.valueOf(itemDetails.getCantidad()));
 
         nuevoItem.setSubtotal(subtotal);

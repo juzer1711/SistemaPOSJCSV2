@@ -119,9 +119,10 @@ const ProductSearchBar = ({
       size="small"
       options={categorias}               // Lista de categorías
       getOptionLabel={(option) => option.nombre}   // Qué mostrar
-      value={categorias.find(c => c.id === advancedFilters.categoria) || null}
+      isOptionEqualToValue={(option, value) => option.idCategoria === value.idCategoria}
+      value={categorias.find(c => Number(c.idCategoria) === Number(advancedFilters.categoria)) || null}
       onChange={(e, newValue) =>
-        handleAdvFilterChange("categoria", newValue ? newValue.id : "")
+        handleAdvFilterChange("categoria", newValue ? Number(newValue.idCategoria) : null)
       }
       renderInput={(params) => (
         <TextField {...params} label="Categoría" />
@@ -150,7 +151,6 @@ const ProductSearchBar = ({
         value={advancedFilters.estado || ""}
         label="Estado"
         onChange={(e) => handleAdvFilterChange("estado", e.target.value)}
-        onClick={onToggleInactive}
       >
         <MenuItem value="activo">Activos</MenuItem> {showInactive = "Ver activos"}
         <MenuItem value="inactivo">Inactivos</MenuItem> {showInactive = "Ver activos"}

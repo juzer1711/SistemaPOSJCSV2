@@ -2,6 +2,8 @@ package com.sistemaposjcs.sistemaposjcs.model;
 
 import com.sistemaposjcs.sistemaposjcs.model.Enum.IVA;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -49,15 +51,19 @@ public class Producto {
 
     @Positive(message = "El costo debe ser mayor que cero")
     @Column(nullable = false)
-    private Double costo;
+    private BigDecimal costo;
 
     @Positive(message = "El precio debe ser mayor que cero")
     @Column(nullable = false)
-    private Double precioventa;
+    private BigDecimal precioventa;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private IVA iva;
 
+    @Column(nullable = false)
+    private BigDecimal precioSinIva;
+
     private Boolean estado = true;
+
 }

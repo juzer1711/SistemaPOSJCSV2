@@ -23,7 +23,7 @@ const ProductManagement = () => {
   const [editing, setEditing] = useState(false); // Modo edición
   const [editingCategoria, setEditingCategoria] = useState(false); // Modo edición/crear
   const [selectedProduct, setSelectedProduct] = useState(null); // Producto seleccionado
-  const [selectedCategoria, setSelectedCategoria] = useState(null); // Producto seleccionado
+  const [selectedCategoria, setSelectedCategoria] = useState(null); // Categoria seleccionado
   const [showInactive, setShowInactive] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogInfo, setDialogInfo] = useState({});
@@ -38,7 +38,9 @@ const ALL_COLUMNS = {
   codigoBarras: "Codigo de Barras",
   descripcion: "Descripción",
   costo: "Costo",
-  precio: "Precio de Venta",
+  precioventa: "Precio de Venta",
+  iva: "IVA",
+  precioSinIva: "Precio sin Iva",
   estado: "Estado",
   acciones: "Acciones",
 };
@@ -185,6 +187,7 @@ const filteredSortedProducts = useMemo(() => {
         p.codigoBarras,
         p.descripcion,
         p.idProducto?.toString(),
+        p.iva,
       ];
       return fields.some(f => (f || "").toString().toLowerCase().includes(q));
     });
@@ -203,7 +206,7 @@ const filteredSortedProducts = useMemo(() => {
   }
 
   return result;
-}, [products,categorias, filter, advancedFilters, sortBy]);
+}, [products, categorias, filter, advancedFilters, sortBy]);
 
   return (
     <Box sx={{ p: 3 }}>

@@ -12,7 +12,7 @@ const ProductCard = ({ p, onAdd }) => (
           <Typography variant="subtitle1" noWrap>{p.nombre}</Typography>
           <Typography variant="subtitle2">Stock: {p.stock ?? "-"}</Typography>
         </Box>
-        <Typography variant="h6">${Number(p.precio).toLocaleString("es-CO")}</Typography>
+        <Typography variant="h6">${Number(p.precioventa).toLocaleString("es-CO")}</Typography>
       </CardContent>
     </CardActionArea>
   </Card>

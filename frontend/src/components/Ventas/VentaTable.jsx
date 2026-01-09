@@ -10,6 +10,7 @@ const VentaTable = ({ ventas, onDeactivate, onActivate, onView, loading, visible
   const visibleCount = Object.values(visibleColumns || {}).filter(Boolean).length || 1;
   // Cálculo del total de ventas
   const totalVentas = ventas.reduce((acc, venta) => acc + (venta.total || 0), 0);
+  const totalIVA = ventas.reduce((acc, venta) => acc + (venta.totalIVA || 0), 0);
 
   return (
     <TableContainer component={Paper} sx={{ maxHeight: 500, overflowX: "auto" }}>
@@ -22,6 +23,7 @@ const VentaTable = ({ ventas, onDeactivate, onActivate, onView, loading, visible
             {visibleColumns.documentoCliente && <TableCell>Documento</TableCell>}
             {visibleColumns.metodoPago && <TableCell>Método de Pago</TableCell>}
             {visibleColumns.total && <TableCell>Total</TableCell>}
+            {visibleColumns.totalIVA && <TableCell>IVA Total</TableCell>}
             {visibleColumns.estado && <TableCell>Estado</TableCell>}
             {visibleColumns.acciones && <TableCell align="center">Acciones</TableCell>}
           </TableRow>
@@ -38,6 +40,7 @@ const VentaTable = ({ ventas, onDeactivate, onActivate, onView, loading, visible
                   {visibleColumns.documentoCliente && <TableCell>{v.documentoCliente || "-"}</TableCell>}
                   {visibleColumns.metodoPago && <TableCell>{v.metodoPago}</TableCell>}
                   {visibleColumns.total && <TableCell>${v.total.toFixed(2)}</TableCell>}
+                  {visibleColumns.totalIVA && <TableCell>${v.totalIVA.toFixed(2)}</TableCell>}
                   {visibleColumns.estado && (
                     <TableCell>
                       <Chip
@@ -96,6 +99,12 @@ const VentaTable = ({ ventas, onDeactivate, onActivate, onView, loading, visible
         </TableBody>
                 {/* Fila de total */}
         <TableFooter>
+          <TableRow>
+            <TableCell colSpan={visibleCount - 1} align="right"><strong>Total IVA:</strong></TableCell>
+            <TableCell colSpan={2} align="center">
+              <strong>${totalIVA.toFixed(2)}</strong>
+            </TableCell>
+          </TableRow>
           <TableRow>
             <TableCell colSpan={visibleCount - 1} align="right"><strong>Total:</strong></TableCell>
             <TableCell colSpan={2} align="center">

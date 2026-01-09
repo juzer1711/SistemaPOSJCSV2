@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import {
   Paper, Typography, Table, TableBody, TableCell, TableHead, TableRow,
-  IconButton, Box, Button
+  IconButton, Box
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -9,7 +9,7 @@ import RemoveIcon from "@mui/icons-material/Remove";
 
 const CartPanel = ({ items = [], onChangeQty = () => {}, onRemove = () => {} }) => {
 
-  const total = useMemo(() => items.reduce((acc,i) => acc + (Number(i.precio) * Number(i.cantidad)), 0), [items]);
+  const total = useMemo(() => items.reduce((acc,i) => acc + (Number(i.precioUnitario) * Number(i.cantidad)), 0), [items]);
 
   return (
     <Paper elevation={3} sx={{ p:2 }}>
@@ -39,8 +39,8 @@ const CartPanel = ({ items = [], onChangeQty = () => {}, onRemove = () => {} }) 
                   <IconButton size="small" onClick={()=> onChangeQty(i.idProducto, i.cantidad + 1)}><AddIcon fontSize="small"/></IconButton>
                 </Box>
               </TableCell>
-              <TableCell align="right">${Number(i.precio).toLocaleString("es-CO")}</TableCell>
-              <TableCell align="right">${(i.precio * i.cantidad).toLocaleString()}</TableCell>
+              <TableCell align="right">${Number(i.precioUnitario).toLocaleString("es-CO")}</TableCell>
+              <TableCell align="right">${(i.precioUnitario * i.cantidad).toLocaleString()}</TableCell>
               <TableCell align="center"><IconButton color="error" onClick={()=>onRemove(i.idProducto)}><DeleteIcon/></IconButton></TableCell>
             </TableRow>
           ))}

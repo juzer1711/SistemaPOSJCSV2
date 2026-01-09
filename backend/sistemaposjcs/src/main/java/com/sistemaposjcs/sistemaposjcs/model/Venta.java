@@ -39,6 +39,12 @@ public class Venta {
     @Column(nullable = false)
     private BigDecimal total = BigDecimal.ZERO;
 
+    @Column(nullable = false)
+    private BigDecimal totalIVA = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal totalSinIVA = BigDecimal.ZERO;
+
     @Column(length = 500)
     private String observaciones;
 
@@ -48,10 +54,19 @@ public class Venta {
 
     private Boolean estado = true;
 
+    @Column(nullable = true)
+    private BigDecimal montoRecibido;
+
+    @Column(nullable = true)
+    private BigDecimal cambio;
+
+
     public void addItem(ItemFactura item) {
         item.setVenta(this);
         items.add(item);
         total = total.add(item.getSubtotal()); // Recalcula total
+        totalIVA = totalIVA.add(item.getValorIVA());
+        totalSinIVA = total.subtract(totalIVA); 
     }
     @PrePersist
     public void prePersist() {

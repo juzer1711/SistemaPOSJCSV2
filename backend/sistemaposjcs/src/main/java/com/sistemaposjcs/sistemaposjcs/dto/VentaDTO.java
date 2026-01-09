@@ -8,10 +8,11 @@ import com.sistemaposjcs.sistemaposjcs.model.Enum.MetodoPago;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
-@Getter @Setter @AllArgsConstructor
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor
 public class VentaDTO {
     private Long idVenta;
     private LocalDateTime fecha;
@@ -20,7 +21,11 @@ public class VentaDTO {
     private String documentoCliente;
     private MetodoPago metodoPago;
     private BigDecimal total;
+    private BigDecimal totalIVA;
+    private BigDecimal totalSinIVA;
     private String observaciones;
     private Boolean estado;
+    private BigDecimal montoRecibido;
+    private BigDecimal cambio;
     private List<ItemFacturaDTO> items;
 }

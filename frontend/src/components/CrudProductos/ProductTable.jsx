@@ -6,7 +6,14 @@ import {
 import { Edit, CheckCircle, Cancel} from "@mui/icons-material";
 
 const ProductTable = ({ products, onEdit, onDelete, onActivate, loading, visibleColumns }) => {
-const visibleCount = Object.values(visibleColumns || {}).filter(Boolean).length || 1;
+  const formatIVA = (iva) => {
+  if (!iva) return "—";
+
+  // Extrae solo el número del enum (19, 5, 0)
+  const number = iva.replace("IVA_", "");
+
+  return `${number} %`;
+};
 return (
   <TableContainer component={Paper} sx={{ maxHeight: 500, overflowX: "auto" }}>
     <Table sx={{ minWidth: 1200 }} size="small">
@@ -18,7 +25,9 @@ return (
           {visibleColumns.codigoBarras && <TableCell>Codigo de Barras</TableCell>}
           {visibleColumns.descripcion && <TableCell>Descripcion</TableCell>}
           {visibleColumns.costo && <TableCell>Costo</TableCell>}
-          {visibleColumns.precio && <TableCell>Precio de Venta</TableCell>}
+          {visibleColumns.precioventa && <TableCell>Precio de Venta</TableCell>}
+          {visibleColumns.iva && <TableCell>IVA</TableCell>}
+          {visibleColumns.precioSinIva && <TableCell>Precio sin IVA</TableCell>}
           {visibleColumns.estado && <TableCell>Estado</TableCell>}
           {visibleColumns.acciones && <TableCell align="center">Acciones</TableCell>}
         </TableRow>
@@ -35,7 +44,9 @@ return (
               {visibleColumns.codigoBarras && <TableCell>{p.codigoBarras}</TableCell>}
               {visibleColumns.descripcion && <TableCell>{p.descripcion}</TableCell>}
               {visibleColumns.costo && <TableCell>{p.costo}</TableCell>}
-              {visibleColumns.precio && <TableCell>{p.precio}</TableCell>}
+              {visibleColumns.precioventa && <TableCell>{p.precioventa}</TableCell>}
+              {visibleColumns.iva && <TableCell>{formatIVA(p.iva)}</TableCell>}
+              {visibleColumns.precioSinIva && <TableCell>{p.precioSinIva}</TableCell>}
               {visibleColumns.estado &&(
                 <TableCell>
                   <Chip

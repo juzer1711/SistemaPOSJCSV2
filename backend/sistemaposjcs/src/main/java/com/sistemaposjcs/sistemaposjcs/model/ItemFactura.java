@@ -33,16 +33,34 @@ public class ItemFactura {
     private int cantidad;
 
     @Column(nullable = false)
-    private BigDecimal precioUnitario;
+    private BigDecimal precioUnitario; // Precio final (incluye IVA)
 
     @Column(nullable = false)
-    private BigDecimal subtotal;
+    private BigDecimal subtotal; // precioUnitario * cantidad
+
+    @Column(nullable = false)
+    private BigDecimal ivaPorcentaje; 
+
+    @Column(nullable = false)
+    private BigDecimal valorIVA; // total IVA del ítem
 
     public ItemFactura(Producto producto, int cantidad) {
         this.producto = producto;
         this.cantidad = cantidad;
-        this.precioUnitario = producto.getPrecio();
-        this.subtotal = precioUnitario.multiply(BigDecimal.valueOf(cantidad));
-    }
-}
 
+        // Precio final
+        this.precioUnitario = producto.getPrecioventa();
+
+        // % IVA
+        this.ivaPorcentaje = producto.getIva().getValue(); // 0.19
+
+        // Subtotal = precio final * cantidad
+        this.subtotal = precioUnitario.multiply(BigDecimal.valueOf(cantidad));
+
+        // IVA Correcto: (precio final - precio sin IVA) * cantidad
+        BigDecimal ivaUnitario = producto.getPrecioventa().subtract(producto.getPrecioSinIva());
+
+        this.valorIVA = ivaUnitario.multiply(BigDecimal.valueOf(cantidad));
+    }
+
+}

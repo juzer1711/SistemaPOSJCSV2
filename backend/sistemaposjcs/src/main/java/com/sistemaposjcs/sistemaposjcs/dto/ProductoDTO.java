@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 import com.sistemaposjcs.sistemaposjcs.model.Categoria;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.IVA;
 
 
 @Getter @Setter @AllArgsConstructor
@@ -17,6 +18,8 @@ public class ProductoDTO {
     private String codigoBarras;
     private String descripcion;
     private BigDecimal costo;
-    private BigDecimal precio;
+    private BigDecimal precioventa;
+    private IVA iva;
+    private BigDecimal precioSinIva;
     private Boolean estado;
 }

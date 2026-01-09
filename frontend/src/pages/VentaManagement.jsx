@@ -41,6 +41,7 @@ export default function VentaManagement () {
   documentoCliente: "Documento",
   fecha: "Fecha",
   total: "Total",
+  totalIVA: "IVA Total",
   metodoPago: "Método de Pago",
   estado: "Estado",
   acciones: "Acciones",

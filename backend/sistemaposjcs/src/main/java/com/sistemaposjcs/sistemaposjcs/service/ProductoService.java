@@ -6,6 +6,8 @@ import com.sistemaposjcs.sistemaposjcs.repository.CategoriaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -36,6 +38,14 @@ public class ProductoService {
 
     // ✔ Crear producto
     public Producto createProducto(Producto producto) {
+        // Obtener valor numérico del IVA
+        BigDecimal ivaValue = producto.getIva().getValue();
+
+        // precio sin IVA = precioFinal / (1 + iva)
+        BigDecimal divisor = BigDecimal.ONE.add(ivaValue);
+        BigDecimal precioSinIva = producto.getPrecioventa().divide(divisor, 2, RoundingMode.HALF_UP);
+
+        producto.setPrecioSinIva(precioSinIva);
         // 🔥 Reemplazar categoria recibida con la REAL de la BD
         if (producto.getCategoria() != null && producto.getCategoria().getId() != null) {
             Categoria categoriaReal = categoriaRepository.findById(producto.getCategoria().getId())
@@ -54,7 +64,15 @@ public class ProductoService {
         producto.setCodigoBarras(productoDetails.getCodigoBarras());
         producto.setDescripcion(productoDetails.getDescripcion());
         producto.setCosto(productoDetails.getCosto());
-        producto.setPrecio(productoDetails.getPrecio());
+        producto.setPrecioventa(productoDetails.getPrecioventa());
+        producto.setIva(productoDetails.getIva());
+
+        // recalcular precio sin IVA
+        BigDecimal ivaValue = producto.getIva().getValue();
+        BigDecimal divisor = BigDecimal.ONE.add(ivaValue);
+        BigDecimal precioSinIva = producto.getPrecioventa().divide(divisor, 2, RoundingMode.HALF_UP);
+
+        producto.setPrecioSinIva(precioSinIva);
 
         // 🔥 Si viene una categoria en el JSON, la asignamos correctamente
         if (productoDetails.getCategoria() != null && productoDetails.getCategoria().getId() != null) {

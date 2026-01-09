@@ -32,7 +32,9 @@ private VentaDTO convertirVenta(Venta v) {
                 i.getProducto().getNombre(),
                 i.getCantidad(),
                 i.getPrecioUnitario(),
-                i.getSubtotal()
+                i.getSubtotal(),
+                i.getIvaPorcentaje(),
+                i.getValorIVA()
         )).toList();
 
     return new VentaDTO(
@@ -43,8 +45,12 @@ private VentaDTO convertirVenta(Venta v) {
         v.getCliente().getDocumento(),
         v.getMetodoPago(),
         v.getTotal(),
+        v.getTotalIVA(),
+        v.getTotalSinIVA(),
         v.getObservaciones(),
         v.getEstado(),
+        v.getMontoRecibido(),
+        v.getCambio(),
         itemsDTO
     );
 }

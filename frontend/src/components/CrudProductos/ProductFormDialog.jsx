@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Dialog, 
   DialogTitle, 
@@ -7,9 +7,10 @@ import {
   TextField, 
   Button, 
   Box,
-  Autocomplete 
+  Autocomplete ,
+  MenuItem,
 } from "@mui/material";
-import { useForm,  Controller } from "react-hook-form";
+import { useForm, Controller} from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { productSchema } from "../../validation/validationSchema"; 
 import { createProduct, updateProduct } from "../../services/productService";
@@ -17,7 +18,7 @@ import { createProduct, updateProduct } from "../../services/productService";
 const ProductFormDialog = ({ 
   open, 
   editing, 
-  selectedId,   
+  selectedId, 
   defaultValues, 
   onClose, 
   loadProducts,
@@ -41,12 +42,13 @@ useEffect(() => {
       codigoBarras: "",
       descripcion: "",
       costo: "",
-      precio: "",
+      precioventa: "",
+      iva: "",
     });
   }else if (defaultValues) {
       reset({
         ...defaultValues,
-      categoriaId: defaultValues.categoria?.id || "",
+      categoriaId: Number(defaultValues.categoria?.id || ""),
   });
     }
 }, [defaultValues, editing, reset, open]);
@@ -105,9 +107,10 @@ useEffect(() => {
               <Autocomplete
                 options={categorias}
                 getOptionLabel={(option) => option.nombre}
-                value={categorias.find((c) => c.id === field.value) || null}
+                isOptionEqualToValue={(option, value) => option.idCategoria === value.idCategoria}
+                value={categorias.find((c) => Number(c.idCategoria) === Number(field.value)) || null}
                 onChange={(e, newValue) => {
-                  field.onChange(newValue ? newValue.id : "");
+                  field.onChange(newValue ? Number(newValue.idCategoria) : null);
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -120,7 +123,6 @@ useEffect(() => {
               />
             )}
           />
-
           <TextField
             label="Codigo de Barras"
             {...register("codigoBarras")}
@@ -142,10 +144,22 @@ useEffect(() => {
           />
           <TextField
               label="Precio de venta"
-              {...register("precio")}
-              error={!!errors.precio}
-              helperText={errors.precio?.message}
+              {...register("precioventa")}
+              error={!!errors.precioventa}
+              helperText={errors.precioventa?.message}
           />
+
+          <TextField
+            select
+            label="IVA"
+            {...register("iva")}
+            error={!!errors.iva}
+            helperText={errors.iva?.message}
+          >
+            <MenuItem value="IVA_0">0%</MenuItem>
+            <MenuItem value="IVA_5">5%</MenuItem>
+            <MenuItem value="IVA_19">19%</MenuItem>
+          </TextField>
 
 
             <DialogActions>

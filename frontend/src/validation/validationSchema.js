@@ -90,11 +90,16 @@ export const productSchema = yup.object().shape({
     .positive("El costo debe ser mayor a 0")
     .required("El costo es obligatorio"),
 
-  precio: yup
+  precioventa: yup
     .number()
     .typeError("El precio de venta debe ser un número")
     .positive("El precio debe ser mayor a 0")
     .required("El precio de venta es obligatorio"),
+  
+  iva: yup
+    .string()
+    .oneOf(["IVA_0", "IVA_5", "IVA_19"], "IVA inválido")
+    .required("El tipo de documento es obligatorio"),
 });
 export const categoriaSchema = yup.object().shape({
     nombre: yup

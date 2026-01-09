@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import {
   Paper, Typography, Autocomplete, TextField, Button, MenuItem, Select, FormControl, InputLabel, Box,
-  Dialog, DialogTitle, DialogContent, DialogActions, IconButton,  Snackbar, Alert
+  IconButton,  Snackbar, Alert
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import CheckoutResumenDialog from "./CheckoutResumenDialog";
 
 
 const CheckoutPanel = ({
@@ -14,7 +15,19 @@ const CheckoutPanel = ({
   observaciones, setObservaciones,
   registrarVenta, clearCart
 }) => {
-  const total = items.reduce((acc,i) => acc + (Number(i.precio) * Number(i.cantidad)), 0);
+  const total = items.reduce((acc,i) => acc + (Number(i.precioUnitario) * Number(i.cantidad)), 0);
+  const totalIVA = items.reduce((acc,i) => acc + (i.precioUnitario - i.precioSinIva) * i.cantidad, 0);
+
+  const [montoRecibido, setMontoRecibido] = useState("");
+  const cambio = montoRecibido ? (montoRecibido - total) : 0;
+
+  const totalSinIVA = items.reduce(
+    (acc,i) => acc + (i.precioSinIva * i.cantidad),
+    0
+  );
+  const totalFinal = total;
+
+
 
   const [loadingVenta, setLoadingVenta] = useState(false);
 
@@ -39,10 +52,22 @@ const CheckoutPanel = ({
     if (loadingVenta) return;  // evita doble clic
     setLoadingVenta(true);
 
+    if (metodoPago === "EFECTIVO" && Number(montoRecibido) < total) {
+      setSnackbar({
+        open: true,
+        message: "El monto recibido es insuficiente",
+        severity: "warning"
+      });
+      setLoadingVenta(false);
+      return;
+    }
+
     const body = {
       cliente: { idCliente: clienteSeleccionado.idCliente },
       metodoPago,
       observaciones,
+      montoRecibido: metodoPago === "EFECTIVO" ? Number(montoRecibido) : null,
+      cambio: metodoPago === "EFECTIVO" ? cambio : null,
       items: items.map(i => ({ producto: { idProducto: i.idProducto }, cantidad: i.cantidad }))
     };
 
@@ -122,6 +147,22 @@ const CheckoutPanel = ({
         </Select>
       </FormControl>
 
+      {metodoPago === "EFECTIVO" && (
+        <Box sx={{ mt:2 }}>
+          <TextField
+            fullWidth
+            label="Monto recibido"
+            type="number"
+            value={montoRecibido}
+            onChange={(e)=>setMontoRecibido(e.target.value)}
+          />
+
+          <Typography variant="h6" sx={{ mt:1 }}>
+            Cambio: ${cambio.toLocaleString("es-CO")}
+          </Typography>
+        </Box>
+      )}
+
       <hr style={{ margin: "12px 0" }} />
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -136,82 +177,31 @@ const CheckoutPanel = ({
         fullWidth
         sx={{ mt:3 }}
         onClick={() => setOpenResumen(true)}
-        disabled={!clienteSeleccionado || items.length===0 || !metodoPago}
+        disabled={!clienteSeleccionado || items.length===0 ||
+        !metodoPago || (metodoPago === "EFECTIVO" && (!montoRecibido || Number(montoRecibido) < total))}
       >
         Ver Resumen & Cobrar
       </Button>
 
 
-      <Dialog open={openCliente} onClose={()=>setOpenCliente(false)}>
-        <DialogTitle>Datos del Cliente</DialogTitle>
+      <CheckoutResumenDialog
+        open={openResumen}
+        onClose={() => setOpenResumen(false)}
+        cliente={clienteSeleccionado}
+        metodoPago={metodoPago}
+        observaciones={observaciones}
+        items={items}
+        total={total}
+        totalIVA={totalIVA}
+        totalSinIVA={totalSinIVA}
+        montoRecibido={montoRecibido}
+        cambio={cambio}
+        onConfirm={() => {
+          setOpenResumen(false);
+          handleConfirm();
+        }}
+      />
 
-        <DialogContent>
-          <p><b>Nombre:</b> {getClientName(clienteDetalle)}</p>
-          <p><b>Documento:</b> {clienteDetalle?.documento}</p>
-          <p><b>Teléfono:</b> {clienteDetalle?.telefono || "N/A"}</p>
-          <p><b>Email:</b> {clienteDetalle?.email || "N/A"}</p>
-          <p><b>Dirección:</b> {clienteDetalle?.direccion || "N/A"}</p>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={()=>setOpenCliente(false)}>Cerrar</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={openResumen} onClose={() => setOpenResumen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Resumen de Venta</DialogTitle>
-
-        <DialogContent dividers>
-
-          <Typography variant="subtitle1"><b>Cliente:</b> {getClientName(clienteSeleccionado)}</Typography>
-          <Typography variant="subtitle1"><b>Documento:</b> {clienteSeleccionado?.documento}</Typography>
-          <Typography variant="subtitle1"><b>Método de Pago:</b> {metodoPago}</Typography>
-          <Typography variant="subtitle1"><b>Observaciones:</b> {observaciones || "N/A"}</Typography>
-
-          <hr style={{ margin: "12px 0" }} />
-
-          <Typography variant="h6">Detalle de Productos</Typography>
-
-          <Box sx={{ mt: 2, px: 1 }}>
-            {items.map(i => (
-              <Box
-                key={i.idProducto}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  py: 0.5,
-                  borderBottom: "1px dashed #ccc"
-                }}
-              >
-                <span>{i.nombre} (x{i.cantidad})</span>
-                <b>${(i.precio * i.cantidad).toLocaleString()}</b>
-              </Box>
-            ))}
-          </Box>
-
-        <hr style={{ margin: "12px 0" }} />
-
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
-        <Typography variant="subtitle1">Total</Typography>
-        <Typography variant="h5">${total.toLocaleString()}</Typography>
-        </Box>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenResumen(false)}>Cancelar</Button>
-
-          <Button
-            onClick={() => {
-              setOpenResumen(false);
-              handleConfirm();
-            }}
-            variant="contained"
-            color="success"
-          >
-            Confirmar Venta
-          </Button>
-        </DialogActions>
-      </Dialog>
   
       <Snackbar
       open={snackbar.open}
