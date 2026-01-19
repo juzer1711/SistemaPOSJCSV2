@@ -12,26 +12,24 @@ const CheckoutPanel = ({
   items = [],
   clienteSeleccionado, setClienteSeleccionado,
   metodoPago, setMetodoPago,
+  montoRecibido, setMontoRecibido,
   observaciones, setObservaciones,
   registrarVenta, clearCart
 }) => {
   const total = items.reduce((acc,i) => acc + (Number(i.precioUnitario) * Number(i.cantidad)), 0);
   const totalIVA = items.reduce((acc,i) => acc + (i.precioUnitario - i.precioSinIva) * i.cantidad, 0);
 
-  const [montoRecibido, setMontoRecibido] = useState("");
   const cambio = montoRecibido ? (montoRecibido - total) : 0;
 
   const totalSinIVA = items.reduce(
     (acc,i) => acc + (i.precioSinIva * i.cantidad),
     0
   );
-  const totalFinal = total;
-
-
 
   const [loadingVenta, setLoadingVenta] = useState(false);
 
   const handleConfirm = async () => {
+    setLoadingVenta(true);
     if (!clienteSeleccionado) {
       setSnackbar({ open: true, message: "Selecciona un cliente", severity: "warning" });
       setLoadingVenta(false);
@@ -50,7 +48,6 @@ const CheckoutPanel = ({
       return;
     }
     if (loadingVenta) return;  // evita doble clic
-    setLoadingVenta(true);
 
     if (metodoPago === "EFECTIVO" && Number(montoRecibido) < total) {
       setSnackbar({
@@ -67,7 +64,6 @@ const CheckoutPanel = ({
       metodoPago,
       observaciones,
       montoRecibido: metodoPago === "EFECTIVO" ? Number(montoRecibido) : null,
-      cambio: metodoPago === "EFECTIVO" ? cambio : null,
       items: items.map(i => ({ producto: { idProducto: i.idProducto }, cantidad: i.cantidad }))
     };
 
@@ -81,6 +77,11 @@ const CheckoutPanel = ({
       severity: "success"
       });
       clearCart();
+      setClienteSeleccionado(null); // Limpia el cliente
+      setMetodoPago("");        // Reset del método de pago
+      setMontoRecibido("");     // Limpia el input de efectivo
+      setObservaciones("");     // Limpia las notas
+      setLoadingVenta(false);
     } catch (error) { 
       //extrae el mensaje de error real
       const mensajeReal = error.response?.data?.message || error.message || "Error desconocido";

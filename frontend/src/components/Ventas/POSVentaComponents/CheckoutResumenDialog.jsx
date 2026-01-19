@@ -131,7 +131,6 @@ const CheckoutResumenDialog = ({
           variant="contained"
           color="success"
           onClick={onConfirm}
-          disabled={metodoPago === "EFECTIVO" && Number(montoRecibido) < total}
         >
           Confirmar Venta
         </Button>

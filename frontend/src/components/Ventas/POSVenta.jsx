@@ -15,6 +15,7 @@ export default function VentaPOS () {
   const [items, setItems] = useState([]);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [metodoPago, setMetodoPago] = useState("");
+  const [montoRecibido, setMontoRecibido] = useState("");
   const [observaciones, setObservaciones] = useState("");
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function VentaPOS () {
 
   const removeItem = (idProducto) => setItems(prev => prev.filter(i => i.idProducto !== idProducto));
 
-  const clearCart = () => { setItems([]); setClienteSeleccionado(null); setMetodoPago(""); setObservaciones(""); };
+  const clearCart = () => { setItems([]); setClienteSeleccionado(null); setMetodoPago(""); setMontoRecibido(""); setObservaciones(""); };
 
   return (
     <Box sx={{
@@ -71,6 +72,8 @@ export default function VentaPOS () {
         setClienteSeleccionado={setClienteSeleccionado}
         metodoPago={metodoPago}
         setMetodoPago={setMetodoPago}
+        montoRecibido={montoRecibido}
+        setMontoRecibido={setMontoRecibido}
         observaciones={observaciones}
         setObservaciones={setObservaciones}
         registrarVenta={registrarVenta}
