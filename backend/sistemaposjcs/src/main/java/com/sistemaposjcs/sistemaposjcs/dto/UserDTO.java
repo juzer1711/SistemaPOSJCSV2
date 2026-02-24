@@ -1,6 +1,7 @@
 package com.sistemaposjcs.sistemaposjcs.dto;
 
-import com.sistemaposjcs.sistemaposjcs.model.Role;
+import com.sistemaposjcs.sistemaposjcs.model.Rol;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,10 +10,14 @@ import lombok.Setter;
 public class UserDTO {
     private Long idUsuario;
     private String username;
-    private String nombre;
-    private String apellido;
+    private String primerNombre;
+    private String segundoNombre;
+    private String primerApellido;
+    private String segundoApellido;
+    private TipoDocumento tipoDocumento;
     private String documento;
-    private Role role;
+    private Rol rol;
     private String email;
     private String telefono;
+    private Boolean estado;
 }

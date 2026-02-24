@@ -3,6 +3,7 @@ package com.sistemaposjcs.sistemaposjcs.controller;
 import com.sistemaposjcs.sistemaposjcs.dto.UserDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Usuario;
 import com.sistemaposjcs.sistemaposjcs.service.UserService;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
 
 import jakarta.validation.Valid;
 
@@ -11,9 +12,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000") // permitir conexión desde React
 public class UserController {
 
     private final UserService userService;
@@ -22,49 +24,86 @@ public class UserController {
         this.userService = userService;
     }
 
-
-
-    // ✅ 1. Listar todos los usuarios
+    //  1. Listar todos los usuarios
 @GetMapping
-public List<UserDTO> getAllUsers() {
-    return userService.getAllUsers()
+public List<UserDTO> getActiveUsers() {
+    return userService.getActiveUsers()
         .stream()
-        .map(u -> new UserDTO(            u.getIdUsuario(),
+        .map(u -> new UserDTO(
+            u.getIdUsuario(),
             u.getUsername(),
-            u.getNombre(),
-            u.getApellido(),
+            u.getPrimerNombre(),
+            u.getSegundoNombre(),
+            u.getPrimerApellido(),
+            u.getSegundoApellido(),
+            u.getTipoDocumento(),
             u.getDocumento(),
-            u.getRole(),
+            u.getRol(),
             u.getEmail(),
-            u.getTelefono()))
+            u.getTelefono(),
+            u.getEstado()))
+        .toList();
+}
+
+@GetMapping("/inactivos")
+public List<UserDTO> getInactiveUsers() {
+    return userService.getInactiveUsers()
+        .stream()
+        .filter(u -> u.getEstado() == false)
+        .map(u -> new UserDTO(
+            u.getIdUsuario(),
+            u.getUsername(),
+            u.getPrimerNombre(),
+            u.getSegundoNombre(),
+            u.getPrimerApellido(),
+            u.getSegundoApellido(),
+            u.getTipoDocumento(),
+            u.getDocumento(),
+            u.getRol(),
+            u.getEmail(),
+            u.getTelefono(),
+            u.getEstado()))
         .toList();
 }
 
 
-    // ✅ 2. Obtener un usuario por ID
+
+    //  2. Obtener un usuario por ID
     @GetMapping("/{id}")
     public Usuario getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 
-    // ✅ 3. Crear usuario
+    //  3. Crear usuario
     @PostMapping
     public ResponseEntity<Usuario> createUser(@Valid @RequestBody Usuario user) {
         return ResponseEntity.ok(userService.createUser(user));
     }
 
-    // ✅ 4. Actualizar usuario
+    //  4. Actualizar usuario
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> updateUser(@PathVariable Long id, @Validated(Usuario.OnUpdate.class) @RequestBody Usuario user) {
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
 
-    // ✅ 5. Eliminar usuario
-    @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return "Usuario eliminado correctamente";
+    //  5. Activar/Desactivar usuario
+    @DeleteMapping("/desactivar/{id}")
+    public ResponseEntity<Void> desactivarUsuario(@PathVariable Long id) {
+        userService.desactivarUsuario(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/activar/{id}")
+    public ResponseEntity<Usuario> activarUsuario(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.activarUsuario(id));
+    }
+
+    @GetMapping("/tipos-documento")
+    public TipoDocumento[] listarTiposDocumento() {
+        return TipoDocumento.values();
     }
 
 
+
 }
+
