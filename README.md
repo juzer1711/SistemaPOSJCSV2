@@ -104,10 +104,102 @@ La aplicación iniciará en:
 http://localhost:3000
 
 
-### 1️⃣ Clonar el repositorio
+---
 
-```bash
-git clone https://github.com/tu-usuario/POSJCS.git
+## 🤝 Buenas Prácticas de Trabajo Colaborativo (GitHub)
+
+Para mantener un desarrollo organizado y profesional, el equipo debe seguir las siguientes prácticas:
+
+### 🌿 1️⃣ Uso de Ramas (Branching)
+
+- ❌ No trabajar directamente sobre `main`
+- ✅ Crear una rama por funcionalidad o mejora:
+
+Ejemplo:
+
+feature/login
+feature/modulo-caja
+fix/error-validacion
+
+Comando:
+
+git checkout -b feature/nombre-funcionalidad
+
+---
+
+### 📝 2️⃣ Commits Claros y Descriptivos
+
+Evitar mensajes como:
+
+update
+cambios
+arreglos
+
+Usar mensajes descriptivos:
+
+feat: agregar registro de ventas
+fix: corregir validación de usuario
+refactor: mejorar estructura del servicio de productos
+
+Formato recomendado:
+
+tipo: descripción corta
+
+Tipos comunes:
+- feat (nueva funcionalidad)
+- fix (corrección de error)
+- refactor (mejora interna sin cambiar funcionalidad)
+- docs (documentación)
+- style (formato/código visual)
+- test (pruebas)
+
+---
+
+### 🔄 3️⃣ Pull Requests
+
+Antes de fusionar cambios a `main`:
+
+1. Subir la rama al repositorio.
+2. Crear un Pull Request.
+3. Esperar revisión de al menos un integrante.
+4. Confirmar que el proyecto compile correctamente.
+
+---
+
+### 📌 4️⃣ Actualizar la Rama Antes de Hacer Merge
+
+Siempre actualizar la rama con los cambios recientes de `main`:
+
+git checkout main
+git pull origin main
+git checkout feature/mi-rama
+git merge main
+
+Esto evita conflictos grandes.
+
+---
+
+### 🧠 5️⃣ Buenas Prácticas Generales
+
+- No subir archivos innecesarios (node_modules, target, etc.)
+- Verificar que el proyecto compile antes de hacer commit.
+- Probar endpoints antes de subir cambios.
+- Mantener el código limpio y organizado.
+- Seguir la misma estructura y estilo de programación.
+
+---
+
+### 🔐 6️⃣ Seguridad
+
+- No subir contraseñas reales.
+- No subir credenciales de base de datos productivas.
+- Usar variables de entorno cuando sea necesario.
+
+---
+
+### 🎯 Objetivo
+
+Mantener un desarrollo profesional, organizado y escalable, simulando un entorno real de trabajo en equipo.
 
 ## 👨‍💻 Equipo de Desarrollo
 
