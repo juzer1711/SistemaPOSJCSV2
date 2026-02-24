@@ -1,0 +1,31 @@
+ # --- JAVA / SPRING BOOT ---
+target/
+build/
+*.class
+*.jar
+*.war
+*.pcap
+.gradle/
+.m2/
+
+# --- REACT / NODE ---
+node_modules/
+dist/
+build/
+.ntp/
+*.log
+
+# --- CONFIG & SECRETS ---
+.env
+.env.local
+.env.*.local
+*.jks
+*.p12
+
+# --- IDEs & OS ---
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
