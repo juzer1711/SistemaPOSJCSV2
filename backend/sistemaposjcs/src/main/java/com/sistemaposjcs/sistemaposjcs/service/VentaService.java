@@ -5,9 +5,14 @@ import com.sistemaposjcs.sistemaposjcs.model.Enum.MetodoPago;
 import com.sistemaposjcs.sistemaposjcs.model.Cliente;
 import com.sistemaposjcs.sistemaposjcs.model.ItemFactura;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
+import com.sistemaposjcs.sistemaposjcs.model.Caja;
+import com.sistemaposjcs.sistemaposjcs.model.Usuario;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.EstadoCaja;
 import com.sistemaposjcs.sistemaposjcs.repository.VentaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ClienteRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
+import com.sistemaposjcs.sistemaposjcs.repository.CajaRepository;
+import com.sistemaposjcs.sistemaposjcs.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +25,16 @@ public class VentaService {
     private final VentaRepository ventaRepository;
     private final ClienteRepository clienteRepository;
     private final ProductoRepository productoRepository;
+    private final CajaRepository cajaRepository;
+    private final UserRepository userRepository;
 
 
-    public VentaService(VentaRepository ventaRepository, ClienteRepository clienteRepository, ProductoRepository productoRepository) {
+    public VentaService(VentaRepository ventaRepository, ClienteRepository clienteRepository, ProductoRepository productoRepository, CajaRepository cajaRepository, UserRepository userRepository) {
         this.ventaRepository = ventaRepository;
         this.clienteRepository = clienteRepository;
         this.productoRepository = productoRepository;
+        this.cajaRepository = cajaRepository;
+        this.userRepository = userRepository;
     }
     
     // ✅ Obtener venta por ID
@@ -54,9 +63,24 @@ public Venta createVenta(Venta venta) {
 
     venta.setCliente(clienteReal);
 
+    // 🔥 Obtener usuario real
+    Usuario usuario = userRepository.findById(
+            venta.getUsuario().getIdUsuario()
+    ).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+    venta.setUsuario(usuario);
+
+    // 🔥 Buscar caja abierta del usuario
+    Caja caja = cajaRepository
+            .findByEstadoCajaAndUsuarioIdUsuario(EstadoCaja.ABIERTA, usuario.getIdUsuario())
+            .orElseThrow(() -> new RuntimeException("El usuario no tiene caja abierta"));
+
+    venta.setCaja(caja);
+
     if (venta.getItems() == null || venta.getItems().isEmpty()) {
         throw new RuntimeException("La venta debe contener al menos un item");
     }
+
 
     BigDecimal totalVenta = BigDecimal.ZERO;
     BigDecimal totalIVA = BigDecimal.ZERO;
@@ -93,7 +117,9 @@ public Venta createVenta(Venta venta) {
         // Acumular
         totalIVA = totalIVA.add(valorIVA);
         totalVenta = totalVenta.add(subtotal);
-        totalSinIVA = totalSinIVA.add(precioSinIVA);
+        totalSinIVA = totalSinIVA.add(
+        precioSinIVA.multiply(BigDecimal.valueOf(item.getCantidad()))
+);
 
         // Enlazar entidades
         item.setVenta(venta);
@@ -112,6 +138,24 @@ public Venta createVenta(Venta venta) {
         }
         venta.setCambio(venta.getMontoRecibido().subtract(totalVenta));
     }
+
+    // 🔥 Actualizar totales de la caja
+    caja.setTotalVentas(
+            caja.getTotalVentas().add(totalVenta)
+    );
+
+    if (venta.getMetodoPago() == MetodoPago.EFECTIVO) {
+
+        caja.setTotalEfectivo(
+                caja.getTotalEfectivo().add(totalVenta)
+        );
+
+    } else if (venta.getMetodoPago() == MetodoPago.TRANSFERENCIA) {
+
+        caja.setTotalTransferencia(
+                caja.getTotalTransferencia().add(totalVenta)
+        );
+    }
     return ventaRepository.save(venta);
 }
 
@@ -123,6 +167,9 @@ public Venta updateVenta(Long id, Venta ventaDetails) {
 
     // Obtener venta real
     Venta venta = getVentaById(id);
+
+    BigDecimal totalAnterior = venta.getTotal();
+    MetodoPago metodoAnterior = venta.getMetodoPago();
 
     // 🔥 Actualizar cliente si cambia
     if (ventaDetails.getCliente() != null && ventaDetails.getCliente().getIdCliente() != null) {
@@ -170,25 +217,109 @@ public Venta updateVenta(Long id, Venta ventaDetails) {
     // 🔥 Actualizar total final
     venta.setTotal(total);
 
+    Caja caja = venta.getCaja();
+
+    // restar total anterior
+    caja.setTotalVentas(
+        caja.getTotalVentas().subtract(totalAnterior)
+    );
+
+    caja.setTotalVentas(
+        caja.getTotalVentas().add(total)
+    );
+    if (metodoAnterior == MetodoPago.EFECTIVO) {
+        caja.setTotalEfectivo(
+            caja.getTotalEfectivo().subtract(totalAnterior)
+        );
+    }
+
+    if (metodoAnterior == MetodoPago.TRANSFERENCIA) {
+        caja.setTotalTransferencia(
+            caja.getTotalTransferencia().subtract(totalAnterior)
+        );
+    }
+    if (venta.getMetodoPago() == MetodoPago.EFECTIVO) {
+    caja.setTotalEfectivo(
+        caja.getTotalEfectivo().add(total)
+    );
+}
+
+    if (venta.getMetodoPago() == MetodoPago.TRANSFERENCIA) {
+        caja.setTotalTransferencia(
+            caja.getTotalTransferencia().add(total)
+        );
+    }
     return ventaRepository.save(venta);
 }
 
+@Transactional
+public void desactivarVenta(Long id) {
 
-
-
-    public void desactivarVenta(Long id) {
-        Venta v = ventaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
-
-        v.setEstado(false);    // 🔥 Inactiva
-        ventaRepository.save(v);
-    }
-
-    public Venta activarVenta(Long id) {
     Venta v = ventaRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
 
-    v.setEstado(true);     // 🔥 Activa
+    if (!v.getEstado()) {
+        throw new RuntimeException("La venta ya está desactivada");
+    }
+
+    Caja caja = v.getCaja();
+
+    BigDecimal total = v.getTotal();
+
+    caja.setTotalVentas(
+            caja.getTotalVentas().subtract(total)
+    );
+
+    if (v.getMetodoPago() == MetodoPago.EFECTIVO) {
+
+        caja.setTotalEfectivo(
+                caja.getTotalEfectivo().subtract(total)
+        );
+
+    } else if (v.getMetodoPago() == MetodoPago.TRANSFERENCIA) {
+
+        caja.setTotalTransferencia(
+                caja.getTotalTransferencia().subtract(total)
+        );
+    }
+
+    v.setEstado(false);
+
+    ventaRepository.save(v);
+}
+
+@Transactional
+public Venta activarVenta(Long id) {
+
+    Venta v = ventaRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+    if (v.getEstado()) {
+        throw new RuntimeException("La venta ya está activa");
+    }
+
+    Caja caja = v.getCaja();
+    BigDecimal total = v.getTotal();
+
+    caja.setTotalVentas(
+            caja.getTotalVentas().add(total)
+    );
+
+    if (v.getMetodoPago() == MetodoPago.EFECTIVO) {
+
+        caja.setTotalEfectivo(
+                caja.getTotalEfectivo().add(total)
+        );
+
+    } else if (v.getMetodoPago() == MetodoPago.TRANSFERENCIA) {
+
+        caja.setTotalTransferencia(
+                caja.getTotalTransferencia().add(total)
+        );
+    }
+
+    v.setEstado(true);
+
     return ventaRepository.save(v);
 }
  

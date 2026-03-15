@@ -3,16 +3,21 @@ package com.sistemaposjcs.sistemaposjcs.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.sistemaposjcs.sistemaposjcs.model.Usuario;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.EstadoCaja;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter @AllArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CajaDTO {
+
     private Long idCaja;
-    private Usuario usuario;
+    private Long idUsuario;
+    private String nombreCajero;
     private LocalDateTime fechaApertura;
     private LocalDateTime fechaCierre;
     private BigDecimal montoInicial;
@@ -21,4 +26,5 @@ public class CajaDTO {
     private BigDecimal totalTransferencia;
     private BigDecimal montoFinal;
     private EstadoCaja estadoCaja;
+
 }

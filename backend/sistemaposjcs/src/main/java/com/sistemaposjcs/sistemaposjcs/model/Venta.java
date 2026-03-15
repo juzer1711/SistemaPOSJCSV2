@@ -26,11 +26,19 @@ public class Venta {
     private Long idVenta;
 
     @Column(nullable = false)
-    private LocalDateTime fecha = LocalDateTime.now();
+    private LocalDateTime fecha;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_caja", nullable = false)
+    private Caja caja;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private Usuario usuario;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -66,7 +74,9 @@ public class Venta {
         items.add(item);
         total = total.add(item.getSubtotal()); // Recalcula total
         totalIVA = totalIVA.add(item.getValorIVA());
-        totalSinIVA = total.subtract(totalIVA); 
+        totalSinIVA = totalSinIVA.add(
+        item.getSubtotal().subtract(item.getValorIVA())
+        ); 
     }
     @PrePersist
     public void prePersist() {
