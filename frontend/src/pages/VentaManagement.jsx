@@ -206,8 +206,21 @@ const filteredVentas = useMemo(() => {
   return (
     <Box sx={{ p:3 }}>
       
-      <Toolbar sx={{ justifyContent:"space-between" }}>
-        <Typography variant="h6">Gestión de Ventas</Typography>
+      <Toolbar
+        sx={{
+          justifyContent: "space-between",
+          mb: 2,
+          borderBottom: "1px solid #e0e0e0"
+        }}
+      >
+        <Box>
+          <Typography variant="h5" fontWeight="bold">
+            Gestión de Ventas
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Consulta, administra y revisa las ventas registradas
+          </Typography>
+        </Box>
       </Toolbar>
 
       <VentaSearchBar 

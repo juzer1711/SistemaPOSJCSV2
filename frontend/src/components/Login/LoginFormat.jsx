@@ -7,8 +7,15 @@ import {
   Typography,
   IconButton,
   InputAdornment,
+  Box,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+
+import {
+  Visibility,
+  VisibilityOff,
+  Person,
+  Lock,
+} from "@mui/icons-material";
 
 function LoginForm({
   username,
@@ -21,22 +28,35 @@ function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         height: "100vh",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "#e3f2fd",
+        background: "linear-gradient(135deg,#e3f2fd,#bbdefb)",
       }}
     >
-      <Card sx={{ width: 350, p: 3 }}>
+      <Card
+        sx={{
+          width: 360,
+          p: 3,
+          borderRadius: 3,
+          boxShadow: 6,
+        }}
+      >
         <CardContent>
-          <Typography variant="h5" align="center" gutterBottom>
+
+          <Typography
+            variant="h5"
+            align="center"
+            sx={{ fontWeight: "bold", mb: 2 }}
+          >
             Inicio de Sesión
           </Typography>
 
           <form onSubmit={onSubmit}>
+
             {/* Usuario */}
             <TextField
               label="Usuario"
@@ -44,9 +64,16 @@ function LoginForm({
               margin="normal"
               value={username}
               onChange={onUsernameChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Person color="primary" />
+                  </InputAdornment>
+                ),
+              }}
             />
 
-            {/* Contraseña con botón de visibilidad */}
+            {/* Contraseña */}
             <TextField
               label="Contraseña"
               type={showPassword ? "text" : "password"}
@@ -55,6 +82,11 @@ function LoginForm({
               value={password}
               onChange={onPasswordChange}
               InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Lock color="primary" />
+                  </InputAdornment>
+                ),
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
@@ -68,21 +100,36 @@ function LoginForm({
               }}
             />
 
-            {/* Botón de ingreso */}
-            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
+            {/* Botón */}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{
+                mt: 3,
+                py: 1.2,
+                fontWeight: "bold",
+              }}
+            >
               Entrar
             </Button>
+
           </form>
 
-          {/* Mensaje de error */}
+          {/* Mensaje error */}
           {mensaje && (
-            <Typography align="center" color="error" sx={{ mt: 2 }}>
+            <Typography
+              align="center"
+              color="error"
+              sx={{ mt: 2 }}
+            >
               {mensaje}
             </Typography>
           )}
+
         </CardContent>
       </Card>
-    </div>
+    </Box>
   );
 }
 
