@@ -21,6 +21,8 @@ const VentaTable = ({ ventas, onDeactivate, onActivate, onView, loading, visible
             {visibleColumns.fecha && <TableCell>Fecha</TableCell>}
             {visibleColumns.nombreCliente && <TableCell>Cliente</TableCell>}
             {visibleColumns.documentoCliente && <TableCell>Documento</TableCell>}
+            {visibleColumns.idCaja && <TableCell>Caja</TableCell>}
+            {visibleColumns.nombreCajero && <TableCell>Cajero</TableCell>}
             {visibleColumns.metodoPago && <TableCell>Método de Pago</TableCell>}
             {visibleColumns.total && <TableCell>Total</TableCell>}
             {visibleColumns.totalIVA && <TableCell>IVA Total</TableCell>}
@@ -38,6 +40,8 @@ const VentaTable = ({ ventas, onDeactivate, onActivate, onView, loading, visible
                   {visibleColumns.fecha && <TableCell>{new Date(v.fecha).toLocaleString()}</TableCell>}
                   {visibleColumns.nombreCliente && <TableCell>{v.nombreCliente}</TableCell>}
                   {visibleColumns.documentoCliente && <TableCell>{v.documentoCliente || "-"}</TableCell>}
+                  {visibleColumns.idCaja && <TableCell>{v.idCaja}</TableCell>}
+                  {visibleColumns.nombreCajero && <TableCell>{v.nombreCajero}</TableCell>}
                   {visibleColumns.metodoPago && <TableCell>{v.metodoPago}</TableCell>}
                   {visibleColumns.total && <TableCell>${v.total.toFixed(2)}</TableCell>}
                   {visibleColumns.totalIVA && <TableCell>${v.totalIVA.toFixed(2)}</TableCell>}

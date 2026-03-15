@@ -40,6 +40,10 @@ public class CajaService {
     public List<Caja> getCajasAbiertas() {
         return cajaRepository.findByEstadoCaja(EstadoCaja.ABIERTA);
     }
+    // ✅ Listar cajas cerradas
+    public List<Caja> getCajasCerradas() {
+        return cajaRepository.findByEstadoCaja(EstadoCaja.CERRADA);
+    }
 
     // ✅ Abrir caja
     public Caja abrirCaja(Long idUsuario, BigDecimal montoInicial) {

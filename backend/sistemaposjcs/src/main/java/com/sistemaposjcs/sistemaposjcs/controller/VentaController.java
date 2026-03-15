@@ -42,10 +42,11 @@ public class VentaController {
                 v.getIdVenta(),
                 v.getFecha(),
                 v.getCliente().getIdCliente(),
-                v.getCaja().getIdCaja(),          
-                v.getUsuario().getIdUsuario(),
                 v.getCliente().getNombreCompleto(),
                 v.getCliente().getDocumento(),
+                v.getCaja().getIdCaja(),          
+                v.getUsuario().getIdUsuario(),
+                v.getUsuario().getNombreCompleto(),
                 v.getMetodoPago(),
                 v.getTotal(),
                 v.getTotalIVA(),
@@ -67,6 +68,8 @@ public class VentaController {
                 .map(this::convertirVenta)
                 .toList();
     }
+            
+    
 
     // ✅ 2. Listar ventas inactivas
     @GetMapping("/inactivas")

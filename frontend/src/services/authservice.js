@@ -17,7 +17,8 @@ export const IniciarSesion = async (username, password) => {
     if (response.data.status === "ok") {
       localStorage.setItem("token", response.data.token);// 🔑 Guardar token
       localStorage.setItem("role", response.data.rol || response.data.role);
-      localStorage.setItem("username", response.data.username || response.data.username);  
+      localStorage.setItem("username", response.data.username || response.data.username);
+      localStorage.setItem("id_usuario", response.data.idUsuario || response.data.idUsuario);   
     }
      // Retornamos la respuesta del servidor (normalmente contiene status, rol y mensaje)
     return response.data;

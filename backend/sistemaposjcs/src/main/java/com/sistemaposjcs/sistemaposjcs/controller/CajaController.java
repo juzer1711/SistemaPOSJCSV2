@@ -75,7 +75,7 @@ public class CajaController {
     }
 
     // ✅ 5. Cerrar caja
-    @PatchMapping("/cerrar/{id}")
+    @PutMapping("/cerrar/{id}")
     public ResponseEntity<CajaDTO> cerrarCaja(
             @PathVariable Long id,
             @RequestBody CajaDTO cajaDTO
@@ -83,6 +83,15 @@ public class CajaController {
 
         Caja caja = cajaService.cerrarCaja(id, cajaDTO.getMontoFinal());
         return ResponseEntity.ok(convertirCaja(caja));
+    }
+
+    // ✅ 4. Listar cajas cerradas
+    @GetMapping("/cerradas")
+    public List<CajaDTO> getCajasCerradas() {
+        return cajaService.getCajasCerradas()
+                .stream()
+                .map(this::convertirCaja)
+                .toList();
     }
 
 }

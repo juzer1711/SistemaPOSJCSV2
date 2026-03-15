@@ -17,10 +17,11 @@ public class VentaDTO {
     private Long idVenta;
     private LocalDateTime fecha;
     private Long idCliente;
-    private Long idCaja;
-    private Long idUsuario;
     private String nombreCliente;
     private String documentoCliente;
+    private Long idCaja;
+    private Long idUsuario;
+    private String nombreCajero;
     private MetodoPago metodoPago;
     private BigDecimal total;
     private BigDecimal totalIVA;

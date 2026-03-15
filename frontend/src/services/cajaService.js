@@ -1,0 +1,78 @@
+import axios from "axios";
+
+const API_URL = "http://localhost:8080/api/cajas";
+
+// Obtener headers dinámicamente
+const getAuthHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
+// GET Cajas abiertas
+export const getCajasAbiertas = async () => {
+  return await axios.get(`${API_URL}/abiertas`, {
+    headers: getAuthHeaders()
+  });
+};
+
+// GET Cajas cerradas
+export const getCajasCerradas = async () => {
+  return await axios.get(`${API_URL}/cerradas`, {
+    headers: getAuthHeaders()
+  });
+};
+
+
+// GET BY ID
+export const getCajaById = async (id) => {
+  return await axios.get(`${API_URL}/${id}`, {
+    headers: getAuthHeaders()
+  });
+};
+
+// Abrir Caja
+export const abrirCaja = async (cajaData) => {
+  try {
+    const res = await axios.post(API_URL, cajaData, {
+      headers: getAuthHeaders()
+    });
+    return res.data;
+
+  } catch (error) {
+    throw formatAxiosError(error);
+  }
+};
+
+// Cerrar Caja
+export const cerrarCaja = async (id, cajaData) => {
+  try {
+    const res = await axios.put(`${API_URL}/${id}`, cajaData, {
+      headers: getAuthHeaders()
+    });
+    return res.data;
+
+  } catch (error) {
+    throw formatAxiosError(error);
+  }
+};
+
+// Manejo de errores
+function formatAxiosError(error) {
+  if (error.response) {
+    const data = error.response.data;
+
+    // Detecta el mensaje del backend
+    const backendMessage =
+      data?.message ||
+      Object.values(data)?.[0] ||   // si viene { campo: "error" }
+      JSON.stringify(data) ||
+      "Error desconocido";
+
+    const err = new Error(backendMessage);
+    err.status = error.response.status;
+    err.raw = data;
+    return err;
+  }
+
+  return new Error("No se pudo conectar al servidor");
+}
