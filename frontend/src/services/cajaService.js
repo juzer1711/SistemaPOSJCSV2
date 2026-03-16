@@ -33,7 +33,7 @@ export const getCajaById = async (id) => {
 // Abrir Caja
 export const abrirCaja = async (cajaData) => {
   try {
-    const res = await axios.post(API_URL, cajaData, {
+    const res = await axios.post(`${API_URL}/abrir`, cajaData, {
       headers: getAuthHeaders()
     });
     return res.data;
@@ -46,7 +46,7 @@ export const abrirCaja = async (cajaData) => {
 // Cerrar Caja
 export const cerrarCaja = async (id, cajaData) => {
   try {
-    const res = await axios.put(`${API_URL}/${id}`, cajaData, {
+    const res = await axios.put(`${API_URL}/cerrar/${id}`, cajaData, {
       headers: getAuthHeaders()
     });
     return res.data;
