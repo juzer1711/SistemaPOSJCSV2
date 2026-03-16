@@ -5,7 +5,6 @@ import com.sistemaposjcs.sistemaposjcs.dto.VentaDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Venta;
 import com.sistemaposjcs.sistemaposjcs.service.VentaService;
 
-
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -15,100 +14,122 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/ventas")
-@CrossOrigin(origins = "http://localhost:3000") // permitir conexión desde React
+@CrossOrigin(origins = "http://localhost:3000")
 
 public class VentaController {
 
-private final VentaService ventaService;
+    private final VentaService ventaService;
 
     public VentaController(VentaService ventaService) {
         this.ventaService = ventaService;
     }
 
-private VentaDTO convertirVenta(Venta v) {
-    List<ItemFacturaDTO> itemsDTO = v.getItems().stream()
-        .map(i -> new ItemFacturaDTO(
-                i.getProducto().getIdProducto(),
-                i.getProducto().getNombre(),
-                i.getCantidad(),
-                i.getPrecioUnitario(),
-                i.getSubtotal(),
-                i.getIvaPorcentaje(),
-                i.getValorIVA()
-        )).toList();
+    // 🔹 Convertir entidad → DTO
+    private VentaDTO convertirVenta(Venta v) {
 
-    return new VentaDTO(
-        v.getIdVenta(),
-        v.getFecha(),
-        v.getCliente().getIdCliente(),
-        v.getCliente().getNombreCompleto(),
-        v.getCliente().getDocumento(),
-        v.getMetodoPago(),
-        v.getTotal(),
-        v.getTotalIVA(),
-        v.getTotalSinIVA(),
-        v.getObservaciones(),
-        v.getEstado(),
-        v.getMontoRecibido(),
-        v.getCambio(),
-        itemsDTO
-    );
-}
+        List<ItemFacturaDTO> itemsDTO = v.getItems().stream()
+                .map(i -> new ItemFacturaDTO(
+                        i.getProducto().getIdProducto(),
+                        i.getProducto().getNombre(),
+                        i.getCantidad(),
+                        i.getPrecioUnitario(),
+                        i.getSubtotal(),
+                        i.getIvaPorcentaje(),
+                        i.getValorIVA()
+                )).toList();
 
+        return new VentaDTO(
+                v.getIdVenta(),
+                v.getFecha(),
+                v.getCliente().getIdCliente(),
+                v.getCliente().getNombreCompleto(),
+                v.getCliente().getDocumento(),
+                v.getCaja().getIdCaja(),          
+                v.getUsuario().getIdUsuario(),
+                v.getUsuario().getNombreCompleto(),
+                v.getMetodoPago(),
+                v.getTotal(),
+                v.getTotalIVA(),
+                v.getTotalSinIVA(),
+                v.getObservaciones(),
+                v.getEstado(),
+                v.getMontoRecibido(),
+                v.getCambio(),
+                itemsDTO
+        );
+    }
 
+    // ✅ 1. Listar ventas activas
+    @GetMapping
+    public List<VentaDTO> getActiveVentas() {
 
-    // ✅ 1. Listar solo ACTIVOS
-@GetMapping
-public List<VentaDTO> getActiveVentas() {
-    return ventaService.getActiveVentas()
-        .stream()
-        .map(this::convertirVenta)
-        .toList();
-}
+        return ventaService.getActiveVentas()
+                .stream()
+                .map(this::convertirVenta)
+                .toList();
+    }
+            
+    
 
-    @GetMapping("/inactivos")
-public List<VentaDTO> getInactiveVentas() {
-    return ventaService.getInactiveVentas()
-        .stream()
-        .filter(v -> v.getEstado() == false)
-        .map(this::convertirVenta)
-        .toList();
-}
+    // ✅ 2. Listar ventas inactivas
+    @GetMapping("/inactivas")
+    public List<VentaDTO> getInactiveVentas() {
 
-    //  Obtener venta por ID
+        return ventaService.getInactiveVentas()
+                .stream()
+                .map(this::convertirVenta)
+                .toList();
+    }
+
+    // ✅ 3. Obtener venta por ID
     @GetMapping("/{id}")
     public ResponseEntity<VentaDTO> getVentaById(@PathVariable Long id) {
+
         Venta venta = ventaService.getVentaById(id);
+
         return ResponseEntity.ok(convertirVenta(venta));
     }
 
-    //  Crear venta
+    // ✅ 4. Crear venta
     @PostMapping
-    public ResponseEntity<Venta> createVenta(@Valid @RequestBody Venta venta) {
-        return ResponseEntity.ok(ventaService.createVenta(venta));
+    public ResponseEntity<VentaDTO> createVenta(
+            @Valid @RequestBody Venta venta
+    ) {
+
+        Venta nuevaVenta = ventaService.createVenta(venta);
+
+        return ResponseEntity.ok(convertirVenta(nuevaVenta));
     }
 
-    //  Actualizar venta
+    // ✅ 5. Actualizar venta
     @PutMapping("/{id}")
-    public ResponseEntity<Venta> updateVenta(
+    public ResponseEntity<VentaDTO> updateVenta(
             @PathVariable Long id,
             @Valid @RequestBody Venta venta
     ) {
-        return ResponseEntity.ok(ventaService.updateVenta(id, venta));
+
+        Venta ventaActualizada = ventaService.updateVenta(id, venta);
+
+        return ResponseEntity.ok(convertirVenta(ventaActualizada));
     }
 
-    // ✅ 5. Desactivar venta
-    @DeleteMapping("/desactivar/{id}")
+    // ✅ 6. Desactivar venta (anular)
+    @PatchMapping("/desactivar/{id}")
     public ResponseEntity<Void> desactivarVenta(@PathVariable Long id) {
+
         ventaService.desactivarVenta(id);
+
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/activar/{id}")
-    public ResponseEntity<Venta> activarVenta(@PathVariable Long id) {
-        return ResponseEntity.ok(ventaService.activarVenta(id));
+    // ✅ 7. Reactivar venta
+    @PatchMapping("/activar/{id}")
+    public ResponseEntity<VentaDTO> activarVenta(@PathVariable Long id) {
+
+        Venta venta = ventaService.activarVenta(id);
+
+        return ResponseEntity.ok(convertirVenta(venta));
     }
 }
-    
 
 

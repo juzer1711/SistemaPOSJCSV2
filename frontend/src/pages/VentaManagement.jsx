@@ -37,12 +37,14 @@ export default function VentaManagement () {
 
   const ALL_COLUMNS = {
   idVenta: "ID",
+  fecha: "Fecha",
   nombreCliente: "Cliente",
   documentoCliente: "Documento",
-  fecha: "Fecha",
+  idCaja: "Caja",
+  nombreCajero: "Cajero",
+  metodoPago: "Método de Pago",
   total: "Total",
   totalIVA: "IVA Total",
-  metodoPago: "Método de Pago",
   estado: "Estado",
   acciones: "Acciones",
   };
@@ -56,7 +58,8 @@ export default function VentaManagement () {
   const [sortBy, setSortBy] = useState({ key: "fecha", direction: "asc" }); // default
   const [advancedFilters, setAdvancedFilters] = useState({
     metodoPago: "",
-    estado: ""
+    estado: "",
+    caja: ""
   });
   
   const handleShowAll = () => {
@@ -79,15 +82,35 @@ export default function VentaManagement () {
     cargar();
   }, []);
 
-useEffect(() => {
-  const cargarClientes = async () => {
-    try {
-      const res = await getActiveClients(); // ojo si ya existe el service
-      setClientes(res.data || []);
-    } catch (e) { console.log(e); }
-  };
-  cargarClientes();
-}, []);
+  useEffect(() => {
+    const cargarClientes = async () => {
+      try {
+        const res = await getActiveClients(); // ojo si ya existe el service
+        setClientes(res.data || []);
+      } catch (e) { console.log(e); }
+    };
+    cargarClientes();
+  }, []);
+
+  useEffect(() => {
+    const cargarUsuarios = async () => {
+      try {
+        const res = await getActiveUsers(); // ojo si ya existe el service
+        setUsuarios(res.data || []);
+      } catch (e) { console.log(e); }
+    };
+    cargarUsuarios();
+  }, []);
+
+  useEffect(() => {
+    const cargarCajas = async () => {
+      try {
+        const res = await getCajasAbiertas(); // ojo si ya existe el service
+        setCajas(res.data || []);
+      } catch (e) { console.log(e); }
+    };
+    cargarCajas();
+  }, []);
 
   const loadVentas = async () => {
     const res = showInactive ? await getInactiveVentas() : await getActiveVentas();
@@ -159,6 +182,7 @@ const filteredVentas = useMemo(() => {
     result = result.filter(v => !!v.estado === wantActive);
   }
 
+
   // 3) Búsqueda general
   if (q) {
     result = result.filter(v => {
@@ -167,6 +191,8 @@ const filteredVentas = useMemo(() => {
         v.documentoCliente,
         v.idVenta?.toString(),
         v.metodoPago,
+        v.nombreCajero,
+        v.idCaja
       ];
 
       return fields.some(f => (f || "").toString().toLowerCase().includes(q));

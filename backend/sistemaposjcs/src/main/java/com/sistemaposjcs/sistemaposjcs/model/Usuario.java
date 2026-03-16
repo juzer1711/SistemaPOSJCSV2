@@ -98,6 +98,25 @@ public class Usuario {
     private String telefono;
 
     private Boolean estado = true;
+
+    public String getNombreCompleto(){
+
+        String nombre = primerNombre;
+
+        if(segundoNombre != null && !segundoNombre.isEmpty()){
+            nombre += " " + segundoNombre;
+        }
+
+        nombre += " " + primerApellido;
+
+        if(segundoApellido != null && !segundoApellido.isEmpty()){
+            nombre += " " + segundoApellido;
+        }
+
+        return nombre;
+    }
 }
+
+
 
 

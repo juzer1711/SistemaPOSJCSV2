@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class LoginResponse {
     private String status;  // "ok" o "error"
+    private Long idUsuario;
     private String username;
     private String role;
     private String message;

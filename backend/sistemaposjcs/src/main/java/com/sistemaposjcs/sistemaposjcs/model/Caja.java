@@ -10,7 +10,10 @@ import lombok.*;
 
 @Entity
 @Table(name = "cajas")
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Caja {
 
     @Id
@@ -23,27 +26,31 @@ public class Caja {
     private Usuario usuario;
 
     @Column()
-    private LocalDateTime fechaApertura = LocalDateTime.now();;
+    private LocalDateTime fechaApertura;
     @Column()
-    private LocalDateTime fechaCierre = LocalDateTime.now();;
-    @Column()
-    private BigDecimal montoInicial;
-    @Column()
-    private BigDecimal totalVentas;
-    @Column()
-    private BigDecimal totalEfectivo;
-    //private BigDecimal totalTarjeta;
-    @Column()
-    private BigDecimal totalTransferencia;
-    @Column()
-    private BigDecimal montoFinal;
-    @Column()
+    private LocalDateTime fechaCierre;
+    @Column(nullable = false)
+    private BigDecimal montoInicial = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal totalVentas = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal totalEfectivo = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal totalTransferencia = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal montoFinal = BigDecimal.ZERO;
+
     @Enumerated(EnumType.STRING)
-    private EstadoCaja estadoCaja; // ABIERTA, CERRADA
+    @Column(nullable = false)
+    private EstadoCaja estadoCaja;
 
     @PrePersist
     public void prePersist() {
         this.fechaApertura = LocalDateTime.now();
-        this.fechaCierre = LocalDateTime.now();
+        this.estadoCaja = EstadoCaja.ABIERTA;
     }
 }

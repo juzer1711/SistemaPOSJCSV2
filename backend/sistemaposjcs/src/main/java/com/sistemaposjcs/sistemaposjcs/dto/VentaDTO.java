@@ -19,6 +19,9 @@ public class VentaDTO {
     private Long idCliente;
     private String nombreCliente;
     private String documentoCliente;
+    private Long idCaja;
+    private Long idUsuario;
+    private String nombreCajero;
     private MetodoPago metodoPago;
     private BigDecimal total;
     private BigDecimal totalIVA;
