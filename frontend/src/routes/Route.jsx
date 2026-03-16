@@ -9,6 +9,7 @@ import ClientManagement from "../pages/ClientManagement"; // CRUD de clientes
 import PrivateRoute from "./PrivateRoute"; // Componente para proteger rutas
 import VentaManagement from "../pages/VentaManagement";
 import VentaPOS from "../components/Ventas/POSVenta";
+import CajaManagement from "../pages/CajaManagement";
 
 function AppRoutes() {
   return (
@@ -82,7 +83,8 @@ function AppRoutes() {
               <VentaPOS/>
             </PrivateRoute>
           }
-        />          
+        /> 
+        <Route path="/cajas" element={<CajaManagement />} />         
       </Routes>
     </Router>
   );
