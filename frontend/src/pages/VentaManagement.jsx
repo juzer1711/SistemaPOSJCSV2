@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Box, Toolbar, Typography, Snackbar, Alert, Dialog } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import VentaTable from "../components/Ventas/VentaTable";
 import VentaSearchBar from "../components/Ventas/VentaSearchBar";
-import POSVenta from "../components/Ventas/POSVenta";
 import VentaDetailDialog from "../components/Ventas/VentaDetailDialog";
-import { getActiveVentas, getInactiveVentas, getVentaById, deactivateVenta, activateVenta, registrarVenta } from "../services/ventaService";
+import { getVentaById, deactivateVenta, activateVenta, searchVentas } from "../services/ventaService";
 import { getActiveProducts } from "../services/productService";
 import { getActiveClients } from "../services/clientService";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -15,7 +14,12 @@ export default function VentaManagement () {
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
 
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalRows, setTotalRows] = useState(0);
+
   const [filter, setFilter] = useState("");
+  const [debouncedFilter, setDebouncedFilter] = useState("");
   const [showInactive, setShowInactive] = useState(false);
   const navigate = useNavigate();
 
@@ -27,11 +31,8 @@ export default function VentaManagement () {
   const [detailOpen, setDetailOpen] = useState(false);
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
 
-  const [openPOS, setOpenPOS] = useState(false);
-
   const handleOpenPOS = () => {
     navigate("/nueva-venta");
-    setOpenPOS(true);
   };
 
 
@@ -55,11 +56,9 @@ export default function VentaManagement () {
     return defaults;
   });
   
-  const [sortBy, setSortBy] = useState({ key: "fecha", direction: "asc" }); // default
+  const [sortBy, setSortBy] = useState({ key: "fecha", direction: "desc" }); // default
   const [advancedFilters, setAdvancedFilters] = useState({
-    metodoPago: "",
-    estado: "",
-    caja: ""
+    metodoPago: ""
   });
   
   const handleShowAll = () => {
@@ -68,7 +67,16 @@ export default function VentaManagement () {
     setVisibleColumns(all);
   };
 
-  useEffect(() => { loadVentas(); }, [showInactive]);
+  useEffect(() => {
+    loadVentas();
+  }, [
+    page,
+    pageSize,
+    sortBy,
+    debouncedFilter,
+    advancedFilters,
+    showInactive
+  ]);
 
   useEffect(() => {
     const cargar = async () => {
@@ -85,7 +93,7 @@ export default function VentaManagement () {
   useEffect(() => {
     const cargarClientes = async () => {
       try {
-        const res = await getActiveClients(); // ojo si ya existe el service
+        const res = await getActiveClients();
         setClientes(res.data || []);
       } catch (e) { console.log(e); }
     };
@@ -93,28 +101,46 @@ export default function VentaManagement () {
   }, []);
 
   useEffect(() => {
-    const cargarUsuarios = async () => {
-      try {
-        const res = await getActiveUsers(); // ojo si ya existe el service
-        setUsuarios(res.data || []);
-      } catch (e) { console.log(e); }
-    };
-    cargarUsuarios();
-  }, []);
+  const timeout = setTimeout(() => {
+    setDebouncedFilter(filter);
+  }, 400); // 400ms delay (puedes usar 300-500)
 
-  useEffect(() => {
-    const cargarCajas = async () => {
-      try {
-        const res = await getCajasAbiertas(); // ojo si ya existe el service
-        setCajas(res.data || []);
-      } catch (e) { console.log(e); }
-    };
-    cargarCajas();
-  }, []);
+  return () => clearTimeout(timeout);
+}, [filter]);
+
+  const [loading, setLoading] = useState(false);
 
   const loadVentas = async () => {
-    const res = showInactive ? await getInactiveVentas() : await getActiveVentas();
-    setVentas(res.data);
+    try {
+      setLoading(true);
+
+      const params = {
+        page,
+        size: pageSize,
+        sort: `${sortBy.key},${sortBy.direction}`,
+
+        // 🔍 búsqueda
+        search: debouncedFilter || undefined,
+
+        // filtros avanzados
+        metodoPago: advancedFilters.metodoPago || undefined,
+        fechaInicio: advancedFilters.fechaInicio || undefined,
+        fechaFin: advancedFilters.fechaFin || undefined,
+
+        // 🔥 activos / inactivos
+        estado: showInactive ? false : true
+      };
+
+      const res = await searchVentas(params);
+
+      setVentas(res.data.content || []);
+      setTotalRows(res.data.totalElements || 0);
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
 const openDeactivateDialog = (id) => {
@@ -164,64 +190,6 @@ const handleActivate = (id) => {
 const showMessage = (msg, type="success") =>
     setSnackbar({ open:true, message:msg, severity:type });
 
-const filteredVentas = useMemo(() => {
-  const q = filter?.trim().toLowerCase();
-
-  // 1) Lista base
-  let result = [...ventas];
-
-  // 2) Filtros avanzados
-  if (advancedFilters.metodoPago) {
-    result = result.filter(v => 
-      (v.metodoPago || "").toLowerCase() === advancedFilters.metodoPago.toLowerCase()
-    );
-  }
-
-  if (advancedFilters.estado) { // activo / inactivo
-    const wantActive = advancedFilters.estado === "activo";
-    result = result.filter(v => !!v.estado === wantActive);
-  }
-
-
-  // 3) Búsqueda general
-  if (q) {
-    result = result.filter(v => {
-      const fields = [
-        v.nombreCliente,
-        v.documentoCliente,
-        v.idVenta?.toString(),
-        v.metodoPago,
-        v.nombreCajero,
-        v.idCaja
-      ];
-
-      return fields.some(f => (f || "").toString().toLowerCase().includes(q));
-    });
-  }
-
-  // 4) Ordenamiento dinámico
-  const { key, direction } = sortBy || {};
-  if (key) {
-    result.sort((a, b) => {
-      const A = (a[key] || "").toString().toLowerCase();
-      const B = (b[key] || "").toString().toLowerCase();
-      if (A < B) return direction === "asc" ? -1 : 1;
-      if (A > B) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  }
-
-  // 📅 FILTRAR POR RANGO DE FECHAS
-  if (advancedFilters.fechaInicio) {
-    result = result.filter(v => new Date(v.fecha) >= new Date(advancedFilters.fechaInicio));
-  }
-  if (advancedFilters.fechaFin) {
-    result = result.filter(v => new Date(v.fecha) <= new Date(advancedFilters.fechaFin));
-  }
-
-
-  return result;
-}, [ventas, filter, advancedFilters, sortBy]);
 
   const verDetalle = async (id) => {
   const res = await getVentaById(id);
@@ -266,12 +234,17 @@ const filteredVentas = useMemo(() => {
       />
 
       <VentaTable
-        ventas={filteredVentas}
+        ventas={ventas}
+        page={page}
+        setPage={setPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        totalRows={totalRows}
         onView={verDetalle}
         onDeactivate={handleInactive}
         onActivate={handleActivate}
         visibleColumns={visibleColumns}
-        loading={false}
+        loading={loading}
       />
 
       <VentaDetailDialog 
@@ -279,14 +252,6 @@ const filteredVentas = useMemo(() => {
       onClose={()=>setDetailOpen(false)}
       venta={ventaSeleccionada}
       />
-
-      <Dialog open={openPOS} onClose={()=>setOpenPOS(false)} fullScreen>
-        <POSVenta 
-            productos={productos}
-            clientes={clientes}
-            registrarVenta={registrarVenta}
-        />
-      </Dialog>
 
       <ConfirmDialog
       open={dialogOpen}

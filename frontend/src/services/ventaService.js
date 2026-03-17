@@ -8,14 +8,29 @@ const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
 
+
 // 📌 Obtener ventas activas
-export const getActiveVentas = async () => {
-  return await axios.get(API_URL, { headers: getAuthHeaders() });
+export const getActiveVentas = (page, size) => {
+  return axios.get(`${API_URL}`, {
+    params: {
+      page: page,
+      size: size,
+      sort: "fecha,desc"
+    },
+    headers: getAuthHeaders()
+  });
 };
 
 // 📌 Obtener ventas inactivas
-export const getInactiveVentas = async () => {
-  return await axios.get(`${API_URL}/inactivos`, { headers: getAuthHeaders() });
+export const getInactiveVentas = (page, size) => {
+  return axios.get(`${API_URL}/inactivas`, {
+    params: {
+      page: page,
+      size: size,
+      sort: "fecha,desc"
+    },
+    headers: getAuthHeaders()
+  });
 };
 
 // 📌 Obtener venta por ID (para ver detalle)
@@ -37,12 +52,19 @@ export const registrarVenta = async (ventaData) => {
 
 // 📌 Activar / Desactivar venta
 export const activateVenta = (id) =>
-  axios.put(`${API_URL}/activar/${id}`, {}, { headers: getAuthHeaders() });
+  axios.patch(`${API_URL}/activar/${id}`, {}, { headers: getAuthHeaders() });
 
 export const deactivateVenta = (id) =>
-  axios.delete(`${API_URL}/desactivar/${id}`, { headers: getAuthHeaders() });
+  axios.patch(`${API_URL}/desactivar/${id}`, { headers: getAuthHeaders() });
 
-// 📌 Error handler (lo mismo que usas en producto)
+export const searchVentas = (params) => {
+  return axios.get(`${API_URL}/search`, {
+    params,
+    headers: getAuthHeaders()
+  });
+};
+
+// 📌 Error handler 
 function formatAxiosError(error) {
   if (error.response) {
     const data = error.response.data;

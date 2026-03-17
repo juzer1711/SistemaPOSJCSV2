@@ -16,9 +16,15 @@ import com.sistemaposjcs.sistemaposjcs.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import java.util.List;
+import jakarta.persistence.criteria.Predicate;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDate;
+import java.util.ArrayList;
 
 @Service
 public class VentaService {
@@ -43,14 +49,12 @@ public class VentaService {
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
     }
 
-    // ✅ Listar todos los usuarios
-    public List<Venta> getInactiveVentas() {
-        return ventaRepository.findByEstadoFalse();
+    public Page<Venta> getActiveVentas(Pageable pageable){
+        return ventaRepository.findByEstadoTrue(pageable);
     }
 
-    
-    public List<Venta> getActiveVentas() {
-    return ventaRepository.findByEstadoTrue();
+    public Page<Venta> getInactiveVentas(Pageable pageable){
+        return ventaRepository.findByEstadoFalse(pageable);
     }
 
 // Crear Venta
@@ -321,6 +325,60 @@ public Venta activarVenta(Long id) {
     v.setEstado(true);
 
     return ventaRepository.save(v);
+}
+
+public Page<Venta> searchVentas(
+    Pageable pageable,
+    String search,
+    String metodoPago,
+    Boolean estado,
+    LocalDate fechaInicio,
+    LocalDate fechaFin
+) {
+    Specification<Venta> spec = buildSpec(search, metodoPago, estado, fechaInicio, fechaFin);
+    return ventaRepository.findAll(spec, pageable);
+}
+
+public Specification<Venta> buildSpec(
+    String search,
+    String metodoPago,
+    Boolean estado,
+    LocalDate fechaInicio,
+    LocalDate fechaFin
+) {
+    return (root, query, cb) -> {
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        // 🔍 búsqueda global
+        if (search != null && !search.isEmpty()) {
+            predicates.add(cb.or(
+                cb.like(cb.lower(root.get("nombreCliente")), "%" + search.toLowerCase() + "%"),
+                cb.like(root.get("documentoCliente"), "%" + search + "%")
+            ));
+        }
+
+        // 💳 método pago
+        if (metodoPago != null && !metodoPago.isEmpty()) {
+            predicates.add(cb.equal(root.get("metodoPago"), metodoPago));
+        }
+
+        // 🟢 estado
+        if (estado != null) {
+            predicates.add(cb.equal(root.get("estado"), estado));
+        }
+
+        // 📅 fechas
+        if (fechaInicio != null && fechaFin != null) {
+            predicates.add(cb.between(
+                root.get("fecha"),
+                fechaInicio.atStartOfDay(),
+                fechaFin.atTime(23, 59)
+            ));
+        }
+
+        return cb.and(predicates.toArray(new Predicate[0]));
+    };
 }
  
 }
