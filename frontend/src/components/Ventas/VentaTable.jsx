@@ -1,125 +1,143 @@
-import React from "react";
-import {
-  Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Paper, IconButton, Chip, Button, TableFooter
-} from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { Box, Chip, Button, IconButton } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { CheckCircle, Cancel } from "@mui/icons-material";
 
-const VentaTable = ({ ventas, onDeactivate, onActivate, onView, loading, visibleColumns }) => {
-  const visibleCount = Object.values(visibleColumns || {}).filter(Boolean).length || 1;
-  // Cálculo del total de ventas
-  const totalVentas = ventas.reduce((acc, venta) => acc + (venta.total || 0), 0);
-  const totalIVA = ventas.reduce((acc, venta) => acc + (venta.totalIVA || 0), 0);
+export default function VentaTable({
+  ventas,
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalRows,
+  onView,
+  onDeactivate,
+  onActivate,
+  visibleColumns,
+  loading
+}) {
+
+  const columns = [
+    { field: "idVenta", headerName: "ID", width: 90 },
+
+    {
+      field: "fecha",
+      headerName: "Fecha",
+      width: 180,
+      renderCell: (params) => {
+      const fecha = params.row.fecha;
+      if (!fecha) return "-";
+
+      const date = new Date(fecha);
+      return isNaN(date) ? "-" : date.toLocaleString("es-CO");
+    }
+    },
+
+    { field: "nombreCliente", headerName: "Cliente", width: 200 },
+
+    { field: "documentoCliente", headerName: "Documento", width: 150 },
+
+    { field: "idCaja", headerName: "Caja", width: 90 },
+
+    { field: "nombreCajero", headerName: "Cajero", width: 160 },
+
+    { field: "metodoPago", headerName: "Método Pago", width: 150 },
+
+    {
+      field: "total",
+      headerName: "Total",
+      width: 120,
+      renderCell: (params) => {
+      const total = params.row.total;
+      return `$${Number(total || 0).toLocaleString("es-CO")}`;
+    }
+    },
+    {
+      field: "estado",
+      headerName: "Estado",
+      width: 130,
+      renderCell: (params) => {
+
+        const active = params.value === true || params.value === 1;
+
+        return (
+          <Chip
+            label={active ? "ACTIVO" : "INACTIVO"}
+            color={active ? "success" : "default"}
+            size="small"
+          />
+        );
+      }
+    },
+
+    {
+      field: "acciones",
+      headerName: "Acciones",
+      width: 180,
+      sortable: false,
+      renderCell: (params) => {
+
+        const v = params.row;
+        const active = v.estado === true || v.estado === 1;
+
+        return (
+          <>
+            <IconButton onClick={() => onView(v.idVenta)}>
+              <VisibilityIcon />
+            </IconButton>
+
+            {active ? (
+              <Button
+                size="small"
+                color="error"
+                onClick={() => onDeactivate(v.idVenta)}
+              >
+                Desactivar
+              </Button>
+            ) : (
+              <Button
+                size="small"
+                onClick={() => onActivate(v.idVenta)}
+              >
+                Activar
+              </Button>
+            )}
+          </>
+        );
+      }
+    }
+  ];
 
   return (
-    <TableContainer component={Paper} sx={{ maxHeight: 500, overflowX: "auto" }}>
-      <Table sx={{ minWidth: 1200 }} size="small">
-        <TableHead>
-          <TableRow>
-            {visibleColumns.idVenta && <TableCell>ID</TableCell>}
-            {visibleColumns.fecha && <TableCell>Fecha</TableCell>}
-            {visibleColumns.nombreCliente && <TableCell>Cliente</TableCell>}
-            {visibleColumns.documentoCliente && <TableCell>Documento</TableCell>}
-            {visibleColumns.idCaja && <TableCell>Caja</TableCell>}
-            {visibleColumns.nombreCajero && <TableCell>Cajero</TableCell>}
-            {visibleColumns.metodoPago && <TableCell>Método de Pago</TableCell>}
-            {visibleColumns.total && <TableCell>Total</TableCell>}
-            {visibleColumns.totalIVA && <TableCell>IVA Total</TableCell>}
-            {visibleColumns.estado && <TableCell>Estado</TableCell>}
-            {visibleColumns.acciones && <TableCell align="center">Acciones</TableCell>}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {ventas.length > 0 ? (
-            ventas.map((v) => {
-              const active = v.estado === 1 || v.estado === true;
-              return (
-                <TableRow key={v.idVenta}>
-                  {visibleColumns.idVenta && <TableCell>{v.idVenta}</TableCell>}
-                  {visibleColumns.fecha && <TableCell>{new Date(v.fecha).toLocaleString()}</TableCell>}
-                  {visibleColumns.nombreCliente && <TableCell>{v.nombreCliente}</TableCell>}
-                  {visibleColumns.documentoCliente && <TableCell>{v.documentoCliente || "-"}</TableCell>}
-                  {visibleColumns.idCaja && <TableCell>{v.idCaja}</TableCell>}
-                  {visibleColumns.nombreCajero && <TableCell>{v.nombreCajero}</TableCell>}
-                  {visibleColumns.metodoPago && <TableCell>{v.metodoPago}</TableCell>}
-                  {visibleColumns.total && <TableCell>${v.total.toFixed(2)}</TableCell>}
-                  {visibleColumns.totalIVA && <TableCell>${v.totalIVA.toFixed(2)}</TableCell>}
-                  {visibleColumns.estado && (
-                    <TableCell>
-                      <Chip
-                        icon={active ? <CheckCircle /> : <Cancel />}
-                        label={active ? "ACTIVO" : "INACTIVO"}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          borderRadius: "6px",
-                          fontWeight: "bold",
-                          animation: "fadeIn 0.3s ease-in-out",
-                          bgcolor: active ? "rgba(46, 125, 50, 0.1)" : "rgba(158, 158, 158, 0.1)",
-                          color: active ? "success.main" : "text.secondary",
-                          borderColor: active ? "success.main" : "text.secondary",
-                        }}
-                      />
-                    </TableCell>
-                  )}
-                  {visibleColumns.acciones && (
-                    <TableCell align="center">
-                      <IconButton size="small" color="primary" onClick={() => onView?.(v.idVenta)}>
-                        <VisibilityIcon />
-                      </IconButton>
+    <Box sx={{ height: 550, width: "100%" }}>
+      <DataGrid
+        rows={ventas || []}
+        columns={columns}
+        getRowId={(row) => row.idVenta}
 
-                      {active ? (
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          onClick={() => onDeactivate(v.idVenta)}
-                          sx={{ ml: 1 }}
-                        >
-                          Desactivar
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          onClick={() => onActivate(v.idVenta)}
-                          sx={{ ml: 1 }}
-                        >
-                          Activar
-                        </Button>
-                      )}
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={visibleCount} align="center">
-                {loading ? "Cargando..." : "No hay ventas"}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-                {/* Fila de total */}
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={visibleCount - 1} align="right"><strong>Total IVA:</strong></TableCell>
-            <TableCell colSpan={2} align="center">
-              <strong>${totalIVA.toFixed(2)}</strong>
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell colSpan={visibleCount - 1} align="right"><strong>Total:</strong></TableCell>
-            <TableCell colSpan={2} align="center">
-              <strong>${totalVentas.toFixed(2)}</strong>
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </TableContainer>
+        paginationMode="server"
+        sortingMode="server"
+
+        rowCount={totalRows || 0}
+
+        paginationModel={{ page, pageSize }}
+
+        onPaginationModelChange={(model) => {
+          setPage(model.page);
+          setPageSize(model.pageSize);
+        }}
+
+        onSortModelChange={(model) => {
+          if (model.length > 0) {
+            setSortBy({
+              key: model[0].field,
+              direction: model[0].sort
+            });
+          }
+        }}
+
+        loading={loading}
+      />
+    </Box>
   );
-};
-
-export default VentaTable;
+}
 

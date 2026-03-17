@@ -9,6 +9,11 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
+
 
 import java.util.List;
 
@@ -59,26 +64,21 @@ public class VentaController {
         );
     }
 
-    // ✅ 1. Listar ventas activas
+    // ✅ 1. ventas activas
     @GetMapping
-    public List<VentaDTO> getActiveVentas() {
+    public Page<VentaDTO> getActiveVentas(Pageable pageable) {
 
-        return ventaService.getActiveVentas()
-                .stream()
-                .map(this::convertirVenta)
-                .toList();
-    }
-            
+        return ventaService.getActiveVentas(pageable)
+                .map(this::convertirVenta);
+    } 
     
 
-    // ✅ 2. Listar ventas inactivas
+    // ✅ 2. ventas inactivas
     @GetMapping("/inactivas")
-    public List<VentaDTO> getInactiveVentas() {
+    public Page<VentaDTO> getInactiveVentas(Pageable pageable) {
 
-        return ventaService.getInactiveVentas()
-                .stream()
-                .map(this::convertirVenta)
-                .toList();
+        return ventaService.getInactiveVentas(pageable)
+                .map(this::convertirVenta);
     }
 
     // ✅ 3. Obtener venta por ID
@@ -129,6 +129,22 @@ public class VentaController {
         Venta venta = ventaService.activarVenta(id);
 
         return ResponseEntity.ok(convertirVenta(venta));
+    }
+
+    @GetMapping("/search")
+    public Page<VentaDTO> searchVentas(
+        Pageable pageable,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String metodoPago,
+        @RequestParam(required = false) Boolean estado,
+        @RequestParam(required = false) 
+        @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaInicio,
+        @RequestParam(required = false) 
+        @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaFin
+    ) {
+        return ventaService.searchVentas(
+            pageable, search, metodoPago, estado, fechaInicio, fechaFin
+        ).map(this::convertirVenta);
     }
 }
 

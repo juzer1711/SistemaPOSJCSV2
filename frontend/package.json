@@ -9,6 +9,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.4",
+    "@mui/x-data-grid": "^8.27.5",
     "@mui/x-date-pickers": "^8.19.0",
     "axios": "^1.12.2",
     "dayjs": "^1.11.19",
@@ -50,4 +51,3 @@
     "vite": "^6.0.0"
   }
 }
-
