@@ -1,10 +1,16 @@
 package com.sistemaposjcs.sistemaposjcs.repository;
 
-import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.sistemaposjcs.sistemaposjcs.model.Venta;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface VentaRepository extends JpaRepository<Venta, Long> {
-    List<Venta> findByEstadoTrue();
-    List<Venta> findByEstadoFalse();
+import com.sistemaposjcs.sistemaposjcs.model.Venta;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+public interface VentaRepository extends JpaRepository<Venta, Long>, JpaSpecificationExecutor<Venta> {
+
+    // ventas activas
+    Page<Venta> findByEstadoTrue(Pageable pageable);
+    // ventas inactivas
+    Page<Venta> findByEstadoFalse(Pageable pageable);
 }
