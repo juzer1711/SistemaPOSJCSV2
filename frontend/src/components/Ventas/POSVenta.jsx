@@ -6,10 +6,38 @@ import CheckoutPanel from "./POSVentaComponents/CheckoutPanel";
 import { getActiveProducts } from "../../services/productService";
 import { getActiveClients } from "../../services/clientService";
 import {registrarVenta} from "../../services/ventaService";
+import { getCajasAbiertas } from "../../services/cajaService";
 
 export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [cajaActual, setCajaActual] = useState(null);
+
+  useEffect(() => {
+    const cargarCaja = async () => {
+      try {
+        const response = await getCajasAbiertas();
+        const cajas = response.data;
+
+        const idUsuario = localStorage.getItem("id_usuario");
+
+        console.log("CAJAS COMPLETAS:", cajas);
+
+        const caja = cajas.find(
+          (c) => String(c.idUsuario) === String(idUsuario)
+        );
+
+        console.log("CAJA DETECTADA:", caja);
+
+        setCajaActual(caja);
+
+      } catch (error) {
+        console.error("Error cargando caja:", error);
+      }
+    };
+
+    cargarCaja();
+  }, []);
 
   // Estado del carrito vivo (idProducto, nombre, precio, cantidad)
   const [items, setItems] = useState([]);
