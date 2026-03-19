@@ -13,7 +13,7 @@ const CajeroDashboard = () => {
       title: "Nueva Venta",
       description: "Realiza una nueva transacción de venta.",
       icon: <PointOfSaleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
-      action: () => navigate("/ventas"),
+      action: () => navigate("/nueva-venta"),
     },
     {
       title: "Inventario",

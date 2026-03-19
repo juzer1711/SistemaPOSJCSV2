@@ -3,7 +3,7 @@ import { Box, Typography, Button, Card, CardContent, Grid, TextField, MenuItem, 
 
 import { getCajasAbiertas, abrirCaja, cerrarCaja } from "../services/cajaService";
 import { getActiveUsers } from "../services/userService";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/NavBar";
 
 export default function CajaManagement() {
 

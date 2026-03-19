@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CheckoutResumenDialog from "./CheckoutResumenDialog";
+import CircularProgress from "@mui/material/CircularProgress";
 
 
 const CheckoutPanel = ({
@@ -77,6 +78,7 @@ const CheckoutPanel = ({
       message: "✔ Venta registrada correctamente",
       severity: "success"
       });
+      setOpenResumen(false);
       clearCart();
       setClienteSeleccionado(null); // Limpia el cliente
       setMetodoPago("");        // Reset del método de pago
@@ -86,11 +88,6 @@ const CheckoutPanel = ({
     } catch (error) { 
       //extrae el mensaje de error real
       const mensajeReal = error.response?.data?.message || error.message || "Error desconocido";
-      setSnackbar({
-        open: true,
-        message: `Error al registrar venta: ${mensajeReal}`,
-        severity: "error"
-      });
         if (mensajeReal.includes("caja abierta")) {
           setSnackbar({
             open: true,
@@ -123,7 +120,17 @@ const CheckoutPanel = ({
 
 
   return (
-    <Paper elevation={3} sx={{ p:2, height: "calc(100vh - 48px)", position: "sticky", top: 24 }}>
+    <Paper
+        elevation={3}
+        sx={{ 
+          p:2, 
+          height: "calc(100vh - 48px)", 
+          position: "sticky", 
+          top: 24,
+          pointerEvents: loadingVenta ? "none" : "auto",
+          opacity: loadingVenta ? 0.7 : 1
+        }}
+      >
       <Typography variant="h6">Pago</Typography>
 
       <Autocomplete
@@ -133,8 +140,10 @@ const CheckoutPanel = ({
         isOptionEqualToValue={(o,v)=>o.idCliente===v?.idCliente}
         onChange={(e,val)=>setClienteSeleccionado(val)}
         getOptionLabel={(c)=> `${getClientName(c)} | ${c?.documento ?? ""}`}
-        renderOption={(props,c)=>(
-          <li {...props} style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        renderOption={(props,c)=>{
+        const { key, ...rest } = props;
+        return (
+          <li key={key} {...rest} style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span>{getClientName(c)} — {c.documento}</span>
 
             <IconButton
@@ -148,7 +157,8 @@ const CheckoutPanel = ({
               <VisibilityIcon fontSize="small"/>
             </IconButton>
           </li>
-        )}
+        );
+        }}
         renderInput={(params)=> <TextField {...params} label="Cliente" size="small" />}
       />
 
@@ -192,10 +202,12 @@ const CheckoutPanel = ({
         fullWidth
         sx={{ mt:3 }}
         onClick={() => setOpenResumen(true)}
-        disabled={!clienteSeleccionado || items.length===0 ||
+        disabled={
+          loadingVenta || 
+          !clienteSeleccionado || items.length===0 ||
         !metodoPago || (metodoPago === "EFECTIVO" && (!montoRecibido || Number(montoRecibido) < total))}
       >
-        Ver Resumen & Cobrar
+        {loadingVenta ? <CircularProgress size={24} color="inherit" /> : "Ver Resumen & Cobrar"}
       </Button>
 
 
@@ -211,8 +223,8 @@ const CheckoutPanel = ({
         totalSinIVA={totalSinIVA}
         montoRecibido={montoRecibido}
         cambio={cambio}
+        loadingVenta={loadingVenta}
         onConfirm={() => {
-          setOpenResumen(false);
           handleConfirm();
         }}
       />

@@ -12,11 +12,30 @@ export default function VentaPOS () {
   const [clientes, setClientes] = useState([]);
 
   // Estado del carrito vivo (idProducto, nombre, precio, cantidad)
-  const [items, setItems] = useState([]);
-  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-  const [metodoPago, setMetodoPago] = useState("");
-  const [montoRecibido, setMontoRecibido] = useState("");
-  const [observaciones, setObservaciones] = useState("");
+  const [items, setItems] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).items || [] : [];
+  });
+
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).clienteSeleccionado || null : null;
+  });
+
+  const [metodoPago, setMetodoPago] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).metodoPago || "" : "";
+  });
+
+  const [montoRecibido, setMontoRecibido] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).montoRecibido || "" : "";
+  });
+
+  const [observaciones, setObservaciones] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).observaciones || "" : "";
+  });
 
   useEffect(() => {
     (async () => {
@@ -30,6 +49,20 @@ export default function VentaPOS () {
       }
     })();
   }, []);
+
+  useEffect(() => {
+  const data = {
+    items,
+    clienteSeleccionado,
+    metodoPago,
+    montoRecibido,
+    observaciones
+  };
+
+  localStorage.setItem("pos_venta", JSON.stringify(data));
+
+}, [items, clienteSeleccionado, metodoPago, montoRecibido, observaciones]);
+
 
   // Añadir producto al carrito (incrementa si ya existe)
   const addItem = (prod) => {
@@ -50,7 +83,9 @@ export default function VentaPOS () {
 
   const removeItem = (idProducto) => setItems(prev => prev.filter(i => i.idProducto !== idProducto));
 
-  const clearCart = () => { setItems([]); setClienteSeleccionado(null); setMetodoPago(""); setMontoRecibido(""); setObservaciones(""); };
+  const clearCart = () => { setItems([]); setClienteSeleccionado(null); setMetodoPago(""); setMontoRecibido(""); setObservaciones(""); localStorage.removeItem("pos_venta"); };
+
+  
 
   return (
     <Box sx={{
