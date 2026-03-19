@@ -39,6 +39,12 @@ const AdminDashboard = () => {
       action: () => navigate("/mostrar-ventas"),
     },
     {
+      title: "Gestión de Cajas",
+      description: "Administra y gestiona las cajas en activo del sistema.",
+      icon: <PointOfSaleIcon sx={{ fontSize: 60, color: "primary.main" }} />,
+      action: () => navigate("/cajas"),
+    },
+    {
       title: "Nueva Venta",
       description: "Registra una nueva venta al sistema.",
       icon: <ShoppingCartIcon sx={{ fontSize: 60, color: "primary.main" }} />,
@@ -55,12 +61,6 @@ const AdminDashboard = () => {
       description: "Ajustes generales y parámetros de operación.",
       icon: <SettingsIcon sx={{ fontSize: 60, color: "primary.main" }} />,
       action: () => navigate("/configuracion"),
-    },
-    {
-      title: "Gestión de Cajas",
-      description: "Administra y gestiona las cajas en activo del sistema.",
-      icon: <PointOfSaleIcon sx={{ fontSize: 60, color: "primary.main" }} />,
-      action: () => navigate("/cajas"),
     },
   ];
 

@@ -59,15 +59,16 @@ const CheckoutPanel = ({
       return;
     }
 
+    const idUsuario = localStorage.getItem("id_usuario");
+
     const body = {
       cliente: { idCliente: clienteSeleccionado.idCliente },
+      usuario: { idUsuario: Number(idUsuario) },
       metodoPago,
       observaciones,
       montoRecibido: metodoPago === "EFECTIVO" ? Number(montoRecibido) : null,
       items: items.map(i => ({ producto: { idProducto: i.idProducto }, cantidad: i.cantidad }))
     };
-
-    console.log("BODY QUE ENVÍO:", body);
 
     try {
       await registrarVenta(body);
@@ -90,6 +91,19 @@ const CheckoutPanel = ({
         message: `Error al registrar venta: ${mensajeReal}`,
         severity: "error"
       });
+        if (mensajeReal.includes("caja abierta")) {
+          setSnackbar({
+            open: true,
+            message: "⚠️ Debes abrir una caja antes de vender",
+            severity: "error"
+          });
+        } else {
+          setSnackbar({
+            open: true,
+            message: `Error: ${mensajeReal}`,
+            severity: "error"
+          });
+        }
     }
   };
 
