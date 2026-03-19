@@ -24,8 +24,15 @@ const CheckoutResumenDialog = ({
 
       {/* CABECERA */}
       <DialogTitle sx={{ textAlign: "center", pb: 1 }}>
-        <Typography variant="h5" fontWeight="bold">🧾 Confirmar Venta</Typography>
-        <Typography variant="subtitle2" color="text.secondary">
+        <Typography variant="h5" component="div" fontWeight="bold">
+          🧾 Confirmar Venta
+        </Typography>
+
+        <Typography
+          variant="subtitle2"
+          component="div"
+          color="text.secondary"
+        >
           Revisa antes de continuar
         </Typography>
       </DialogTitle>
