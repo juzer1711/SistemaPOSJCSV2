@@ -1,12 +1,21 @@
 package com.sistemaposjcs.sistemaposjcs.service;
 
 import com.sistemaposjcs.sistemaposjcs.model.Usuario;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
 import com.sistemaposjcs.sistemaposjcs.model.Rol;
 import com.sistemaposjcs.sistemaposjcs.repository.RolRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.ArrayList;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Expression;
 import java.util.List;
+import jakarta.persistence.criteria.Predicate;
 
 @Service
 public class UserService {
@@ -26,12 +35,12 @@ public class UserService {
     }
 
     // ✅ Listar todos los usuarios inactivos
-    public List<Usuario> getInactiveUsers() {
-        return userRepository.findByEstadoFalse();
+    public Page<Usuario> getInactiveUsers(Pageable pageable) {
+        return userRepository.findByEstadoFalse(pageable);
     }
 
-    public List<Usuario> getActiveUsers() {
-        return userRepository.findByEstadoTrue();
+    public Page<Usuario> getActiveUsers(Pageable pageable) {
+        return userRepository.findByEstadoTrue(pageable);
     }
 
     // ✅ Crear usuario
@@ -96,7 +105,70 @@ public class UserService {
 
     u.setEstado(true);     // 🔥 Activa
     return userRepository.save(u);
+    }
+public Page<Usuario> searchUsuarios(
+    Pageable pageable,
+    String search,
+    Rol rol,
+    Boolean estado,
+    TipoDocumento tipoDocumento,
+    String documento
+) {
+    Specification<Usuario> spec = buildSpec(search, rol, estado, tipoDocumento, documento);
+    return userRepository.findAll(spec, pageable);
 }
 
+public Specification<Usuario> buildSpec(
+    String search,
+    Rol rol,
+    Boolean estado,
+    TipoDocumento tipoDocumento,
+    String documento
+) {
+    return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // 🔍 búsqueda global (nombre o email)
+            if (search != null && !search.isEmpty()) {
+                String searchLower = "%" + search.toLowerCase() + "%";
+
+                Expression<String> nombreCompletoUsuario = cb.concat(cb.lower(root.get("primerNombre")), " ");
+                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(cb.coalesce(root.get("segundoNombre"), "")));
+                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
+                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(root.get("primerApellido")));
+                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
+                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(root.get("segundoApellido")));
+                    predicates.add(cb.or(
+                        cb.like(nombreCompletoUsuario, searchLower),
+                        cb.like(cb.lower(root.get("email")), "%" + search.toLowerCase() + "%"),
+                        cb.like(cb.lower(root.get("username")), "%" + search.toLowerCase() + "%"),
+                        cb.like(cb.lower(root.get("documento")), "%" + search.toLowerCase() + "%")
+                    ));
+                }
+
+            // 🎭 rol
+            if (rol != null) {
+                predicates.add(cb.equal(root.get("rol"), rol));
+            }
+
+            // 🟢 estado
+            if (estado != null) {
+                predicates.add(cb.equal(root.get("estado"), estado));
+            }
+
+            // 📄 tipo documento
+            if (tipoDocumento != null) {
+                predicates.add(cb.equal(root.get("tipoDocumento"), tipoDocumento));
+            }
+
+            // 📑 documento
+            /*
+            if (documento != null && !documento.isEmpty()) {
+                predicates.add(cb.equal(root.get("documento"), documento));
+            } */
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+    };
+}
     
 }

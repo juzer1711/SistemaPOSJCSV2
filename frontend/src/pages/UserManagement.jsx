@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  getActiveUsers,
-  getInactiveUsers,
   deactivateUser,
-  activateUser
+  activateUser,
+  searchUsers
 } from "../services/userService";
 import UserTable from "../components/CrudUsuarios/UserTable";
 import UserFormDialog from "../components/CrudUsuarios/UserFormDialog";
@@ -15,14 +14,23 @@ import { Snackbar, Alert } from "@mui/material";
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);// Estado principal donde se guardan los usuarios cargados desde el backend
+
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalRows, setTotalRows] = useState(0);
+
+
   const [filter, setFilter] = useState("");// Filtro de búsqueda (texto que escribe el usuario)
+  const [debouncedFilter, setDebouncedFilter] = useState("");
   const [open, setOpen] = useState(false);// Estado para controlar si el modal (formulario) está abierto o cerrado
   const [editing, setEditing] = useState(false);// Indica si el formulario está en modo "editar" o "agregar"
   const [selectedUser, setSelectedUser] = useState(null);// Guarda el usuario actualmente seleccionado para editar
   const [showInactive, setShowInactive] = useState(false);
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogInfo, setDialogInfo] = useState({});
   const [selectedId, setSelectedId] = useState(null);
+  
   const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
   const [tiposDocumento, setTiposDocumento] = useState([]);
   const [selectedTipoDocumento, setselectedTipoDocumento] = useState('');
@@ -30,10 +38,7 @@ export default function UserManagement() {
 const ALL_COLUMNS = {
   idUsuario: "ID",
   username: "Usuario",
-  primerNombre: "Primer Nombre",
-  segundoNombre: "Segundo Nombre",
-  primerApellido: "Primer Apellido",
-  segundoApellido: "Segundo Apellido",
+  nombreCompleto: "Nombre",
   tipoDocumento: "Tipo Documento",
   documento: "Documento",
   rol: "Rol",
@@ -63,15 +68,54 @@ const handleShowAll = () => {
 
   useEffect(() => {
   loadUsers();
-}, [showInactive]); // Se ejecuta al montar el componente para cargar la lista de usuarios
+}, [page,
+    pageSize,
+    sortBy,
+    debouncedFilter,
+    advancedFilters,
+    showInactive]); // Se ejecuta al montar el componente para cargar la lista de usuarios
+
+  useEffect(() => {
+  const timeout = setTimeout(() => {
+    setDebouncedFilter(filter);
+  }, 400); // 400ms delay (puedes usar 300)
+
+  return () => clearTimeout(timeout);
+  }, [filter]);
+
+  const [loading, setLoading] = useState(false);
 
   // Función que obtiene la lista de usuarios desde la API
 const loadUsers = async () => {
-  const res = showInactive 
-  ? await getInactiveUsers() 
-  : await getActiveUsers();
-  setUsers(res.data);
-};
+try {
+      setLoading(true);
+
+      const params = {
+        page,
+        size: pageSize,
+        sort: `${sortBy.key},${sortBy.direction}`,
+
+        // 🔍 búsqueda
+        search: debouncedFilter || undefined,
+
+        // filtros avanzados
+        rol: advancedFilters.rol || undefined,
+        tipoDocumento: advancedFilters.tipoDocumento || undefined,
+        // 🔥 activos / inactivos
+        estado: showInactive ? false : true
+      };
+
+      const res = await searchUsers(params);
+
+      setUsers(res.data.content || []);
+      setTotalRows(res.data.totalElements || 0);
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   // Abre el formulario en modo "Agregar nuevo usuario"
@@ -139,58 +183,6 @@ const showMessage = (msg, type = "success") => {
   setSnackbar({ open: true, message: msg, severity: type });
 };
 
-const filteredSortedUsers = useMemo(() => {
-  const q = filter?.trim().toLowerCase();
-
-  // 1) Aplicar showInactive toggle (ya lo cargas por efecto, así que aquí solo filtramos por estado si advancedFilters lo solicita)
-  let result = [...users];
-
-  // 2) Aplicar filtros avanzados
-  if (advancedFilters.rol) {
-    result = result.filter(u => (u.rol.nombre || "").toLowerCase() === advancedFilters.rol.toLowerCase());
-  }
-  if (advancedFilters.tipoDocumento) {
-    result = result.filter(u => (u.tipoDocumento || "").toLowerCase() === advancedFilters.tipoDocumento.toLowerCase());
-  }
-  if (advancedFilters.estado) {
-    const wantActive = advancedFilters.estado === "activo";
-    result = result.filter(u => !!u.estado === wantActive);
-  }
-
-  // 3) Búsqueda en campos específicos (si q está)
-  if (q) {
-    result = result.filter((u) => {
-      const fields = [
-        u.username,
-        u.primerNombre,
-        u.segundoNombre,
-        u.primerApellido,
-        u.segundoApellido,
-        u.idUsuario?.toString(),
-        u.documento,
-        u.rol.nombre,
-        u.email,
-        u.telefono,
-      ];
-      return fields.some(f => (f || "").toString().toLowerCase().includes(q));
-    });
-  }
-
-  // 4) Ordenar
-  const { key, direction } = sortBy || {};
-  if (key) {
-    result.sort((a, b) => {
-      const A = (a[key] || "").toString().toLowerCase();
-      const B = (b[key] || "").toString().toLowerCase();
-      if (A < B) return direction === "asc" ? -1 : 1;
-      if (A > B) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  }
-
-  return result;
-}, [users, filter, advancedFilters, sortBy]);
-
   return (
     <Box sx={{ p: 3 }}>
       <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -213,12 +205,17 @@ const filteredSortedUsers = useMemo(() => {
         ALL_COLUMNS={ALL_COLUMNS}
       />
       <UserTable
-      users={filteredSortedUsers}
+      users={users}
+      page={page}
+      setPage={setPage}
+      pageSize={pageSize}
+      setPageSize={setPageSize}
+      totalRows={totalRows}
       onEdit={handleEdit}
       onDelete={handleInactive}
       onActivate={handleActivate}
       visibleColumns={visibleColumns}
-      loading={false}
+      loading={loading}
       />
 
 

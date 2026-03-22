@@ -15,7 +15,7 @@ const CheckoutPanel = ({
   metodoPago, setMetodoPago,
   montoRecibido, setMontoRecibido,
   observaciones, setObservaciones,
-  registrarVenta, clearCart
+  registrarVenta, clearCart, cajaActiva
 }) => {
   const total = items.reduce((acc,i) => acc + (Number(i.precioUnitario) * Number(i.cantidad)), 0);
   const totalIVA = items.reduce((acc,i) => acc + (i.precioUnitario - i.precioSinIva) * i.cantidad, 0);
@@ -131,6 +131,12 @@ const CheckoutPanel = ({
           opacity: loadingVenta ? 0.7 : 1
         }}
       >
+
+      {cajaActiva && (
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          Caja activa: #{cajaActiva.idCaja} | Cajero: {cajaActiva.nombreCajero}
+        </Typography>
+      )}
       <Typography variant="h6">Pago</Typography>
 
       <Autocomplete

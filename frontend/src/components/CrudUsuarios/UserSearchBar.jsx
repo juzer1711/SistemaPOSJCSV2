@@ -1,169 +1,117 @@
 import React, {useState} from "react";
 import { 
-  Box, TextField, InputAdornment, Button , IconButton,
-  Menu, MenuItem, Checkbox, FormControlLabel, Select, FormControl, InputLabel
+  Box, TextField, InputAdornment, Button , MenuItem, ToggleButton,
+  ToggleButtonGroup,  FormControl,
+  InputLabel,
+  Select
 } from "@mui/material";
 import { Add, Search, Settings } from "@mui/icons-material";
 
-const SORT_FIELDS = [
-  { value: "primerNombre", label: "Primer Nombre" },
-  { value: "primerApellido", label: "Primer Apellido" },
-  { value: "username", label: "Username" },
-  { value: "documento", label: "Documento" },
-];
 
 const UserSearchBar = ({ 
-  filter, onFilterChange, onAdd, showInactive, onToggleInactive,
-  visibleColumns, setVisibleColumns,
-  sortBy, setSortBy,
-  advancedFilters, setAdvancedFilters, handleShowAll, ALL_COLUMNS  
+  filter, 
+  onFilterChange, 
+  onAdd, 
+  showInactive, 
+  onToggleInactive,
+  advancedFilters, setAdvancedFilters, 
+  handleShowAll
 }) => {
-    const [anchorEl, setAnchorEl] = useState(null);
+  const handleChange = (field, value) => {
+    setAdvancedFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
   
-    const handleColumnsClick = (e) => setAnchorEl(e.currentTarget);
-    const handleColumnsClose = () => setAnchorEl(null);
-  
-    const toggleColumn = (key) => {
-      setVisibleColumns(prev => ({ ...prev, [key]: !prev[key] }));
-    };
-  
-    const handleSortChange = (e) => {
-      const [key, dir] = e.target.value.split("|");
-      setSortBy({ key, direction: dir });
-    };
-  
-    const handleAdvFilterChange = (field, value) => {
-      setAdvancedFilters(prev => ({ ...prev, [field]: value }));
-    };
   return (
-    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, gap: 2, flexWrap: "wrap" }}>
-      <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-      <TextField
-        size="small"
-        placeholder="Buscar usuario..."
-        value={filter}
-        onChange={(e) => onFilterChange(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search />
-            </InputAdornment>
-          ),
-        }}
-      />
-        <IconButton size="small" onClick={handleColumnsClick} title="Configurar columnas">
-          <Settings />
-        </IconButton>
+    <Box
+      sx={{
+        mb: 2,
+        p: 2,
+        borderRadius: 2,
+        backgroundColor: "#fff",
+        boxShadow: 1,
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 2,
+        alignItems: "center",
+        justifyContent: "space-between"
+      }}
+    >
+      {/* 🔍 SECCIÓN DE FILTROS */}
+      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
+        
+        {/* BUSCADOR GLOBAL (Busca por nombre completo, email o documento según tu back) */}
+        <TextField
+          size="small"
+          placeholder="Buscar nombre, email..."
+          value={filter}
+          onChange={(e) => onFilterChange(e.target.value)}
+          sx={{ minWidth: 250 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            )
+          }}
+        />
 
-        <Menu 
-          anchorEl={anchorEl} 
-          open={Boolean(anchorEl)} 
-          onClose={handleColumnsClose}
-          PaperProps={{
-            sx: { width: 240, paddingY: 1 }
+        {/* FILTRO POR ROL */}
+        <TextField
+          select
+          size="small"
+          label="Rol"
+          value={advancedFilters.rol || ""}
+          onChange={(e) => handleChange("rol", e.target.value)}
+          sx={{ minWidth: 150 }}
+        >
+          <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="ADMINISTRADOR">Administrador</MenuItem>
+          <MenuItem value="CAJERO">Cajero</MenuItem>
+        </TextField>
+
+        {/* FILTRO POR TIPO DE DOCUMENTO */}
+        <TextField
+          select
+          size="small"
+          label="Tipo Doc."
+          value={advancedFilters.tipoDocumento || ""}
+          onChange={(e) => handleChange("tipoDocumento", e.target.value)}
+          sx={{ minWidth: 180 }}
+        >
+          <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="CEDULA_CIUDADANIA">Cédula Ciudadanía</MenuItem>
+          <MenuItem value="CEDULA_EXTRANJERIA">Cédula Extranjería</MenuItem>
+          <MenuItem value="NIT">NIT</MenuItem>
+          <MenuItem value="PASAPORTE">Pasaporte</MenuItem>
+        </TextField>
+
+        {/* TOGGLE ACTIVO / INACTIVO (Estado) */}
+        <ToggleButtonGroup
+          size="small"
+          color="primary"
+          value={showInactive ? "inactive" : "active"}
+          exclusive
+          onChange={(e, val) => {
+            if (val !== null) onToggleInactive();
           }}
         >
-        {/* Título */}
-        <MenuItem disableRipple sx={{ opacity: 0.7, fontWeight: "bold", cursor: "default" }}>
-          Columnas visibles
-        </MenuItem>
-
-        {/* Botón: Mostrar todas */}
-        <MenuItem onClick={handleShowAll}>
-          <FormControlLabel
-            control={<Checkbox 
-              checked={
-                Object.values(visibleColumns).every(v => v === true)
-              } 
-            />}
-            label="Mostrar todas"
-          />
-        </MenuItem>
-
-        {/* Divider */}
-        <Box sx={{ borderTop: "1px solid #ddd", marginY: 1 }} />
-
-        {/* Lista de columnas */}
-        {Object.keys(visibleColumns).map((k) => (
-          <MenuItem key={k} onClick={() => toggleColumn(k)}>
-            <FormControlLabel
-              control={<Checkbox checked={!!visibleColumns[k]} />}
-              label={ALL_COLUMNS[k]} 
-            />
-          </MenuItem>
-        ))}
-      </Menu>
-
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel>Ordenar</InputLabel>
-          <Select
-            value={`${sortBy.key}|${sortBy.direction}`}
-            label="Ordenar"
-            onChange={handleSortChange}
-          >
-            {SORT_FIELDS.map(s => (
-              <MenuItem key={`${s.value}|asc`} value={`${s.value}|asc`}>{s.label} (Ascendente)</MenuItem>
-            ))}
-            {SORT_FIELDS.map(s => (
-              <MenuItem key={`${s.value}|desc`} value={`${s.value}|desc`}>{s.label} (Descendente)</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Filtros rápidos */}
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel>Rol</InputLabel>
-          <Select
-            value={advancedFilters.rol.nombre || ""}
-            label="Rol"
-            onChange={(e) => handleAdvFilterChange("rol", e.target.value)}
-          >
-            <MenuItem value="">Todos</MenuItem>
-            <MenuItem value="ADMINISTRADOR">Administrador</MenuItem>
-            <MenuItem value="CAJERO">Cajero</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel>Tipo Documento</InputLabel>
-          <Select
-            value={advancedFilters.tipoDocumento || ""}
-            label="Tipo Documento"
-            onChange={(e) => handleAdvFilterChange("tipoDocumento", e.target.value)}
-          >
-            <MenuItem value="">Todos</MenuItem>
-            <MenuItem value="CEDULA_CIUDADANIA">Cedula Ciudadania</MenuItem>
-            <MenuItem value="CEDULA_EXTRANJERIA">Cedula Extranjeria</MenuItem>
-            <MenuItem value="TARJETA_EXTRANJERIA">Tarjeta Extranjeria</MenuItem>
-            <MenuItem value="NIT">NIT</MenuItem>
-            <MenuItem value="PASAPORTE">Pasaporte</MenuItem>
-            <MenuItem value="PEP">Permiso Especial Permanencia</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 160 }} >
-          <InputLabel>Estado</InputLabel>
-          <Select
-            value={advancedFilters.estado || ""}
-            label="Estado"
-            onChange={(e) => handleAdvFilterChange("estado", e.target.value)}
-            onClick={onToggleInactive}
-          >
-            <MenuItem value="activo">Activos</MenuItem> {showInactive = "Ver activos"}
-            <MenuItem value="inactivo">Inactivos</MenuItem> {showInactive = "Ver activos"}
-            
-          </Select>
-        </FormControl>
-
+          <ToggleButton value="active">Activos</ToggleButton>
+          <ToggleButton value="inactive">Inactivos</ToggleButton>
+        </ToggleButtonGroup>
       </Box>
 
+      {/* ➕ ACCIONES */}
       <Box>
         <Button
           variant="contained"
-          color="primary"
           startIcon={<Add />}
-          sx={{ mr: 1 }}
           onClick={onAdd}
+          sx={{ backgroundColor: "#1976d2" }}
         >
-          Agregar
+          Nuevo Usuario
         </Button>
       </Box>
     </Box>

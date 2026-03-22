@@ -103,7 +103,7 @@ export default function VentaManagement () {
   useEffect(() => {
   const timeout = setTimeout(() => {
     setDebouncedFilter(filter);
-  }, 400); // 400ms delay (puedes usar 300-500)
+  }, 400); // 400ms delay 
 
   return () => clearTimeout(timeout);
 }, [filter]);

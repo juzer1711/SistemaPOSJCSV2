@@ -30,6 +30,13 @@ export const getCajaById = async (id) => {
   });
 };
 
+// GET BY IDUSUARIO
+export const getCajaActivaByUsuario = async (idUsuario) => {
+  return await axios.get(`${API_URL}/${idUsuario}/activa`,{
+    headers: getAuthHeaders()
+  });
+};
+
 // Abrir Caja
 export const abrirCaja = async (cajaData) => {
   try {
