@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { 
-  getActiveProducts, 
-  getInactiveProducts, 
+  searchProducts, 
   deactivateProduct, 
   activateProduct, 
   getCategorias
@@ -17,6 +16,11 @@ import CategoriaFormDialog from "../components/CrudProductos/CategoriaFormDialog
 const ProductManagement = () => {
   const [products, setProducts] = useState([]); // Lista de productos
   const [categorias, setCategorias] = useState([]); //Lista de categorias
+
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalRows, setTotalRows] = useState(0);
+
   const [filter, setFilter] = useState(""); // Texto del buscador
   const [open, setOpen] = useState(false); // Control del modal
   const [openCategoria, setOpenCategoria] = useState(false); // Control del modal
@@ -25,11 +29,12 @@ const ProductManagement = () => {
   const [selectedProduct, setSelectedProduct] = useState(null); // Producto seleccionado
   const [selectedCategoria, setSelectedCategoria] = useState(null); // Categoria seleccionado
   const [showInactive, setShowInactive] = useState(false);
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogInfo, setDialogInfo] = useState({});
   const [selectedId, setSelectedId] = useState(null);
-  const [snackbar, setSnackbar] = useState({open: false,message: "",severity: "success",});
 
+  const [snackbar, setSnackbar] = useState({open: false,message: "",severity: "success",});
 
 const ALL_COLUMNS = {
   idProducto: "ID",
@@ -64,7 +69,14 @@ const handleShowAll = () => {
 
   useEffect(() => {
     loadProducts();
-  }, [showInactive]);
+  }, [
+    page,
+    pageSize,
+    sortBy,
+    filter,
+    advancedFilters,
+    showInactive
+  ]);
 
   useEffect(() => {
     loadCategorias();
@@ -72,10 +84,27 @@ const handleShowAll = () => {
 
   // Cargar productos del backend
   const loadProducts = async () => {
-    const res = showInactive
-        ? await getInactiveProducts()
-        : await getActiveProducts();
-    setProducts(res.data);
+    try {
+      const params = {
+        page,
+        size: pageSize,
+        sort: `${sortBy.key},${sortBy.direction}`,
+
+        search: filter || undefined,
+
+        categoria: advancedFilters.categoria || undefined,
+
+        estado: showInactive ? false : true
+      };
+
+      const res = await searchProducts(params);
+
+      setProducts(res.data.content || []);
+      setTotalRows(res.data.totalElements || 0);
+
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // Cargar productos del backend
@@ -161,53 +190,6 @@ const handleShowAll = () => {
     setSnackbar({ open: true, message: msg, severity: type });
   };
 
-const filteredSortedProducts = useMemo(() => {
-  const q = filter?.trim().toLowerCase();
-
-  // 1) Aplicar showInactive toggle (ya lo cargas por efecto, así que aquí solo filtramos por estado si advancedFilters lo solicita)
-  let result = [...products];
-
-  // 2) Aplicar filtros avanzados
-  if (advancedFilters.categoria) {
-    result = result.filter(
-      p => p.categoria.id === Number(advancedFilters.categoria)
-    );
-  }
-  if (advancedFilters.estado) {
-    const wantActive = advancedFilters.estado === "activo";
-    result = result.filter(p => !!p.estado === wantActive);
-  }
-
-  // 3) Búsqueda en campos específicos (si q está)
-  if (q) {
-    result = result.filter((p) => {
-      const fields = [
-        p.nombre,
-        p.categoria.nombre,
-        p.codigoBarras,
-        p.descripcion,
-        p.idProducto?.toString(),
-        p.iva,
-      ];
-      return fields.some(f => (f || "").toString().toLowerCase().includes(q));
-    });
-  }
-
-  // 4) Ordenar
-  const { key, direction } = sortBy || {};
-  if (key) {
-    result.sort((a, b) => {
-      const A = (a[key] || "").toString().toLowerCase();
-      const B = (b[key] || "").toString().toLowerCase();
-      if (A < B) return direction === "asc" ? -1 : 1;
-      if (A > B) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  }
-
-  return result;
-}, [products, categorias, filter, advancedFilters, sortBy]);
-
   return (
     <Box sx={{ p: 3 }}>
       <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -234,12 +216,18 @@ const filteredSortedProducts = useMemo(() => {
       />
 
       <ProductTable
-        products={filteredSortedProducts}
+        products={products}
+        page={page}
+        setPage={setPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        totalRows={totalRows}
+        loading={false}
+
         onEdit={handleEdit}
         onDelete={handleInactive}
         onActivate={handleActivate}
         visibleColumns={visibleColumns}
-        loading={false}
       />
 
       <ProductFormDialog

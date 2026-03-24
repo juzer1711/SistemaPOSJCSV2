@@ -3,10 +3,14 @@ package com.sistemaposjcs.sistemaposjcs.controller;
 import com.sistemaposjcs.sistemaposjcs.dto.ProductoDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
 import com.sistemaposjcs.sistemaposjcs.service.ProductoService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -21,9 +25,8 @@ public class ProductoController {
 
     //  1. Listar todos los usuarios
     @GetMapping
-    public List<ProductoDTO> getActiveProductos() {
-        return productoService.getActiveProductos()
-            .stream()
+    public Page<ProductoDTO> getActiveProductos(Pageable pageable) {
+        return productoService.getActiveProductos(pageable)
             .map(p -> new ProductoDTO(
                 p.getIdProducto(),
                 p.getNombre(),
@@ -34,15 +37,13 @@ public class ProductoController {
                 p.getPrecioventa(),
                 p.getIva(),
                 p.getPrecioSinIva(),
-                p.getEstado()))
-            .toList();
+                p.getEstado()
+            ));
     }
 
     @GetMapping("/inactivos")
-    public List<ProductoDTO> getInactiveProductos() {
-        return productoService.getInactiveProductos()
-            .stream()
-            .filter(p -> p.getEstado() == false)
+    public Page<ProductoDTO> getInactiveProductos(Pageable pageable) {
+        return productoService.getInactiveProductos(pageable)
             .map(p -> new ProductoDTO(
                 p.getIdProducto(),
                 p.getNombre(),
@@ -53,8 +54,8 @@ public class ProductoController {
                 p.getPrecioventa(),
                 p.getIva(),
                 p.getPrecioSinIva(),
-                p.getEstado()))
-            .toList();
+                p.getEstado()
+            ));
     }
 
     // 2. Obtener producto por ID
@@ -88,6 +89,29 @@ public class ProductoController {
     @PutMapping("/activar/{id}")
     public ResponseEntity<Producto> activarProducto(@PathVariable Long id) {
         return ResponseEntity.ok(productoService.activarProducto(id));
+    }
+
+    @GetMapping("/search")
+    public Page<ProductoDTO> searchProductos(
+        Pageable pageable,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) Long categoria,
+        @RequestParam(required = false) Boolean estado
+    ) {
+        return productoService.searchProductos(
+            pageable, search, categoria, estado
+        ).map(p -> new ProductoDTO(
+            p.getIdProducto(),
+            p.getNombre(),
+            p.getCategoria(),
+            p.getCodigoBarras(),
+            p.getDescripcion(),
+            p.getCosto(),
+            p.getPrecioventa(),
+            p.getIva(),
+            p.getPrecioSinIva(),
+            p.getEstado()
+        ));
     }
 }
 

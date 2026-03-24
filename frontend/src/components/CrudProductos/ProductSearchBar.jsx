@@ -6,6 +6,7 @@ import {
 } from "@mui/material";
 import { Add, Search, Settings } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
+import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 
 const SORT_FIELDS = [
   { value: "nombre", label: "Nombre Producto" },
@@ -98,21 +99,18 @@ const ProductSearchBar = ({
   </Menu>
 
 
-    <FormControl size="small" sx={{ minWidth: 180 }}>
-      <InputLabel>Ordenar</InputLabel>
-      <Select
-        value={`${sortBy.key}|${sortBy.direction}`}
-        label="Ordenar"
-        onChange={handleSortChange}
-      >
-        {SORT_FIELDS.map(s => (
-          <MenuItem key={`${s.value}|asc`} value={`${s.value}|asc`}>{s.label} (A→Z)</MenuItem>
-        ))}
-        {SORT_FIELDS.map(s => (
-          <MenuItem key={`${s.value}|desc`} value={`${s.value}|desc`}>{s.label} (Z→A)</MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+    <ToggleButtonGroup
+      size="small"
+      color="primary"
+      value={showInactive ? "inactive" : "active"}
+      exclusive
+      onChange={(e, val) => {
+        if (val !== null) onToggleInactive();
+      }}
+    >
+      <ToggleButton value="active">Activos</ToggleButton>
+      <ToggleButton value="inactive">Inactivos</ToggleButton>
+    </ToggleButtonGroup>
 
     {/* Filtros rápidos */}
     <Autocomplete
@@ -122,7 +120,7 @@ const ProductSearchBar = ({
       isOptionEqualToValue={(option, value) => option.idCategoria === value.idCategoria}
       value={categorias.find(c => Number(c.idCategoria) === Number(advancedFilters.categoria)) || null}
       onChange={(e, newValue) =>
-        handleAdvFilterChange("categoria", newValue ? Number(newValue.idCategoria) : null)
+        handleAdvFilterChange("categoria", newValue ? newValue.idCategoria : "")
       }
       renderInput={(params) => (
         <TextField {...params} label="Categoría" />
@@ -144,19 +142,6 @@ const ProductSearchBar = ({
       </Box>
       )}
     />
-
-    <FormControl size="small" sx={{ minWidth: 160 }} >
-      <InputLabel>Estado</InputLabel>
-      <Select
-        value={advancedFilters.estado || ""}
-        label="Estado"
-        onChange={(e) => handleAdvFilterChange("estado", e.target.value)}
-      >
-        <MenuItem value="activo">Activos</MenuItem> {showInactive = "Ver activos"}
-        <MenuItem value="inactivo">Inactivos</MenuItem> {showInactive = "Ver activos"}
-        
-      </Select>
-    </FormControl>
 
   </Box>
       {/* Botones */}
