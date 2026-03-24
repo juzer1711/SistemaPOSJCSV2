@@ -1,6 +1,7 @@
 package com.sistemaposjcs.sistemaposjcs.controller;
 
 import com.sistemaposjcs.sistemaposjcs.dto.UserDTO;
+import com.sistemaposjcs.sistemaposjcs.model.Rol;
 import com.sistemaposjcs.sistemaposjcs.model.Usuario;
 import com.sistemaposjcs.sistemaposjcs.service.UserService;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
@@ -10,8 +11,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,12 +25,10 @@ public class UserController {
         this.userService = userService;
     }
 
-    //  1. Listar todos los usuarios
-@GetMapping
-public List<UserDTO> getActiveUsers() {
-    return userService.getActiveUsers()
-        .stream()
-        .map(u -> new UserDTO(
+        // 🔹 Convertir entidad → DTO
+    private UserDTO convertirUser(Usuario u) {
+
+        return new UserDTO(
             u.getIdUsuario(),
             u.getUsername(),
             u.getPrimerNombre(),
@@ -41,31 +40,27 @@ public List<UserDTO> getActiveUsers() {
             u.getRol(),
             u.getEmail(),
             u.getTelefono(),
-            u.getEstado()))
-        .toList();
-}
+            u.getEstado()
+        );
+    }
 
-@GetMapping("/inactivos")
-public List<UserDTO> getInactiveUsers() {
-    return userService.getInactiveUsers()
-        .stream()
-        .filter(u -> u.getEstado() == false)
-        .map(u -> new UserDTO(
-            u.getIdUsuario(),
-            u.getUsername(),
-            u.getPrimerNombre(),
-            u.getSegundoNombre(),
-            u.getPrimerApellido(),
-            u.getSegundoApellido(),
-            u.getTipoDocumento(),
-            u.getDocumento(),
-            u.getRol(),
-            u.getEmail(),
-            u.getTelefono(),
-            u.getEstado()))
-        .toList();
-}
 
+    // ✅ 1. usuarios activos
+    @GetMapping
+    public Page<UserDTO> getActiveUsers(Pageable pageable) {
+
+        return userService.getActiveUsers(pageable)
+        .map(this::convertirUser);
+    } 
+    
+
+    // ✅ 2. usuarios inactivos
+    @GetMapping("/inactivos")
+    public Page<UserDTO> getInactiveUsers(Pageable pageable) {
+
+        return userService.getInactiveUsers(pageable)
+        .map(this::convertirUser);
+    }
 
 
     //  2. Obtener un usuario por ID
@@ -87,13 +82,13 @@ public List<UserDTO> getInactiveUsers() {
     }
 
     //  5. Activar/Desactivar usuario
-    @DeleteMapping("/desactivar/{id}")
+    @PatchMapping("/desactivar/{id}")
     public ResponseEntity<Void> desactivarUsuario(@PathVariable Long id) {
         userService.desactivarUsuario(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/activar/{id}")
+    @PatchMapping("/activar/{id}")
     public ResponseEntity<Usuario> activarUsuario(@PathVariable Long id) {
         return ResponseEntity.ok(userService.activarUsuario(id));
     }
@@ -102,6 +97,21 @@ public List<UserDTO> getInactiveUsers() {
     public TipoDocumento[] listarTiposDocumento() {
         return TipoDocumento.values();
     }
+
+    @GetMapping("/search")
+    public Page<UserDTO> searchUsuarios(
+        Pageable pageable,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) Rol rol,
+        @RequestParam(required = false) Boolean estado,
+        @RequestParam(required = false) TipoDocumento tipoDocumento,
+        @RequestParam(required = false) String documento
+    ) {
+        return userService.searchUsuarios(
+            pageable, search, rol, estado, tipoDocumento, documento
+        ).map(this::convertirUser);
+    }
+
 
 
 

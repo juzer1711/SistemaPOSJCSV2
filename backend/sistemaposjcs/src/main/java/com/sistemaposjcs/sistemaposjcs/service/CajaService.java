@@ -31,6 +31,15 @@ public class CajaService {
                 .orElseThrow(() -> new RuntimeException("Caja no encontrada"));
     }
 
+    // ✅ Obtener caja por ID usuario
+    public Caja obtenerCajaActivaPorUsuario(Long idUsuario) {
+
+        return cajaRepository
+            .findByEstadoCajaAndUsuarioIdUsuario(EstadoCaja.ABIERTA, idUsuario)
+            .orElseThrow(() -> new RuntimeException("El usuario no tiene una caja abierta"));
+
+    }
+
     // ✅ Listar todas las cajas
     public List<Caja> getAllCajas() {
         return cajaRepository.findAll();

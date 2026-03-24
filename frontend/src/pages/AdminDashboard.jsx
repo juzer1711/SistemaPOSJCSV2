@@ -42,7 +42,7 @@ const AdminDashboard = () => {
       title: "Gestión de Cajas",
       description: "Administra y gestiona las cajas en activo del sistema.",
       icon: <PointOfSaleIcon sx={{ fontSize: 60, color: "primary.main" }} />,
-      action: () => navigate("/cajas"),
+      action: () => navigate("/gestion-cajas"),
     },
     {
       title: "Nueva Venta",
@@ -73,10 +73,7 @@ const AdminDashboard = () => {
       <Grid container spacing={4} justifyContent="center">
         {cards.map((card, index) => (
           <Grid
-            item
-            xs={12}
-            sm={6}
-            md={4}
+            size={{xs:4, sm:6, md:4}}
             key={index}
             sx={{
               display: "flex",

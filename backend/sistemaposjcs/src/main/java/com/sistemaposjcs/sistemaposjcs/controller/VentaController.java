@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
-
 import java.util.List;
 
 @RestController
@@ -147,5 +146,4 @@ public class VentaController {
         ).map(this::convertirVenta);
     }
 }
-
 

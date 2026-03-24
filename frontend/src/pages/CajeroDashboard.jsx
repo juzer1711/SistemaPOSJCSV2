@@ -56,13 +56,7 @@ const CajeroDashboard = () => {
       title: "Nueva Venta",
       description: "Realiza una nueva transacción de venta.",
       icon: <PointOfSaleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
-      action: () => {
-        if (!cajaActual) {
-          alert("Debes tener una caja abierta");
-          return;
-        }
-        navigate("/nueva-venta");
-      },
+      action: () => navigate("/nueva-venta"),
     },
     {
       title: "Inventario",

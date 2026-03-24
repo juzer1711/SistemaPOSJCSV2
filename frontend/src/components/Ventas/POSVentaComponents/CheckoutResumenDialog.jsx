@@ -3,6 +3,8 @@ import {
   Typography, Divider, Box, Button, Paper
 } from "@mui/material";
 
+import CircularProgress from "@mui/material/CircularProgress";
+
 const CheckoutResumenDialog = ({
   open,
   onClose,
@@ -15,6 +17,7 @@ const CheckoutResumenDialog = ({
   totalIVA,
   totalSinIVA,
   cambio,
+  loadingVenta,
   onConfirm
 }) => {
   if (!cliente) return null;
@@ -134,13 +137,14 @@ const CheckoutResumenDialog = ({
       <DialogActions>
         <Button onClick={onClose} color="inherit">Cancelar</Button>
 
-        <Button
-          variant="contained"
-          color="success"
-          onClick={onConfirm}
-        >
-          Confirmar Venta
-        </Button>
+      <Button
+        variant="contained"
+        color="success"
+        onClick={onConfirm}
+        disabled={loadingVenta}
+      >
+        {loadingVenta ? <CircularProgress size={20} color="inherit" /> : "Confirmar Venta"}
+      </Button>
       </DialogActions>
 
     </Dialog>

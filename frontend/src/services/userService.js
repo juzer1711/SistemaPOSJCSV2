@@ -11,6 +11,11 @@ const getAuthHeaders = () => ({
 // GET Active Users
 export const getActiveUsers = async () => {
   return await axios.get(`${API_URL}`, {
+    params: {
+      page: page,
+      size: size,
+      sort: "primerApellido,asc"
+    },
     headers: getAuthHeaders()
   });
 };
@@ -18,20 +23,25 @@ export const getActiveUsers = async () => {
 // GET Inactive Users
 export const getInactiveUsers = async () => {
   return await axios.get(`${API_URL}/inactivos`, {
+    params: {
+      page: page,
+      size: size,
+      sort: "primerApellido,asc"
+    },
     headers: getAuthHeaders()
   });
 };
 
 // Desactivar usuario (borrado lógico)
 export const deactivateUser = async (id) => {
-  return await axios.delete(`${API_URL}/desactivar/${id}`, {
+  return await axios.patch(`${API_URL}/desactivar/${id}`, {
     headers: getAuthHeaders()
   });
 };
 
 // Activar usuario
 export const activateUser = async (id) => {
-  return await axios.put(`${API_URL}/activar/${id}`, {}, {
+  return await axios.patch(`${API_URL}/activar/${id}`, {}, {
     headers: getAuthHeaders()
   });
 };
@@ -68,6 +78,13 @@ export const updateUser = async (id, userData) => {
   } catch (error) {
     throw formatAxiosError(error);
   }
+};
+
+export const searchUsers = (params) => {
+  return axios.get(`${API_URL}/search`, {
+    params,
+    headers: getAuthHeaders()
+  });
 };
 
 // Manejo de errores

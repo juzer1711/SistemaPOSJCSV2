@@ -14,7 +14,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CajaDTO {
-
     private Long idCaja;
     private Long idUsuario;
     private String nombreCajero;
@@ -26,5 +25,4 @@ public class CajaDTO {
     private BigDecimal totalTransferencia;
     private BigDecimal montoFinal;
     private EstadoCaja estadoCaja;
-
 }

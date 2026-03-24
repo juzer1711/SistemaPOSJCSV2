@@ -20,4 +20,13 @@ public class UserDTO {
     private String email;
     private String telefono;
     private Boolean estado;
+
+    public String getNombreCompleto() {
+        return String.format("%s %s %s %s", 
+            primerNombre, 
+            segundoNombre != null ? segundoNombre : "", 
+            primerApellido, 
+            segundoApellido != null ? segundoApellido : ""
+        ).replaceAll("\\s+", " ").trim(); 
+    }
 }

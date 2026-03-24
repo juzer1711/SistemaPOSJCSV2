@@ -3,7 +3,6 @@ import { Box, Typography, Button, Card, CardContent, Grid, TextField, MenuItem, 
 
 import { getCajasAbiertas, abrirCaja, cerrarCaja } from "../services/cajaService";
 import { getActiveUsers } from "../services/userService";
-import Navbar from "../components/Navbar";
 
 export default function CajaManagement() {
 
@@ -35,7 +34,6 @@ export default function CajaManagement() {
     const loadUsuarios = async () => {
     try {
         const res = await getActiveUsers();
-        console.log(res.data[0]);
         setUsuarios(res.data || []);
     } catch (e) {
         console.log(e);
@@ -96,8 +94,6 @@ export default function CajaManagement() {
   return (
     <Box sx={{p:3}}>
 
-        <Navbar />
-
         <Typography variant="h6" fontWeight="bold" mb={4}>
             Gestión de Cajas
         </Typography>
@@ -111,7 +107,7 @@ export default function CajaManagement() {
 
           <Grid container spacing={2}>
 
-            <Grid item xs={4}>
+            <Grid size={{xs:4}}>
               <TextField
                 select
                 fullWidth
@@ -127,7 +123,7 @@ export default function CajaManagement() {
               </TextField>
             </Grid>
 
-            <Grid item xs={4}>
+            <Grid size={{xs:4}}>
               <TextField
                 label="Monto inicial"
                 type="number"
@@ -137,7 +133,7 @@ export default function CajaManagement() {
               />
             </Grid>
 
-            <Grid item xs={4}>
+            <Grid size={{xs:4}}>
               <Button
                 variant="contained"
                 fullWidth

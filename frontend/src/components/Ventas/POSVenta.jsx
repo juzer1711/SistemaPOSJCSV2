@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import ProductSidebar from "./POSVentaComponents/ProductSidebar";
 import CartPanel from "./POSVentaComponents/CartPanel";
 import CheckoutPanel from "./POSVentaComponents/CheckoutPanel";
 import { getActiveProducts } from "../../services/productService";
 import { getActiveClients } from "../../services/clientService";
 import {registrarVenta} from "../../services/ventaService";
-import { getCajasAbiertas } from "../../services/cajaService";
+import { getCajaActivaByUsuario } from "../../services/cajaService";
 
 export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
@@ -39,12 +39,33 @@ export default function VentaPOS () {
     cargarCaja();
   }, []);
 
+  const [cajaActiva, setCajaActiva] = useState(null);
+  const [loadingCaja, setLoadingCaja] = useState(true);
   // Estado del carrito vivo (idProducto, nombre, precio, cantidad)
-  const [items, setItems] = useState([]);
-  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-  const [metodoPago, setMetodoPago] = useState("");
-  const [montoRecibido, setMontoRecibido] = useState("");
-  const [observaciones, setObservaciones] = useState("");
+  const [items, setItems] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).items || [] : [];
+  });
+
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).clienteSeleccionado || null : null;
+  });
+
+  const [metodoPago, setMetodoPago] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).metodoPago || "" : "";
+  });
+
+  const [montoRecibido, setMontoRecibido] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).montoRecibido || "" : "";
+  });
+
+  const [observaciones, setObservaciones] = useState(() => {
+    const data = localStorage.getItem("pos_venta");
+    return data ? JSON.parse(data).observaciones || "" : "";
+  });
 
   useEffect(() => {
     (async () => {
@@ -58,6 +79,36 @@ export default function VentaPOS () {
       }
     })();
   }, []);
+
+  useEffect(() => {
+  const data = {
+    items,
+    clienteSeleccionado,
+    metodoPago,
+    montoRecibido,
+    observaciones
+  };
+
+  localStorage.setItem("pos_venta", JSON.stringify(data));
+
+}, [items, clienteSeleccionado, metodoPago, montoRecibido, observaciones]);
+
+useEffect(() => {
+  const fetchCaja = async () => {
+    const idUsuario = localStorage.getItem("id_usuario");
+    try {
+      const res = await getCajaActivaByUsuario(Number(idUsuario));
+      setCajaActiva(res.data);
+    } catch (error) {
+      setCajaActiva(null);
+    } finally {
+      setLoadingCaja(false);
+    }
+  };
+
+  fetchCaja();
+}, []);
+
 
   // Añadir producto al carrito (incrementa si ya existe)
   const addItem = (prod) => {
@@ -78,7 +129,25 @@ export default function VentaPOS () {
 
   const removeItem = (idProducto) => setItems(prev => prev.filter(i => i.idProducto !== idProducto));
 
-  const clearCart = () => { setItems([]); setClienteSeleccionado(null); setMetodoPago(""); setMontoRecibido(""); setObservaciones(""); };
+  const clearCart = () => { setItems([]); setClienteSeleccionado(null); setMetodoPago(""); setMontoRecibido(""); setObservaciones(""); localStorage.removeItem("pos_venta"); };
+
+  if (loadingCaja) {
+    return <div>Cargando caja...</div>;
+  }
+
+  if (!cajaActiva) {
+    return (
+      <Box sx={{ p: 5, textAlign: "center" }}>
+        <Typography variant="h5" color="error">
+          ⚠️ No tienes una caja abierta
+        </Typography>
+        <Typography>
+          Pide al administrador que te abra una caja
+        </Typography>
+      </Box>
+    );
+  }
+  
 
   return (
     <Box sx={{
@@ -106,6 +175,7 @@ export default function VentaPOS () {
         setObservaciones={setObservaciones}
         registrarVenta={registrarVenta}
         clearCart={clearCart}
+        cajaActiva={cajaActiva}  
       />
     </Box>
 

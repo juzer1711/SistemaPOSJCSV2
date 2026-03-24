@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
 import java.util.List;
 import jakarta.persistence.criteria.Predicate;
 
@@ -352,11 +354,36 @@ public Specification<Venta> buildSpec(
 
         // 🔍 búsqueda global
         if (search != null && !search.isEmpty()) {
+            String searchLower = "%" + search.toLowerCase() + "%";
+
+            // 1. Concatenación Nombre Cliente
+            Join<Venta, Cliente> cliente = root.join("cliente"); 
+            // NOTA: Aquí usa el nombre exacto de la variable en la clase Cliente
+            Expression<String> nombreCompletoCliente = cb.concat(cb.lower(cliente.get("primerNombre")), " ");
+            nombreCompletoCliente = cb.concat(nombreCompletoCliente, cb.lower(cb.coalesce(cliente.get("segundoNombre"), "")));
+            nombreCompletoCliente = cb.concat(nombreCompletoCliente, " ");
+            nombreCompletoCliente = cb.concat(nombreCompletoCliente, cb.lower(cliente.get("primerApellido")));
+            nombreCompletoCliente = cb.concat(nombreCompletoCliente, " ");
+            nombreCompletoCliente = cb.concat(nombreCompletoCliente, cb.lower(cb.coalesce(cliente.get("segundoApellido"), "")));
+
+            // 2. Concatenación Nombre Cajero
+            Join<Venta, Usuario> cajero = root.join("usuario"); 
+            Expression<String> nombreCompletoCajero = cb.concat(cb.lower(cajero.get("primerNombre")), " ");
+            nombreCompletoCajero = cb.concat(nombreCompletoCajero, cb.lower(cb.coalesce(cajero.get("segundoNombre"), "")));
+            nombreCompletoCajero = cb.concat(nombreCompletoCajero, " ");
+            nombreCompletoCajero = cb.concat(nombreCompletoCajero, cb.lower(cajero.get("primerApellido")));
+            nombreCompletoCajero = cb.concat(nombreCompletoCajero, " ");
+            nombreCompletoCajero = cb.concat(nombreCompletoCajero, cb.lower(cajero.get("segundoApellido")));
+
+            // 3. Predicados
             predicates.add(cb.or(
-                cb.like(cb.lower(root.get("nombreCliente")), "%" + search.toLowerCase() + "%"),
-                cb.like(root.get("documentoCliente"), "%" + search + "%")
+                cb.like(nombreCompletoCliente, searchLower),
+                cb.like(nombreCompletoCajero, searchLower),
+                cb.like(cliente.get("documento"), "%" + search + "%")
             ));
         }
+
+
 
         // 💳 método pago
         if (metodoPago != null && !metodoPago.isEmpty()) {

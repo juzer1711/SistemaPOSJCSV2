@@ -94,4 +94,11 @@ public class CajaController {
                 .toList();
     }
 
+    // ✅ 5. Obtener caja por IDUsuario
+    @GetMapping("/{idUsuario}/activa")
+    public ResponseEntity<CajaDTO> getCajaByIdUsuario(@PathVariable Long idUsuario) {
+        Caja caja = cajaService.obtenerCajaActivaPorUsuario(idUsuario);
+        return ResponseEntity.ok(convertirCaja(caja));
+    }
+
 }

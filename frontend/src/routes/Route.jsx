@@ -84,7 +84,15 @@ function AppRoutes() {
             </PrivateRoute>
           }
         /> 
-        <Route path="/cajas" element={<CajaManagement />} />         
+        {/* 🔹 Ruta gestion de cajas (solo para administradores)  */}
+        <Route
+          path="/gestion-cajas"
+          element={
+            <PrivateRoute roles={["ADMINISTRADOR"]}>
+              <CajaManagement/>
+            </PrivateRoute>
+          }
+        />  
       </Routes>
     </Router>
   );
