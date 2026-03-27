@@ -9,79 +9,48 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/clientes")
-@CrossOrigin(origins = "http://localhost:3000") // permitir conexión desde React
+@CrossOrigin(origins = "http://localhost:3000")
 
 public class ClienteController {
 
-private final ClienteService clienteService;
+    private final ClienteService clienteService;
 
     public ClienteController(ClienteService clienteService) {
         this.clienteService = clienteService;
     }
 
-    // ✅ 1. Listar solo usuarios ACTIVOS
-@GetMapping
-public List<ClienteDTO> getActiveClientes() {
-    return clienteService.getActiveClientes()
-        .stream()
-        .map(c -> new ClienteDTO(
-            c.getIdCliente(),
-            c.getTipoCliente(),
-            c.getPrimerNombre(),
-            c.getSegundoNombre(),
-            c.getPrimerApellido(),
-            c.getSegundoApellido(),
-            c.getRazonSocial(),
-            c.getIdentificadorNit(),
-            c.getTipoDocumento(),
-            c.getDocumento(),
-            c.getEmail(),
-            c.getTelefono(),
-            c.getDireccion(),
-            c.getEstado()))
-        .toList();
-}
+    // 1. ACTIVOS con paginación
+    @GetMapping
+    public Page<ClienteDTO> getActiveClientes(Pageable pageable) {
+        return clienteService.getActiveClientes(pageable)
+            .map(c -> mapToDTO(c));
+    }
 
+    // 2. INACTIVOS con paginación
     @GetMapping("/inactivos")
-public List<ClienteDTO> getInactiveClientes() {
-    return clienteService.getInactiveClientes()
-        .stream()
-        .filter(u -> u.getEstado() == false)
-        .map(c -> new ClienteDTO(
-            c.getIdCliente(),
-            c.getTipoCliente(),
-            c.getPrimerNombre(),
-            c.getSegundoNombre(),
-            c.getPrimerApellido(),
-            c.getSegundoApellido(),
-            c.getRazonSocial(),
-            c.getIdentificadorNit(),
-            c.getTipoDocumento(),
-            c.getDocumento(),
-            c.getEmail(),
-            c.getTelefono(),
-            c.getDireccion(),
-            c.getEstado()))
-        .toList();
-}
+    public Page<ClienteDTO> getInactiveClientes(Pageable pageable) {
+        return clienteService.getInactiveClientes(pageable)
+            .map(c -> mapToDTO(c));
+    }
 
-    //  Obtener cliente por ID
+    // 3. GET BY ID
     @GetMapping("/{id}")
     public ResponseEntity<Cliente> getClienteById(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.getClienteById(id));
     }
 
-        //  Crear cliente
+    // 4. CREATE
     @PostMapping
     public ResponseEntity<Cliente> createCliente(@Valid @RequestBody Cliente cliente) {
         return ResponseEntity.ok(clienteService.createCliente(cliente));
     }
 
-    //  Actualizar cliente
+    // 5. UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<Cliente> updateCliente(
             @PathVariable Long id,
@@ -90,17 +59,50 @@ public List<ClienteDTO> getInactiveClientes() {
         return ResponseEntity.ok(clienteService.updateCliente(id, cliente));
     }
 
-    // ✅ 5. Desactivar cliente
+    // 6. DESACTIVAR
     @DeleteMapping("/desactivar/{id}")
     public ResponseEntity<Void> desactivarCliente(@PathVariable Long id) {
         clienteService.desactivarCliente(id);
         return ResponseEntity.noContent().build();
     }
 
+    // 7. ACTIVAR
     @PutMapping("/activar/{id}")
     public ResponseEntity<Cliente> activarCliente(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.activarCliente(id));
     }
+
+    @GetMapping("/search")
+    public Page<ClienteDTO> searchClientes(
+        Pageable pageable,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String tipoCliente,
+        @RequestParam(required = false) String tipoDocumento,
+        @RequestParam(required = false) Boolean estado
+    ) {
+        return clienteService.searchClientes(
+            pageable, search, tipoCliente, tipoDocumento, estado
+        ).map(c -> mapToDTO(c));
+    }
+
+    // Mapper para no repetir código
+    private ClienteDTO mapToDTO(Cliente c) {
+        return new ClienteDTO(
+            c.getIdCliente(),
+            c.getTipoCliente(),
+            c.getPrimerNombre(),
+            c.getSegundoNombre(),
+            c.getPrimerApellido(),
+            c.getSegundoApellido(),
+            c.getRazonSocial(),
+            c.getIdentificadorNit(),
+            c.getTipoDocumento(),
+            c.getDocumento(),
+            c.getEmail(),
+            c.getTelefono(),
+            c.getDireccion(),
+            c.getEstado()
+        );
+    }
 }
     
-

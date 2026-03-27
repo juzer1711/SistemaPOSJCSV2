@@ -26,13 +26,13 @@ public class ProductoService {
         this.categoriaRepository = categoriaRepository;
     }
 
-    // ✔ Obtener un producto por ID
+    // Obtener un producto por ID
     public Producto getProductoById(Long id) {
         return productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
     }
 
-    // ✅ Listar todos los usuarios inactivos
+    // Listar todos los usuarios inactivos
     public Page<Producto> getActiveProductos(Pageable pageable) {
         return productoRepository.findByEstadoTrue(pageable);
     }
@@ -51,7 +51,7 @@ public class ProductoService {
         BigDecimal precioSinIva = producto.getPrecioventa().divide(divisor, 2, RoundingMode.HALF_UP);
 
         producto.setPrecioSinIva(precioSinIva);
-        // 🔥 Reemplazar categoria recibida con la REAL de la BD
+        // Reemplazar categoria recibida con la REAL de la BD
         if (producto.getCategoria() != null && producto.getCategoria().getId() != null) {
             Categoria categoriaReal = categoriaRepository.findById(producto.getCategoria().getId())
                     .orElseThrow(() -> new RuntimeException("Categoria no encontrado"));
@@ -61,7 +61,7 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
-    // ✔ Actualizar producto
+    // Actualizar producto
     public Producto updateProducto(Long id, Producto productoDetails) {
         Producto producto = getProductoById(id);
 
@@ -79,7 +79,7 @@ public class ProductoService {
 
         producto.setPrecioSinIva(precioSinIva);
 
-        // 🔥 Si viene una categoria en el JSON, la asignamos correctamente
+        // Si viene una categoria en el JSON, la asignamos correctamente
         if (productoDetails.getCategoria() != null && productoDetails.getCategoria().getId() != null) {
             Categoria nuevaCategoria = categoriaRepository.findById(productoDetails.getCategoria().getId())
                     .orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
@@ -123,7 +123,7 @@ public class ProductoService {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 🔍 búsqueda global
+            // búsqueda global
             if (search != null && !search.isEmpty()) {
                 String searchLower = "%" + search.toLowerCase() + "%";
 
@@ -134,13 +134,13 @@ public class ProductoService {
                 ));
             }
 
-            // 📂 categoría
+            // categoría
             if (categoria != null) {
                 Join<Object, Object> categoriaJoin = root.join("categoria");
                 predicates.add(cb.equal(categoriaJoin.get("id"), categoria));
             }
 
-            // 🟢 estado
+            // estado
             if (estado != null) {
                 predicates.add(cb.equal(root.get("estado"), estado));
             }
