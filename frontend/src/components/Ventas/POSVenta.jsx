@@ -11,6 +11,33 @@ import { getCajaActivaByUsuario } from "../../services/cajaService";
 export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [cajaActual, setCajaActual] = useState(null);
+
+  useEffect(() => {
+    const cargarCaja = async () => {
+      try {
+        const response = await getCajasAbiertas();
+        const cajas = response.data;
+
+        const idUsuario = localStorage.getItem("id_usuario");
+
+        console.log("CAJAS COMPLETAS:", cajas);
+
+        const caja = cajas.find(
+          (c) => String(c.idUsuario) === String(idUsuario)
+        );
+
+        console.log("CAJA DETECTADA:", caja);
+
+        setCajaActual(caja);
+
+      } catch (error) {
+        console.error("Error cargando caja:", error);
+      }
+    };
+
+    cargarCaja();
+  }, []);
 
   const [cajaActiva, setCajaActiva] = useState(null);
   const [loadingCaja, setLoadingCaja] = useState(true);

@@ -4,9 +4,52 @@ import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import HistoryIcon from "@mui/icons-material/History";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getCajasAbiertas } from "../services/cajaService";
+
+
 
 const CajeroDashboard = () => {
   const navigate = useNavigate();
+  const [cajaActual, setCajaActual] = useState(null);
+
+  useEffect(() => {
+    const cargarCaja = async () => {
+      try {
+        const res = await getCajasAbiertas();
+
+        console.log("PRIMERA CAJA:", res.data[0]);
+
+        // 🔥 sacar id del usuario desde localStorage
+        const idUsuario = localStorage.getItem("id_usuario");
+        console.log("ID USUARIO:", idUsuario);
+
+        // 🔥 buscar caja del cajero
+        const cajaDelCajero = res.data.find(
+          (caja) =>
+            Number(
+              caja.idUsuario ||
+              caja.id_cajero ||
+              caja.usuario?.idUsuario
+            ) === Number(idUsuario)
+        );
+
+        console.log("CAJA ENCONTRADA:", cajaDelCajero);
+
+        if (cajaDelCajero) {
+          setCajaActual(cajaDelCajero);
+        } else {
+          setCajaActual(null);
+        }
+
+      } catch (error) {
+        console.error("Error cargando caja:", error);
+        setCajaActual(null);
+      }
+    };
+
+    cargarCaja();
+  }, []);
 
   const cards = [
     {
@@ -29,45 +72,71 @@ const CajeroDashboard = () => {
     },
   ];
 
-  return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: "bold" }}>
-        Panel del Cajero
-      </Typography>
+return (
+  <Box sx={{ p: 4 }}>
+    
+    <Typography variant="h4" sx={{ mb: 3, fontWeight: "bold" }}>
+      Panel del Cajero
+    </Typography>
 
-      <Grid container spacing={3}>
-        {cards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                boxShadow: 3,
-                transition: "0.3s",
-                "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-                  {card.icon}
-                </Box>
-                <Typography variant="h6" align="center" sx={{ mb: 1 }}>
-                  {card.title}
-                </Typography>
-                <Typography variant="body2" align="center" sx={{ mb: 2 }}>
-                  {card.description}
-                </Typography>
-                <Box sx={{ textAlign: "center" }}>
-                  <Button variant="contained" onClick={card.action}>
-                    Ir
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
-  );
+    {/* 🔥 AQUÍ VA LA CAJA */}
+    {cajaActual ? (
+      <Box sx={{ mb: 3, p: 2, border: "1px solid #ddd", borderRadius: 2 }}>
+        <Typography fontWeight="bold">
+          Caja actual: #{cajaActual.idCaja}
+        </Typography>
+
+        <Typography variant="body2">
+          Cajero: {cajaActual.nombreCajero}
+        </Typography>
+
+        <Typography variant="body2">
+          Estado: {cajaActual.estadoCaja}
+        </Typography>
+      </Box>
+    ) : (
+      <Box sx={{ mb: 3, p: 2, border: "1px solid red", borderRadius: 2 }}>
+        <Typography color="error" fontWeight="bold">
+          ⚠ No tienes una caja abierta
+        </Typography>
+      </Box>
+    )}
+
+    {/* 🔥 TUS CARDS */}
+    <Grid container spacing={3}>
+      {cards.map((card, index) => (
+        <Grid item xs={12} sm={6} md={4} key={index}>
+          <Card
+            sx={{
+              borderRadius: 3,
+              boxShadow: 3,
+              transition: "0.3s",
+              "&:hover": { boxShadow: 6, transform: "scale(1.03)" },
+            }}
+          >
+            <CardContent>
+              <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                {card.icon}
+              </Box>
+              <Typography variant="h6" align="center" sx={{ mb: 1 }}>
+                {card.title}
+              </Typography>
+              <Typography variant="body2" align="center" sx={{ mb: 2 }}>
+                {card.description}
+              </Typography>
+              <Box sx={{ textAlign: "center" }}>
+                <Button variant="contained" onClick={card.action}>
+                  Ir
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+
+  </Box>
+);
 };
 
 export default CajeroDashboard;

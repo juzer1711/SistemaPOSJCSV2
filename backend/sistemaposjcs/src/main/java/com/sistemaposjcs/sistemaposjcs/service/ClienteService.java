@@ -9,12 +9,19 @@ import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
+import jakarta.persistence.criteria.Predicate;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
 
 @Service
 public class ClienteService {
+
     private final ClienteRepository clienteRepository;
 
     @Autowired
@@ -23,61 +30,47 @@ public class ClienteService {
     public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
     }
-    
-    // ✅ Obtener usuario por ID
+
+    // Obtener cliente por ID
     public Cliente getClienteById(Long id) {
         return clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
     }
 
-    // ✅ Listar todos los usuarios
-    public List<Cliente> getInactiveClientes() {
-        return clienteRepository.findByEstadoFalse();
+    // Paginación activos
+    public Page<Cliente> getActiveClientes(Pageable pageable) {
+        return clienteRepository.findByEstadoTrue(pageable);
     }
 
-    
-    public List<Cliente> getActiveClientes() {
-    return clienteRepository.findByEstadoTrue();
+    public Page<Cliente> getInactiveClientes(Pageable pageable) {
+        return clienteRepository.findByEstadoFalse(pageable);
     }
 
-
-    // ✅ Crear cliente
+    // Crear cliente
     public Cliente createCliente(Cliente cliente) {
         return clienteRepository.save(cliente);
     }
 
-
-    // ✅ Actualizar cliente
+    // Actualizar cliente
     public Cliente updateCliente(Long id, Cliente data) {
-                Cliente c = getClienteById(id);
+        Cliente c = getClienteById(id);
 
-        // Tipo Cliente
         c.setTipoCliente(data.getTipoCliente());
 
-        // ====================
-        // PERSONA NATURAL
-        // ====================
         c.setPrimerNombre(data.getPrimerNombre());
         c.setSegundoNombre(data.getSegundoNombre());
         c.setPrimerApellido(data.getPrimerApellido());
         c.setSegundoApellido(data.getSegundoApellido());
 
-        // ====================
-        // EMPRESA
-        // ====================
         c.setRazonSocial(data.getRazonSocial());
         c.setIdentificadorNit(data.getIdentificadorNit());
 
-        // ====================
-        // COMUNES
-        // ====================
         c.setTipoDocumento(data.getTipoDocumento());
         c.setDocumento(data.getDocumento());
         c.setEmail(data.getEmail());
         c.setTelefono(data.getTelefono());
         c.setDireccion(data.getDireccion());
 
-        // 🔥 Validar nuevamente entidad completa
         Set<ConstraintViolation<Cliente>> violations = validator.validate(c);
         if (!violations.isEmpty()) {
             throw new ConstraintViolationException(violations);
@@ -86,21 +79,72 @@ public class ClienteService {
         return clienteRepository.save(c);
     }
 
-
     public void desactivarCliente(Long id) {
         Cliente c = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-        c.setEstado(false);    // 🔥 Inactiva
+        c.setEstado(false);
         clienteRepository.save(c);
     }
 
     public Cliente activarCliente(Long id) {
-    Cliente c = clienteRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+        Cliente c = clienteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-    c.setEstado(true);     // 🔥 Activa
-    return clienteRepository.save(c);
-}
- 
+        c.setEstado(true);
+        return clienteRepository.save(c);
+    }
+
+    public Page<Cliente> searchClientes(
+        Pageable pageable,
+        String search,
+        String tipoCliente,
+        String tipoDocumento,
+        Boolean estado
+    ) {
+        Specification<Cliente> spec = buildSpec(search, tipoCliente, tipoDocumento, estado);
+        return clienteRepository.findAll(spec, pageable);
+    }
+
+    public Specification<Cliente> buildSpec(
+        String search,
+        String tipoCliente,
+        String tipoDocumento,
+        Boolean estado
+    ) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // búsqueda global
+            if (search != null && !search.isEmpty()) {
+                String like = "%" + search.toLowerCase() + "%";
+
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("primerNombre")), like),
+                    cb.like(cb.lower(root.get("segundoNombre")), like),
+                    cb.like(cb.lower(root.get("primerApellido")), like),
+                    cb.like(cb.lower(root.get("segundoApellido")), like),
+                    cb.like(cb.lower(root.get("razonSocial")), like),
+                    cb.like(cb.lower(root.get("documento")), like)
+                ));
+            }
+
+            // tipo cliente
+            if (tipoCliente != null && !tipoCliente.isEmpty()) {
+                predicates.add(cb.equal(root.get("tipoCliente"), tipoCliente));
+            }
+
+            // tipo documento
+            if (tipoDocumento != null && !tipoDocumento.isEmpty()) {
+                predicates.add(cb.equal(root.get("tipoDocumento"), tipoDocumento));
+            }
+
+            // estado
+            if (estado != null) {
+                predicates.add(cb.equal(root.get("estado"), estado));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 }

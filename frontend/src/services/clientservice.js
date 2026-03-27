@@ -8,28 +8,38 @@ const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
 
-// Obtener todos los clientes activos
-export const getActiveClients = async () => {
+// SEARCH 
+export const searchClients = (params) => {
+  return axios.get(`${API_URL}/search`, {
+    params,
+    headers: getAuthHeaders(),
+  });
+};
+
+// GET Active Clients (paginado)
+export const getActiveClients = async (params) => {
   return await axios.get(`${API_URL}`, {
+    params,
     headers: getAuthHeaders(),
   });
 };
 
-// Obtener todos los clientes inactivos
-export const getInactiveClients = async () => {
+// GET Inactive Clients (paginado)
+export const getInactiveClients = async (params) => {
   return await axios.get(`${API_URL}/inactivos`, {
+    params,
     headers: getAuthHeaders(),
   });
 };
 
-// Obtener cliente por ID
+// GET BY ID
 export const getClientById = async (id) => {
   return await axios.get(`${API_URL}/${id}`, {
     headers: getAuthHeaders(),
   });
 };
 
-// Desactivar cliente (borrado lógico)
+// Desactivar cliente
 export const deactivateClient = async (id) => {
   return await axios.delete(`${API_URL}/desactivar/${id}`, {
     headers: getAuthHeaders(),
@@ -43,9 +53,7 @@ export const activateClient = async (id) => {
   });
 };
 
-
-
-// Crear cliente
+// CREATE
 export const createClient = async (clientData) => {
   try {
     const res = await axios.post(API_URL, clientData, {
@@ -57,7 +65,7 @@ export const createClient = async (clientData) => {
   }
 };
 
-// Actualizar cliente
+// UPDATE
 export const updateClient = async (id, clientData) => {
   try {
     const res = await axios.put(`${API_URL}/${id}`, clientData, {
@@ -74,10 +82,9 @@ function formatAxiosError(error) {
   if (error.response) {
     const data = error.response.data;
 
-    // Detecta el mensaje del backend
     const backendMessage =
       data?.message ||
-      Object.values(data)?.[0] ||   // si viene { campo: "error" }
+      Object.values(data)?.[0] ||
       JSON.stringify(data) ||
       "Error desconocido";
 

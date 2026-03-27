@@ -1,115 +1,147 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { 
-  getActiveClients, 
-  getInactiveClients, 
+  searchClients, 
   deactivateClient, 
   activateClient 
 } from "../services/clientService";
+
 import ClientTable from "../components/CrudClientes/ClientTable";
 import ClientFormDialog from "../components/CrudClientes/ClientFormDialog";
 import ClientSearchBar from "../components/CrudClientes/ClientSearchBar";
-import { Box, Toolbar, Typography } from "@mui/material";
-import ConfirmDialog from "../components/ConfirmDialog"; 
-import { Snackbar, Alert } from "@mui/material";
 
+import { Box, Toolbar, Typography, Snackbar, Alert } from "@mui/material";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const ClientManagement = () => {
+
   const [clients, setClients] = useState([]);
+
+  // PAGINACIÓN
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalRows, setTotalRows] = useState(0);
+
+  // filtros
   const [filter, setFilter] = useState("");
+  const [showInactive, setShowInactive] = useState(false);
+
+  const [sortBy, setSortBy] = useState({ key: "primerApellido", direction: "asc" });
+
+  const [advancedFilters, setAdvancedFilters] = useState({
+    tipoCliente: "",
+    tipoDocumento: "",
+    estado: ""
+  });
+
+  // UI
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [showInactive, setShowInactive] = useState(false);
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogInfo, setDialogInfo] = useState({});
   const [selectedId, setSelectedId] = useState(null);
-  const [snackbar, setSnackbar] = useState({open: false,message: "",severity: "success",});
-  const [tiposDocumento, setTiposDocumento] = useState([]);
-  const [selectedTipoDocumento, setselectedTipoDocumento] = useState('');
 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-const ALL_COLUMNS = {
-  idCliente: "ID",
-  tipoCliente: "Tipo Cliente",
-  primerNombre: "Primer Nombre",
-  segundoNombre: "Segundo Nombre",
-  primerApellido: "Primer Apellido",
-  segundoApellido: "Segundo Apellido",
-  razonSocial: "Razón Social",
-  tipoDocumento: "Tipo Documento",
-  documento: "Documento",
-  identificadorNit: "DV",
-  direccion: "Dirección",
-  email: "Email",
-  telefono: "Teléfono",
-  estado: "Estado",
-  acciones: "Acciones",
-};
+  // columnas
+  const ALL_COLUMNS = {
+    idCliente: "ID",
+    tipoCliente: "Tipo Cliente",
+    primerNombre: "Primer Nombre",
+    segundoNombre: "Segundo Nombre",
+    primerApellido: "Primer Apellido",
+    segundoApellido: "Segundo Apellido",
+    razonSocial: "Razón Social",
+    tipoDocumento: "Tipo Documento",
+    documento: "Documento",
+    identificadorNit: "DV",
+    direccion: "Dirección",
+    email: "Email",
+    telefono: "Teléfono",
+    estado: "Estado",
+    acciones: "Acciones",
+  };
 
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    const defaults = {};
+    Object.keys(ALL_COLUMNS).forEach((k) => (defaults[k] = true));
+    return defaults;
+  });
 
-const [visibleColumns, setVisibleColumns] = useState(() => {
-  const defaults = {};
-  Object.keys(ALL_COLUMNS).forEach((k) => (defaults[k] = true));
-  return defaults;
-});
+  const handleShowAll = () => {
+    const all = {};
+    Object.keys(visibleColumns).forEach(k => all[k] = true);
+    setVisibleColumns(all);
+  };
 
-const [sortBy, setSortBy] = useState({ key: "primerApellido", direction: "asc" }); // default
-const [advancedFilters, setAdvancedFilters] = useState({
-  tipoCliente: "", // e.g. "Persona Natural" | "Empresa"
-  tipoDocumento: "",
-  estado: "", // "activo" | "inactivo" | ""
-  // otros filtros que quieras
-});
-
-const handleShowAll = () => {
-  const all = {};
-  Object.keys(visibleColumns).forEach(k => all[k] = true);
-  setVisibleColumns(all);
-};
-
-    useEffect(() => {
-    loadClients();
-  }, [showInactive]);
-
-  // Función que recarga los clientes
+  // CARGAR CLIENTES DESDE BACKEND
   const loadClients = async () => {
-  const res = showInactive
-    ? await getInactiveClients()
-    : await getActiveClients();
-  setClients(res.data);
-};
+    try {
+      const params = {
+        page,
+        size: pageSize,
+        sort: `${sortBy.key},${sortBy.direction}`,
 
-  // Abre el formulario en modo "Agregar nuevo cliente"
+        search: filter || undefined,
+
+        tipoCliente: advancedFilters.tipoCliente || undefined,
+        tipoDocumento: advancedFilters.tipoDocumento || undefined,
+
+        estado: showInactive ? false : true
+      };
+
+      const res = await searchClients(params);
+
+      setClients(res.data.content || []);
+      setTotalRows(res.data.totalElements || 0);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // AUTO RECARGA
+  useEffect(() => {
+    loadClients();
+  }, [page, pageSize, sortBy, filter, advancedFilters, showInactive]);
+
+  // AGREGAR
   const handleAdd = () => {
     setEditing(false);
     setSelectedClient(null);
     setOpen(true);
   };
 
+  // EDITAR
   const handleEdit = (client) => {
-    setEditing(true); // Esto indica que estamos editando, no creando un nuevo cliente
-    setSelectedClient(client); // Guardamos los datos del cliente que se está editando
-    setOpen(true); // Abrimos el formulario de edición
-    };
+    setEditing(true);
+    setSelectedClient(client);
+    setOpen(true);
+  };
 
-
-    const openDeactivateDialog = (id) => {
+  // DESACTIVAR
+  const openDeactivateDialog = (id) => {
     setSelectedId(id);
     setDialogInfo({
       title: "¿Desactivar cliente?",
-      message: "El cliente no podrá acceder a sus datos una vez desactivado.",
+      message: "El cliente no podrá acceder a sus datos.",
       confirmText: "Desactivar",
       confirmColor: "error",
     });
     setDialogOpen(true);
   };
 
-  
+  // ACTIVAR
   const openActivateDialog = (id) => {
     setSelectedId(id);
     setDialogInfo({
       title: "¿Activar cliente?",
-      message: "El cliente podrá acceder a sus datos nuevamente.",
+      message: "El cliente podrá acceder nuevamente.",
       confirmText: "Activar",
       confirmColor: "primary",
     });
@@ -126,155 +158,87 @@ const handleShowAll = () => {
       await activateClient(selectedId);
       showMessage("Cliente activado correctamente");
     }
-    loadClients();  
+
+    loadClients();
   };
 
-  const handleInactive = (id) => {
-    openDeactivateDialog(id);
-  };
-
-  const handleActivate = (id) => {
-    openActivateDialog(id);
-  };
-
-    // Función que muestra los mensajes de éxito 
   const showMessage = (msg, type = "success") => {
     setSnackbar({ open: true, message: msg, severity: type });
   };
 
-
-  const filteredSortedClients = useMemo(() => {
-  const q = filter?.trim().toLowerCase();
-
-  // 1) Aplicar showInactive toggle (ya lo cargas por efecto, así que aquí solo filtramos por estado si advancedFilters lo solicita)
-  let result = [...clients];
-
-  // 2) Aplicar filtros avanzados
-  if (advancedFilters.tipoCliente) {
-    result = result.filter(c => (c.tipoCliente || "").toLowerCase() === advancedFilters.tipoCliente.toLowerCase());
-  }
-  if (advancedFilters.tipoDocumento) {
-    result = result.filter(c => (c.tipoDocumento || "").toLowerCase() === advancedFilters.tipoDocumento.toLowerCase());
-  }
-  if (advancedFilters.estado) {
-    const wantActive = advancedFilters.estado === "activo";
-    result = result.filter(c => !!c.estado === wantActive);
-  }
-
-  // 3) Búsqueda en campos específicos (si q está)
-  if (q) {
-    result = result.filter((c) => {
-      const fields = [
-        c.primerNombre,
-        c.segundoNombre,
-        c.primerApellido,
-        c.segundoApellido,
-        c.razonSocial,
-        c.idCliente?.toString(),
-        c.documento,
-        c.tipoCliente,
-        c.email,
-        c.telefono,
-      ];
-      return fields.some(f => (f || "").toString().toLowerCase().includes(q));
-    });
-  }
-
-  // 4) Ordenar
-  const { key, direction } = sortBy || {};
-  if (key) {
-    result.sort((a, b) => {
-      const A = (a[key] || "").toString().toLowerCase();
-      const B = (b[key] || "").toString().toLowerCase();
-      if (A < B) return direction === "asc" ? -1 : 1;
-      if (A > B) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  }
-
-  return result;
-}, [clients, filter, advancedFilters, sortBy]);
-
-
   return (
-  <Box sx={{ p: 3 }}>
-    {/* === ENCABEZADO === */}
-    <Toolbar sx={{ justifyContent: "space-between" }}>
-      <Typography variant="h6">Gestión de Clientes</Typography>
-    </Toolbar>
+    <Box sx={{ p: 3 }}>
+      <Toolbar sx={{ justifyContent: "space-between" }}>
+        <Typography variant="h6">Gestión de Clientes</Typography>
+      </Toolbar>
 
-    {/* === BARRA DE BUSQUEDA + ACCIONES === */}
-    <ClientSearchBar
-      filter={filter}
-      onFilterChange={setFilter}
-      onAdd={handleAdd}
-      showInactive={showInactive}
-      onToggleInactive={() => setShowInactive(prev => !prev)}
-      visibleColumns={visibleColumns}
-      setVisibleColumns={setVisibleColumns}
-      sortBy={sortBy}
-      setSortBy={setSortBy}
-      advancedFilters={advancedFilters}
-      setAdvancedFilters={setAdvancedFilters}
-      handleShowAll={handleShowAll}
-      ALL_COLUMNS={ALL_COLUMNS}
-    />
+      <ClientSearchBar
+        filter={filter}
+        onFilterChange={setFilter}
+        onAdd={handleAdd}
+        showInactive={showInactive}
+        onToggleInactive={() => setShowInactive(prev => !prev)}
+        visibleColumns={visibleColumns}
+        setVisibleColumns={setVisibleColumns}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        advancedFilters={advancedFilters}
+        setAdvancedFilters={setAdvancedFilters}
+        handleShowAll={handleShowAll}
+        ALL_COLUMNS={ALL_COLUMNS}
+      />
 
-    {/* === TABLA DE CLIENTES === */}
+      <ClientTable
+        clients={clients}
+        page={page}
+        setPage={setPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        totalRows={totalRows}
+        loading={false}
+        onEdit={handleEdit}
+        onDelete={openDeactivateDialog}
+        onActivate={openActivateDialog}
+        visibleColumns={visibleColumns}
+      />
 
-    <ClientTable
-      clients={filteredSortedClients}
-      onEdit={handleEdit}
-      onDelete={handleInactive}
-      onActivate={handleActivate}
-      visibleColumns={visibleColumns}
-      loading={false}
-    />
+      <ClientFormDialog
+        open={open}
+        editing={editing}
+        selectedId={selectedClient?.idCliente}
+        defaultValues={selectedClient}
+        onClose={() => {
+          setOpen(false);
+          setEditing(false);
+          setSelectedClient(null);
+        }}
+        loadClients={loadClients}
+        showMessage={showMessage}
+      />
 
+      <ConfirmDialog
+        open={dialogOpen}
+        title={dialogInfo.title}
+        message={dialogInfo.message}
+        confirmText={dialogInfo.confirmText}
+        confirmColor={dialogInfo.confirmColor}
+        onClose={() => setDialogOpen(false)}
+        onConfirm={handleConfirm}
+      />
 
-    {/* === FORMULARIO AL CREAR/EDITAR === */}
-    <ClientFormDialog
-      open={open}
-      editing={editing}
-      selectedId={selectedClient?.idCliente}
-      defaultValues={selectedClient}
-      onClose={() => {
-        setOpen(false);
-        setEditing(false);
-        setSelectedClient(null);
-      }}
-      loadClients={loadClients}
-      showMessage={showMessage}
-    />
-
-    {/* === CONFIRMACIONES === */}
-    <ConfirmDialog
-      open={dialogOpen}
-      title={dialogInfo.title}
-      message={dialogInfo.message}
-      confirmText={dialogInfo.confirmText}
-      confirmColor={dialogInfo.confirmColor}
-      onClose={() => setDialogOpen(false)}
-      onConfirm={handleConfirm}
-    />
-
-    {/* === MENSAJE DE ÉXITO === */}
-    <Snackbar
-      open={snackbar.open}
-      autoHideDuration={2500}
-      onClose={() => setSnackbar({ ...snackbar, open: false })}
-    >
-      <Alert
-        severity={snackbar.severity}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2500}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        variant="filled"
       >
-        {snackbar.message}
-      </Alert>
-    </Snackbar>
-
-  </Box>
-
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

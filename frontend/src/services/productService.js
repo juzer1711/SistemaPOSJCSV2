@@ -8,6 +8,14 @@ const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
 
+// SEARCH 
+export const searchProducts = (params) => {
+  return axios.get(`${API_URL}/search`, {
+    params,
+    headers: getAuthHeaders()
+  });
+};
+
 // GET Active Products
 export const getActiveProducts = async () => {
   return await axios.get(`${API_URL}`, {
