@@ -11,7 +11,7 @@ import { Box, Toolbar, Typography } from "@mui/material";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { Snackbar, Alert } from "@mui/material";
 
-
+//a
 export default function UserManagement() {
   const [users, setUsers] = useState([]);// Estado principal donde se guardan los usuarios cargados desde el backend
 
@@ -217,7 +217,6 @@ const showMessage = (msg, type = "success") => {
       visibleColumns={visibleColumns}
       loading={loading}
       />
-
 
       <UserFormDialog
         open={open}

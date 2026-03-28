@@ -5,6 +5,7 @@ import com.sistemaposjcs.sistemaposjcs.model.Enum.MetodoPago;
 import com.sistemaposjcs.sistemaposjcs.model.Cliente;
 import com.sistemaposjcs.sistemaposjcs.model.ItemFactura;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
+import com.sistemaposjcs.sistemaposjcs.dto.VentaCajaDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Caja;
 import com.sistemaposjcs.sistemaposjcs.model.Usuario;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.EstadoCaja;
@@ -403,9 +404,31 @@ public Specification<Venta> buildSpec(
                 fechaFin.atTime(23, 59)
             ));
         }
+        // Si solo viene la de apertura, buscamos de ahí en adelante
+        else if (fechaInicio != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("fechaInicio"), fechaInicio.atStartOfDay()));
+        }
+        // Si solo viene la de cierre, buscamos hasta ese día
+        else if (fechaFin != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("fechaFin"), fechaFin.atTime(23, 59, 59)));
+        }
 
         return cb.and(predicates.toArray(new Predicate[0]));
     };
+}
+
+public List<VentaCajaDTO> obtenerVentasPorCaja(Long idCaja) {
+
+    List<Venta> ventas = ventaRepository.findByCajaIdCaja(idCaja);
+
+    return ventas.stream()
+            .map(v -> new VentaCajaDTO(
+                    v.getIdVenta(),
+                    v.getFecha(),
+                    v.getMetodoPago().name(),
+                    v.getTotal()
+            ))
+            .toList();
 }
  
 }

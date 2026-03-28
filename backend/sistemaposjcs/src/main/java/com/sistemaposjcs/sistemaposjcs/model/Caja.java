@@ -44,6 +44,18 @@ public class Caja {
     @Column(nullable = false)
     private BigDecimal montoFinal = BigDecimal.ZERO;
 
+    @Column(nullable = true)
+    private BigDecimal efectivoReal = BigDecimal.ZERO;
+
+    @Column(nullable = true)
+    private BigDecimal transferenciaReal = BigDecimal.ZERO;
+
+    @Column(nullable = true)
+    private BigDecimal diferenciaEfectivo = BigDecimal.ZERO;
+
+    @Column(nullable = true)
+    private BigDecimal diferenciaTransferencia = BigDecimal.ZERO;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoCaja estadoCaja;

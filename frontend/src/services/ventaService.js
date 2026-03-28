@@ -64,6 +64,18 @@ export const searchVentas = (params) => {
   });
 };
 
+// 📌 Ventas que pertenecen a una caja (auditoría)
+export const getVentasPorCaja = async (idCaja) => {
+  try {
+    const res = await axios.get(`${API_URL}/por-caja/${idCaja}`, {
+      headers: getAuthHeaders(),
+    });
+    return res.data;
+  } catch (error) {
+    throw formatAxiosError(error);
+  }
+};
+
 // 📌 Error handler 
 function formatAxiosError(error) {
   if (error.response) {
@@ -81,4 +93,5 @@ function formatAxiosError(error) {
     return err;
   }
   return new Error("No se pudo conectar al servidor");
+
 }

@@ -9,7 +9,7 @@ const getAuthHeaders = () => ({
 });
 
 // GET Active Users
-export const getActiveUsers = async () => {
+export const getActiveUsers = async (page, size) => {
   return await axios.get(`${API_URL}`, {
     params: {
       page: page,
@@ -21,7 +21,7 @@ export const getActiveUsers = async () => {
 };
 
 // GET Inactive Users
-export const getInactiveUsers = async () => {
+export const getInactiveUsers = async (page, size) => {
   return await axios.get(`${API_URL}/inactivos`, {
     params: {
       page: page,

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.sistemaposjcs.sistemaposjcs.model.Enum.EstadoCaja;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,5 +25,9 @@ public class CajaDTO {
     private BigDecimal totalEfectivo;
     private BigDecimal totalTransferencia;
     private BigDecimal montoFinal;
+    private BigDecimal efectivoReal;
+    private BigDecimal transferenciaReal;
+    private BigDecimal diferenciaEfectivo;
+    private BigDecimal diferenciaTransferencia;
     private EstadoCaja estadoCaja;
 }

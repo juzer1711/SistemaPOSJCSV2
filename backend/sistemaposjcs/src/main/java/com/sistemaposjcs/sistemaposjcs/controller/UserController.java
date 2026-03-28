@@ -1,7 +1,6 @@
 package com.sistemaposjcs.sistemaposjcs.controller;
 
 import com.sistemaposjcs.sistemaposjcs.dto.UserDTO;
-import com.sistemaposjcs.sistemaposjcs.model.Rol;
 import com.sistemaposjcs.sistemaposjcs.model.Usuario;
 import com.sistemaposjcs.sistemaposjcs.service.UserService;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
@@ -102,7 +101,7 @@ public class UserController {
     public Page<UserDTO> searchUsuarios(
         Pageable pageable,
         @RequestParam(required = false) String search,
-        @RequestParam(required = false) Rol rol,
+        @RequestParam(required = false) String rol,
         @RequestParam(required = false) Boolean estado,
         @RequestParam(required = false) TipoDocumento tipoDocumento,
         @RequestParam(required = false) String documento

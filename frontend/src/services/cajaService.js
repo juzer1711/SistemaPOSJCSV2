@@ -9,15 +9,25 @@ const getAuthHeaders = () => ({
 });
 
 // GET Cajas abiertas
-export const getCajasAbiertas = async () => {
+export const getCajasAbiertas = async (page, size) => {
   return await axios.get(`${API_URL}/abiertas`, {
+    params: {
+      page: page,
+      size: size,
+      sort: "fechaApertura,desc"
+    },
     headers: getAuthHeaders()
   });
 };
 
 // GET Cajas cerradas
-export const getCajasCerradas = async () => {
+export const getCajasCerradas = async (page, size) => {
   return await axios.get(`${API_URL}/cerradas`, {
+    params: {
+      page: page,
+      size: size,
+      sort: "fechaApertura,desc"
+    },
     headers: getAuthHeaders()
   });
 };
@@ -53,11 +63,32 @@ export const abrirCaja = async (cajaData) => {
 // Cerrar Caja
 export const cerrarCaja = async (id, cajaData) => {
   try {
-    const res = await axios.put(`${API_URL}/cerrar/${id}`, cajaData, {
+    const res = await axios.post(`${API_URL}/cerrar`, cajaData, {
       headers: getAuthHeaders()
     });
     return res.data;
 
+  } catch (error) {
+    throw formatAxiosError(error);
+  }
+};
+
+export const searchCajas = (params) => {
+  return axios.get(`${API_URL}/search`, {
+    params,
+    headers: getAuthHeaders()
+  });
+};
+
+// 🔥 Forzar cierre de caja (solo admin)
+export const forzarCierreCaja = async (idCaja) => {
+  try {
+    const res = await axios.post(
+      `${API_URL}/forzar-cierre/${idCaja}`,
+      {},
+      { headers: getAuthHeaders() }
+    );
+    return res.data;
   } catch (error) {
     throw formatAxiosError(error);
   }

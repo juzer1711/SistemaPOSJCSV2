@@ -1,13 +1,20 @@
 package com.sistemaposjcs.sistemaposjcs.controller;
 
 import com.sistemaposjcs.sistemaposjcs.dto.CajaDTO;
+import com.sistemaposjcs.sistemaposjcs.dto.CerrarCajaDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Caja;
 import com.sistemaposjcs.sistemaposjcs.service.CajaService;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.EstadoCaja;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.time.LocalDate;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+
 
 @RestController
 @RequestMapping("/api/cajas")
@@ -33,36 +40,29 @@ public class CajaController {
                 c.getTotalEfectivo(),
                 c.getTotalTransferencia(),
                 c.getMontoFinal(),
+                c.getEfectivoReal(),
+                c.getTransferenciaReal(),
+                c.getDiferenciaEfectivo(),
+                c.getDiferenciaTransferencia(),
                 c.getEstadoCaja()
         );
     }
 
-    // ✅ 1. Listar todas las cajas
-    @GetMapping
-    public List<CajaDTO> getAllCajas() {
-        return cajaService.getAllCajas()
-                .stream()
-                .map(this::convertirCaja)
-                .toList();
-    }
-
-    // ✅ 2. Obtener caja por ID
+    // ✅ 1. Obtener caja por ID
     @GetMapping("/{id}")
     public ResponseEntity<CajaDTO> getCajaById(@PathVariable Long id) {
         Caja caja = cajaService.getCajaById(id);
         return ResponseEntity.ok(convertirCaja(caja));
     }
 
-    // ✅ 3. Listar cajas abiertas
+    // ✅ 2. Listar cajas abiertas
     @GetMapping("/abiertas")
-    public List<CajaDTO> getCajasAbiertas() {
-        return cajaService.getCajasAbiertas()
-                .stream()
-                .map(this::convertirCaja)
-                .toList();
+    public Page<CajaDTO> getCajasAbiertas(Pageable pageable) {
+        return cajaService.getCajasAbiertas(pageable)
+                .map(this::convertirCaja);
     }
 
-    // ✅ 4. Abrir caja
+    // ✅ 3. Abrir caja
     @PostMapping("/abrir")
     public ResponseEntity<CajaDTO> abrirCaja(@RequestBody CajaDTO dto) {
 
@@ -74,31 +74,51 @@ public class CajaController {
         return ResponseEntity.ok(convertirCaja(caja));
     }
 
-    // ✅ 5. Cerrar caja
-    @PutMapping("/cerrar/{id}")
-    public ResponseEntity<CajaDTO> cerrarCaja(
-            @PathVariable Long id,
-            @RequestBody CajaDTO cajaDTO
-    ) {
+    // ✅ 4. Cerrar caja
+    @PostMapping("/cerrar")
+    public ResponseEntity<CajaDTO> cerrarCaja(@RequestBody CerrarCajaDTO dto) {
 
-        Caja caja = cajaService.cerrarCaja(id, cajaDTO.getMontoFinal());
+        Caja caja = cajaService.cerrarCaja(
+            dto.getIdUsuario(),
+            dto.getEfectivoReal(),
+            dto.getTransferenciaReal()
+        );
+
         return ResponseEntity.ok(convertirCaja(caja));
     }
 
-    // ✅ 4. Listar cajas cerradas
+    // ✅ 5. Listar cajas cerradas
     @GetMapping("/cerradas")
-    public List<CajaDTO> getCajasCerradas() {
-        return cajaService.getCajasCerradas()
-                .stream()
-                .map(this::convertirCaja)
-                .toList();
+    public Page<CajaDTO> getCajasCerradas(Pageable pageable) {
+        return cajaService.getCajasCerradas(pageable)
+                .map(this::convertirCaja);
     }
 
-    // ✅ 5. Obtener caja por IDUsuario
+    // ✅ 6. Obtener caja por IDUsuario
     @GetMapping("/{idUsuario}/activa")
     public ResponseEntity<CajaDTO> getCajaByIdUsuario(@PathVariable Long idUsuario) {
         Caja caja = cajaService.obtenerCajaActivaPorUsuario(idUsuario);
         return ResponseEntity.ok(convertirCaja(caja));
+    }
+
+        @GetMapping("/search")
+    public Page<CajaDTO> searchCajas(
+        Pageable pageable,
+        @RequestParam(required = false) String search,
+        @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaApertura,
+        @RequestParam(required = false) 
+        @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaCierre,
+        @RequestParam(required = false) EstadoCaja estado
+    ) {
+        return cajaService.searchCajas(
+            pageable, search, fechaApertura, fechaCierre, estado
+        ).map(this::convertirCaja);
+    }
+
+    @PostMapping("/cerrar/admin/{idCaja}")
+    public ResponseEntity<?> cerrarCajaAdmin(@PathVariable Long idCaja) {
+        cajaService.cerrarCajaForzadoAdmin(idCaja);
+        return ResponseEntity.ok("Caja cerrada por administrador");
     }
 
 }

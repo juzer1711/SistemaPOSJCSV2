@@ -89,8 +89,6 @@ public class UserService {
     }
 
 
-
-
     public void desactivarUsuario(Long id) {
         Usuario u = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -106,69 +104,67 @@ public class UserService {
     u.setEstado(true);     // 🔥 Activa
     return userRepository.save(u);
     }
-public Page<Usuario> searchUsuarios(
-    Pageable pageable,
-    String search,
-    Rol rol,
-    Boolean estado,
-    TipoDocumento tipoDocumento,
-    String documento
-) {
-    Specification<Usuario> spec = buildSpec(search, rol, estado, tipoDocumento, documento);
-    return userRepository.findAll(spec, pageable);
-}
 
-public Specification<Usuario> buildSpec(
-    String search,
-    Rol rol,
-    Boolean estado,
-    TipoDocumento tipoDocumento,
-    String documento
-) {
-    return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
+    public Page<Usuario> searchUsuarios(
+        Pageable pageable,
+        String search,
+        String rol,
+        Boolean estado,
+        TipoDocumento tipoDocumento,
+        String documento
+    ) {
+        Specification<Usuario> spec = buildSpec(search, rol, estado, tipoDocumento, documento);
+        return userRepository.findAll(spec, pageable);
+    }
 
-            // 🔍 búsqueda global (nombre o email)
-            if (search != null && !search.isEmpty()) {
-                String searchLower = "%" + search.toLowerCase() + "%";
+    public Specification<Usuario> buildSpec(
+        String search,
+        String rol,
+        Boolean estado,
+        TipoDocumento tipoDocumento,
+        String documento
+    ) {
+        return (root, query, cb) -> {
+                List<Predicate> predicates = new ArrayList<>();
 
-                Expression<String> nombreCompletoUsuario = cb.concat(cb.lower(root.get("primerNombre")), " ");
-                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(cb.coalesce(root.get("segundoNombre"), "")));
-                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
-                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(root.get("primerApellido")));
-                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
-                nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(root.get("segundoApellido")));
-                    predicates.add(cb.or(
-                        cb.like(nombreCompletoUsuario, searchLower),
-                        cb.like(cb.lower(root.get("email")), "%" + search.toLowerCase() + "%"),
-                        cb.like(cb.lower(root.get("username")), "%" + search.toLowerCase() + "%"),
-                        cb.like(cb.lower(root.get("documento")), "%" + search.toLowerCase() + "%")
-                    ));
+                // 🔍 búsqueda global (nombre o email)
+                if (search != null && !search.isEmpty()) {
+                    String searchLower = "%" + search.toLowerCase() + "%";
+
+                    Expression<String> nombreCompletoUsuario = cb.concat(cb.lower(root.get("primerNombre")), " ");
+                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(cb.coalesce(root.get("segundoNombre"), "")));
+                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
+                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(root.get("primerApellido")));
+                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
+                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(root.get("segundoApellido")));
+                        predicates.add(cb.or(
+                            cb.like(nombreCompletoUsuario, searchLower),
+                            cb.like(cb.lower(root.get("email")), "%" + search.toLowerCase() + "%"),
+                            cb.like(cb.lower(root.get("username")), "%" + search.toLowerCase() + "%"),
+                            cb.like(cb.lower(root.get("documento")), "%" + search.toLowerCase() + "%")
+                        ));
+                    }
+
+                // 🎭 rol
+                // 🎭 Filtro por Rol (Entidad)
+                if (rol != null) {
+                    // Hacemos el JOIN con la tabla de roles y filtramos por su ID
+                    predicates.add(cb.equal(root.join("rol").get("nombre"), rol));
                 }
 
-            // 🎭 rol
-            if (rol != null) {
-                predicates.add(cb.equal(root.get("rol"), rol));
-            }
+                // 🟢 estado
+                if (estado != null) {
+                    predicates.add(cb.equal(root.get("estado"), estado));
+                }
 
-            // 🟢 estado
-            if (estado != null) {
-                predicates.add(cb.equal(root.get("estado"), estado));
-            }
+                // 📄 tipo documento
+                if (tipoDocumento != null) {
+                    predicates.add(cb.equal(root.get("tipoDocumento"), tipoDocumento));
+                }
 
-            // 📄 tipo documento
-            if (tipoDocumento != null) {
-                predicates.add(cb.equal(root.get("tipoDocumento"), tipoDocumento));
-            }
 
-            // 📑 documento
-            /*
-            if (documento != null && !documento.isEmpty()) {
-                predicates.add(cb.equal(root.get("documento"), documento));
-            } */
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-    };
-}
-    
+                return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+        
 }

@@ -1,6 +1,7 @@
 package com.sistemaposjcs.sistemaposjcs.controller;
 
 import com.sistemaposjcs.sistemaposjcs.dto.ItemFacturaDTO;
+import com.sistemaposjcs.sistemaposjcs.dto.VentaCajaDTO;
 import com.sistemaposjcs.sistemaposjcs.dto.VentaDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Venta;
 import com.sistemaposjcs.sistemaposjcs.service.VentaService;
@@ -145,5 +146,10 @@ public class VentaController {
             pageable, search, metodoPago, estado, fechaInicio, fechaFin
         ).map(this::convertirVenta);
     }
+
+@GetMapping("/por-caja/{idCaja}")
+public ResponseEntity<List<VentaCajaDTO>> obtenerVentasPorCaja(@PathVariable Long idCaja) {
+    return ResponseEntity.ok(ventaService.obtenerVentasPorCaja(idCaja));
+}
 }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import ProductSidebar from "./POSVentaComponents/ProductSidebar";
 import CartPanel from "./POSVentaComponents/CartPanel";
 import CheckoutPanel from "./POSVentaComponents/CheckoutPanel";
@@ -7,12 +7,20 @@ import { getActiveProducts } from "../../services/productService";
 import { getActiveClients } from "../../services/clientService";
 import {registrarVenta} from "../../services/ventaService";
 import { getCajaActivaByUsuario } from "../../services/cajaService";
+import DialogAbrirCaja from "./POSVentaComponents/DialogAbrirCaja";
+import DialogCerrarCaja from "./POSVentaComponents/DialogCerrarCaja";
+import { abrirCaja, cerrarCaja } from "../../services/cajaService";
 
 export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
 
   const [cajaActiva, setCajaActiva] = useState(null);
+  const [openCajaModal, setOpenCajaModal] = useState(false);
+  const [openCerrarCaja, setOpenCerrarCaja] = useState(false);
+
+  const [montoInicial, setMontoInicial] = useState("");
+
   const [loadingCaja, setLoadingCaja] = useState(true);
   // Estado del carrito vivo (idProducto, nombre, precio, cantidad)
   const [items, setItems] = useState(() => {
@@ -82,6 +90,12 @@ useEffect(() => {
   fetchCaja();
 }, []);
 
+useEffect(() => {
+  if (!loadingCaja && !cajaActiva) {
+    setOpenCajaModal(true);
+  }
+}, [loadingCaja, cajaActiva]);
+
 
   // Añadir producto al carrito (incrementa si ya existe)
   const addItem = (prod) => {
@@ -108,33 +122,77 @@ useEffect(() => {
     return <div>Cargando caja...</div>;
   }
 
-  if (!cajaActiva) {
-    return (
-      <Box sx={{ p: 5, textAlign: "center" }}>
-        <Typography variant="h5" color="error">
-          ⚠️ No tienes una caja abierta
-        </Typography>
-        <Typography>
-          Pide al administrador que te abra una caja
-        </Typography>
-      </Box>
-    );
-  }
-  
+  const handleAbrirCaja = async (montoInicial, password) => {
+    try {
+      const idUsuario = localStorage.getItem("id_usuario");
 
+      await abrirCaja({
+        idUsuario,
+        montoInicial
+      });
+
+      setOpenCajaModal(false);
+
+      const res = await getCajaActivaByUsuario(Number(idUsuario));
+      setCajaActiva(res.data);
+
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCerrarCaja = async (efectivoReal, transferenciaReal) => {
+    try {
+      const idUsuario = localStorage.getItem("id_usuario");
+
+      await cerrarCaja({
+        idUsuario,
+        efectivoReal,
+        transferenciaReal
+      });
+
+      setOpenCerrarCaja(false);
+
+      setCajaActiva(null); // 🔥 esto bloquea el POS otra vez
+      clearCart();
+
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  
   return (
+  <>
+    <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
+      <Button
+        variant="contained"
+        color="error"
+        onClick={() => setOpenCerrarCaja(true)}
+        disabled={!cajaActiva}
+      >
+        Cerrar Caja
+      </Button>
+    </Box>
     <Box sx={{
       p: 3,
       background: "#f4f6f8",
       minHeight: "100vh",
       display: "grid",
       gridTemplateColumns: "360px 1fr 360px",
-      gap: 3
+      gap: 3,
+      opacity: cajaActiva ? 1 : 0.5,
+      pointerEvents: cajaActiva ? "auto" : "none"
     }}>
       <ProductSidebar productos={productos} onAdd={addItem} />
+
       <Box>
-        <CartPanel items={items} onChangeQty={updateQuantity} onRemove={removeItem} />
+        <CartPanel
+          items={items}
+          onChangeQty={updateQuantity}
+          onRemove={removeItem}
+        />
       </Box>
+
       <CheckoutPanel
         clientes={clientes}
         items={items}
@@ -148,11 +206,24 @@ useEffect(() => {
         setObservaciones={setObservaciones}
         registrarVenta={registrarVenta}
         clearCart={clearCart}
-        cajaActiva={cajaActiva}  
+        cajaActiva={cajaActiva}
       />
     </Box>
 
-  );
-};
+    {/* 🔥 MODAL */}
+    <DialogAbrirCaja
+      open={openCajaModal}
+      onClose={() => {}}
+      onConfirm={handleAbrirCaja}
+    />
+
+    <DialogCerrarCaja
+      open={openCerrarCaja}
+      onClose={() => setOpenCerrarCaja(false)}
+      cajaActiva={cajaActiva}
+      onConfirm={handleCerrarCaja}
+    />
+  </>
+);};
 
 
