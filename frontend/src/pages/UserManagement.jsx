@@ -19,7 +19,6 @@ export default function UserManagement() {
   const [pageSize, setPageSize] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
 
-
   const [filter, setFilter] = useState("");// Filtro de búsqueda (texto que escribe el usuario)
   const [debouncedFilter, setDebouncedFilter] = useState("");
   const [open, setOpen] = useState(false);// Estado para controlar si el modal (formulario) está abierto o cerrado

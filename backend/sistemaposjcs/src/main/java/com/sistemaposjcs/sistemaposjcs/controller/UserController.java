@@ -110,9 +110,4 @@ public class UserController {
             pageable, search, rol, estado, tipoDocumento, documento
         ).map(this::convertirUser);
     }
-
-
-
-
 }
-

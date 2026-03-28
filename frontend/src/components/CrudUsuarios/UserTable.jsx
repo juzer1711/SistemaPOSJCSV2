@@ -1,7 +1,5 @@
 import { DataGrid } from "@mui/x-data-grid";
-import {
-  Box, IconButton, Button, Chip
-} from "@mui/material";
+import { Box, IconButton, Button, Chip } from "@mui/material";
 import { Edit, CheckCircle, Cancel } from "@mui/icons-material";
 
 export default function UserTable({ 
