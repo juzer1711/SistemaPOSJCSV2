@@ -63,7 +63,7 @@ export const createUser = async (userData) => {
     return res.data;
 
   } catch (error) {
-    throw formatAxiosError(error);
+    throw error;
   }
 };
 

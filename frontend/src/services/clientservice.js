@@ -61,7 +61,7 @@ export const createClient = async (clientData) => {
     });
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw error;
   }
 };
 

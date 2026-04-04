@@ -24,14 +24,17 @@ const ProductFormDialog = ({
   loadProducts,
   categorias, 
   showMessage }) => {
-  const { 
-    register, 
-    handleSubmit,
-    control, 
-    reset, formState: { errors } } = useForm({
-    resolver: yupResolver(productSchema),
-    defaultValues: defaultValues || {},
-  });
+const { 
+  register, 
+  handleSubmit,
+  control, 
+  reset,
+  setError,
+  formState: { errors } 
+} = useForm({
+  resolver: yupResolver(productSchema),
+  defaultValues: defaultValues || {},
+});
 
 useEffect(() => {
   if (!open) return
@@ -75,8 +78,19 @@ useEffect(() => {
       loadProducts();
 
     } catch (error) {
-  showMessage(error.message, "error");
-  }
+        const data = error.response?.data;
+
+        console.log(" DATA:", data);
+
+        if (data?.field) {
+          setError(data.field, {
+            type: "manual",
+            message: data.message
+          });
+        } else {
+          showMessage(data?.message || "Error al guardar", "error");
+        }
+      }
   };
 
   return (

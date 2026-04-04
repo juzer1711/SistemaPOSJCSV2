@@ -20,11 +20,20 @@ export default function ClientTable({
 
     { field: "tipoCliente", headerName: "Tipo Cliente", width: 150 },
 
-    { field: "primerNombre", headerName: "Primer Nombre", width: 150 },
-    { field: "segundoNombre", headerName: "Segundo Nombre", width: 150 },
-
-    { field: "primerApellido", headerName: "Primer Apellido", width: 150 },
-    { field: "segundoApellido", headerName: "Segundo Apellido", width: 150 },
+    { 
+      field: "nombreCompleto", 
+      headerName: "Nombre Completo", 
+      width: 280,
+      renderCell: (params) => {
+        const c = params.row;
+        return [
+          c.primerNombre,
+          c.segundoNombre,
+          c.primerApellido,
+          c.segundoApellido
+        ].filter(Boolean).join(" ");
+      }
+    },
 
     { field: "razonSocial", headerName: "Razón Social", width: 180 },
 
