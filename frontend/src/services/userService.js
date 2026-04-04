@@ -81,8 +81,12 @@ export const updateUser = async (id, userData) => {
 };
 
 export const searchUsers = (params) => {
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(([_, v]) => v !== "" && v !== undefined && v !== null)
+  );
+
   return axios.get(`${API_URL}/search`, {
-    params,
+    params: cleanParams,
     headers: getAuthHeaders()
   });
 };

@@ -9,7 +9,7 @@ import {registrarVenta} from "../../services/ventaService";
 import { getCajaActivaByUsuario } from "../../services/cajaService";
 import DialogAbrirCaja from "./POSVentaComponents/DialogAbrirCaja";
 import DialogCerrarCaja from "./POSVentaComponents/DialogCerrarCaja";
-import { abrirCaja, cerrarCaja } from "../../services/cajaService";
+import { abrirCaja, cerrarCaja, getCajasAbiertas } from "../../services/cajaService";
 
 export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
@@ -20,17 +20,13 @@ export default function VentaPOS () {
     const cargarCaja = async () => {
       try {
         const response = await getCajasAbiertas();
-        const cajas = response.data;
+        const cajas = response.data.content;
 
         const idUsuario = localStorage.getItem("id_usuario");
-
-        console.log("CAJAS COMPLETAS:", cajas);
 
         const caja = cajas.find(
           (c) => String(c.idUsuario) === String(idUsuario)
         );
-
-        console.log("CAJA DETECTADA:", caja);
 
         setCajaActual(caja);
 
@@ -79,9 +75,9 @@ export default function VentaPOS () {
     (async () => {
       try {
         const p = await getActiveProducts();
-        setProductos(p.data || []);
+        setProductos(p.data.content || []);
         const c = await getActiveClients();
-        setClientes(c.data || []);
+        setClientes(c.data.content || []);
       } catch (err) {
         console.error("Error cargando datos POS", err);
       }
@@ -190,35 +186,63 @@ useEffect(() => {
   
   return (
   <>
-    <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
-      <Button
-        variant="contained"
-        color="error"
-        onClick={() => setOpenCerrarCaja(true)}
-        disabled={!cajaActiva}
-      >
-        Cerrar Caja
-      </Button>
+    {/* HEADER POS */}
+    <Box
+      sx={{
+        height: 70,
+        px: 3,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderBottom: "1px solid #e0e0e0",
+        backgroundColor: "white",
+      }}
+    >
+      {/* Izquierda */}
+      <Box>
+        <Typography variant="h6" fontWeight="bold">
+          Punto de Venta
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Caja activa #{cajaActiva?.idCaja} — Usuario {localStorage.getItem("username")}
+        </Typography>
+      </Box>
+
+      {/* Derecha */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Typography variant="body2">
+          {new Date().toLocaleTimeString()}
+        </Typography>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => setOpenCerrarCaja(true)}
+          disabled={!cajaActiva}
+        >
+          Cerrar Caja
+        </Button>
+      </Box>
     </Box>
-    <Box sx={{
-      p: 3,
-      background: "#f4f6f8",
-      minHeight: "100vh",
-      display: "grid",
-      gridTemplateColumns: "360px 1fr 360px",
-      gap: 3,
-      opacity: cajaActiva ? 1 : 0.5,
-      pointerEvents: cajaActiva ? "auto" : "none"
-    }}>
+        <Box
+      sx={{
+        p: 2,
+        height: "calc(100vh - 70px)",
+        display: "grid",
+        gridTemplateColumns: "340px 1fr 380px",
+        gap: 2,
+        backgroundColor: "#F4F6F8",
+        opacity: cajaActiva ? 1 : 0.4,
+        pointerEvents: cajaActiva ? "auto" : "none",
+      }}
+    >
       <ProductSidebar productos={productos} onAdd={addItem} />
 
-      <Box>
-        <CartPanel
-          items={items}
-          onChangeQty={updateQuantity}
-          onRemove={removeItem}
-        />
-      </Box>
+      <CartPanel
+        items={items}
+        onChangeQty={updateQuantity}
+        onRemove={removeItem}
+      />
 
       <CheckoutPanel
         clientes={clientes}
@@ -236,21 +260,7 @@ useEffect(() => {
         cajaActiva={cajaActiva}
       />
     </Box>
-
-    {/* 🔥 MODAL */}
-    <DialogAbrirCaja
-      open={openCajaModal}
-      onClose={() => {}}
-      onConfirm={handleAbrirCaja}
-    />
-
-    <DialogCerrarCaja
-      open={openCerrarCaja}
-      onClose={() => setOpenCerrarCaja(false)}
-      cajaActiva={cajaActiva}
-      onConfirm={handleCerrarCaja}
-    />
-  </>
+    </>
 );};
 
 

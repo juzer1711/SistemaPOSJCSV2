@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Box, Typography, Card, CardContent, Grid,
-  TextField, MenuItem, Button, Divider
+  TextField, MenuItem, Button, Divider, Autocomplete
 } from "@mui/material";
 
 import {
@@ -13,7 +13,7 @@ import {
   forzarCierreCaja
 } from "../services/cajaService";
 
-import { getActiveUsers } from "../services/userService";
+import { searchUsers } from "../services/userService";
 import CajaDetailDialog from "../components/Cajas/CajaDetailDialog";
 import CajasAbiertasGrid from "../components/Cajas/CajasAbiertasGrid";
 import HistorialCajasGrid from "../components/Cajas/HistorialCajasGrid";
@@ -54,14 +54,24 @@ export default function CajaManagement() {
 
   const [loadingAbiertas, setLoadingAbiertas] = useState(false);
   const [loadingCerradas, setLoadingCerradas] = useState(false);
+  const [busquedaUsuario, setBusquedaUsuario] = useState("");
+  const [loadingUsuarios, setLoadingUsuarios] = useState(false);
 
 
 
   // ================== LOADERS ==================
 
   useEffect(() => {
+  loadUsuarios();
+}, []);
+
+useEffect(() => {
+  const delayDebounce = setTimeout(() => {
     loadUsuarios();
-  }, []);
+  }, 400);
+
+  return () => clearTimeout(delayDebounce);
+}, [busquedaUsuario]);
 
   useEffect(() => {
     loadCajasAbiertas();
@@ -71,10 +81,21 @@ export default function CajaManagement() {
     loadHistorial();
   }, [pageHistorial, filtroHistorial]);
 
-  const loadUsuarios = async () => {
-    const res = await getActiveUsers(0, 50);
+const loadUsuarios = async () => {
+  try {
+    setLoadingUsuarios(true);
+
+    const res = await searchUsers({
+      page: 0,
+      size: 20,
+      search: busquedaUsuario || undefined,
+    });
+
     setUsuarios(res.data.content || []);
-  };
+  } finally {
+    setLoadingUsuarios(false);
+  }
+};
 
 const loadCajasAbiertas = async () => {
   try{
@@ -154,20 +175,31 @@ const loadHistorial = async () => {
         </Typography>
 
         <Grid container spacing={2}>
-          <Grid item xs={5}>
-            <TextField
-              select
+          <Grid item xs={12} md={8}>
+            <Autocomplete
               fullWidth
-              label="Seleccionar cajero"
-              value={usuarioSeleccionado}
-              onChange={(e) => setUsuarioSeleccionado(e.target.value)}
-            >
-              {usuarios.map(u => (
-                <MenuItem key={u.idUsuario} value={u.idUsuario}>
-                  {u.nombre}
-                </MenuItem>
-              ))}
-            </TextField>
+              size="small"
+              options={usuarios}
+              getOptionLabel={(u) =>
+                `${u.primerNombre} ${u.primerApellido} - ${u.documento}`
+              }
+              value={usuarios.find(u => u.idUsuario === usuarioSeleccionado) || null}
+              onChange={(e, newValue) =>
+                setUsuarioSeleccionado(newValue?.idUsuario || "")
+              }
+              onInputChange={(e, newInputValue) =>
+                setBusquedaUsuario(newInputValue)
+              }
+              loading={loadingUsuarios}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Buscar cajero"
+                  placeholder="Nombre, apellido, documento o id"
+                  fullWidth
+                />
+              )}
+            />
           </Grid>
 
           <Grid item xs={4}>

@@ -2,7 +2,6 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Typography, Divider, Box, Button, Paper
 } from "@mui/material";
-
 import CircularProgress from "@mui/material/CircularProgress";
 
 const CheckoutResumenDialog = ({
@@ -22,131 +21,138 @@ const CheckoutResumenDialog = ({
 }) => {
   if (!cliente) return null;
 
+  const handlePrint = () => {
+    const printContents = document.getElementById("ticket-print").innerHTML;
+    const win = window.open("", "", "width=420,height=800");
+    win.document.write(`
+      <html>
+        <head>
+          <title>Ticket</title>
+          <style>
+            body{
+              font-family: monospace;
+              padding: 10px;
+              width: 380px;
+            }
+            .center{text-align:center;}
+            .row{
+              display:flex;
+              justify-content:space-between;
+              font-size:13px;
+              margin:2px 0;
+            }
+            .total{
+              font-weight:bold;
+              font-size:16px;
+            }
+            hr{
+              border:none;
+              border-top:1px dashed #000;
+              margin:8px 0;
+            }
+          </style>
+        </head>
+        <body>
+          ${printContents}
+        </body>
+      </html>
+    `);
+    win.document.close();
+    win.print();
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-
-      {/* CABECERA */}
-      <DialogTitle sx={{ textAlign: "center", pb: 1 }}>
-        <Typography variant="h5" component="div" fontWeight="bold">
-          🧾 Confirmar Venta
-        </Typography>
-
-        <Typography
-          variant="subtitle2"
-          component="div"
-          color="text.secondary"
-        >
-          Revisa antes de continuar
-        </Typography>
-      </DialogTitle>
-
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth={false}
+      PaperProps={{ sx: { width: 420, borderRadius: 3 } }}
+    >
       <DialogContent dividers sx={{ background: "#fafafa" }}>
 
-        {/* DATOS DEL CLIENTE */}
-        <Box sx={{ textAlign: "center", mb: 2 }}>
-          <Typography fontWeight="bold" fontSize={17}>
-            {cliente.razonSocial ||
-              `${cliente.primerNombre} ${cliente.primerApellido}`}
-          </Typography>
-          <Typography fontSize={14} color="text.secondary">
-            Documento: {cliente.documento}
-          </Typography>
+        {/* ZONA IMPRIMIBLE */}
+        <div id="ticket-print">
 
-          <Typography fontSize={14} color="text.secondary">
-            Pago: {metodoPago}
-          </Typography>
+          <Box className="center">
+            <Typography fontWeight="bold">TU NEGOCIO</Typography>
+            <Typography fontSize={13}>COMPROBANTE DE VENTA</Typography>
+          </Box>
 
-          {observaciones && (
-            <Typography fontSize={13} fontStyle="italic" sx={{ mt: 1 }}>
-              "{observaciones}"
+          <hr />
+
+          <Box className="center">
+            <Typography fontSize={13}>
+              {cliente.razonSocial ||
+                `${cliente.primerNombre} ${cliente.primerApellido}`}
             </Typography>
-          )}
-        </Box>
-
-        <Divider sx={{ borderStyle: "dashed", mb: 2 }} />
-
-        {/* PRODUCTOS */}
-        <Typography fontWeight="bold" sx={{ mb: 1 }}>Productos</Typography>
-
-        {items.map((i) => (
-          <Box key={i.idProducto} sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            py: 0.6,
-            borderBottom: "1px dashed #ccc"
-          }}>
-            <span>{i.nombre} (x{i.cantidad})</span>
-            <b>${(i.precioUnitario * i.cantidad).toLocaleString()}</b>
-          </Box>
-        ))}
-
-        <Divider sx={{ borderStyle: "dashed", my: 2 }} />
-
-        {/* TOTALES */}
-        <Paper elevation={0} sx={{
-          p: 2, borderRadius: "12px",
-          background: "#fff",
-          border: "1px solid #ddd"
-        }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-            <Typography>Subtotal:</Typography>
-            <Typography>${totalSinIVA.toLocaleString()}</Typography>
+            <Typography fontSize={12}>Doc: {cliente.documento}</Typography>
+            <Typography fontSize={12}>Pago: {metodoPago}</Typography>
           </Box>
 
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-            <Typography>IVA:</Typography>
-            <Typography>${totalIVA.toLocaleString()}</Typography>
+          <hr />
+
+          {items.map((i) => (
+            <Box key={i.idProducto} className="row">
+              <span>{i.nombre} x{i.cantidad}</span>
+              <span>${(i.precioUnitario * i.cantidad).toLocaleString()}</span>
+            </Box>
+          ))}
+
+          <hr />
+
+          <Box className="row">
+            <span>Subtotal:</span>
+            <span>${totalSinIVA.toLocaleString()}</span>
           </Box>
 
-          <Divider sx={{ my: 1 }} />
+          <Box className="row">
+            <span>IVA:</span>
+            <span>${totalIVA.toLocaleString()}</span>
+          </Box>
 
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-            <Typography variant="h6" fontWeight="bold">Total a pagar:</Typography>
-            <Typography variant="h6" fontWeight="bold" color="primary">
-              ${total.toLocaleString()}
-            </Typography>
+          <hr />
+
+          <Box className="row total">
+            <span>TOTAL:</span>
+            <span>${total.toLocaleString()}</span>
           </Box>
 
           {metodoPago === "EFECTIVO" && (
             <>
-              <Divider sx={{ my: 1 }} />
-
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography>Recibido:</Typography>
-                <Typography>${Number(montoRecibido).toLocaleString()}</Typography>
+              <Box className="row">
+                <span>Recibido:</span>
+                <span>${Number(montoRecibido).toLocaleString()}</span>
               </Box>
-
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography>Cambio:</Typography>
-                <Typography color="green" fontWeight="bold">
-                  ${cambio.toLocaleString()}
-                </Typography>
+              <Box className="row">
+                <span>Cambio:</span>
+                <span>${cambio.toLocaleString()}</span>
               </Box>
             </>
           )}
-        </Paper>
 
-        <Divider sx={{ borderStyle: "dashed", mt: 2 }} />
+          <hr />
 
-        <Typography textAlign="center" fontSize={13} color="text.secondary" sx={{ mt: 1 }}>
-          Confirma para registrar la venta
-        </Typography>
+          <Box className="center">
+            <Typography fontSize={12}>Gracias por su compra</Typography>
+          </Box>
 
+        </div>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} color="inherit">Cancelar</Button>
+        <Button onClick={onClose}>Cancelar</Button>
 
-      <Button
-        variant="contained"
-        color="success"
-        onClick={onConfirm}
-        disabled={loadingVenta}
-      >
-        {loadingVenta ? <CircularProgress size={20} color="inherit" /> : "Confirmar Venta"}
-      </Button>
+        <Button
+          variant="contained"
+          onClick={async () => {
+            await onConfirm();   // registra venta
+            handlePrint();      // abre imprimir / guardar pdf
+          }}
+          disabled={loadingVenta}
+        >
+          {loadingVenta ? <CircularProgress size={20} /> : "Confirmar e Imprimir"}
+        </Button>
       </DialogActions>
-
     </Dialog>
   );
 };

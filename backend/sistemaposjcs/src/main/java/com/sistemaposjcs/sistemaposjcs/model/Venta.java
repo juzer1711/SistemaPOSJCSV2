@@ -60,6 +60,7 @@ public class Venta {
     @JsonManagedReference
     private List<ItemFactura> items = new ArrayList<>();
 
+    @Column(nullable = false)
     private Boolean estado = true;
 
     @Column(nullable = true)
