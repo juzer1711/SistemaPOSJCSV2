@@ -43,6 +43,10 @@ public class ProductoService {
 
     // ✔ Crear producto
     public Producto createProducto(Producto producto) {
+        if (producto.getEstado() == null) {
+            producto.setEstado(true);
+        }
+
         // Obtener valor numérico del IVA
         BigDecimal ivaValue = producto.getIva().getValue();
 

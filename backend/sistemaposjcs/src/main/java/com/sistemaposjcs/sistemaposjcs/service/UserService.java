@@ -45,6 +45,9 @@ public class UserService {
 
     // ✅ Crear usuario
     public Usuario createUser(Usuario usuario) {
+        if (usuario.getEstado() == null) {
+            usuario.setEstado(true);
+        }
 
         // 🔥 Reemplazar rol recibido con el rol REAL de la BD
         if (usuario.getRol() != null && usuario.getRol().getId() != null) {
@@ -57,7 +60,6 @@ public class UserService {
 
         return userRepository.save(usuario);
     }
-
 
     // ✅ Actualizar usuario
     public Usuario updateUser(Long id, Usuario userDetails) {
