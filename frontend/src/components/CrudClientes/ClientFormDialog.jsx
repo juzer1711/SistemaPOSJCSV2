@@ -22,12 +22,14 @@ const ClientFormDialog = ({
   onClose,
   loadClients,
   showMessage }) => {
-  const {
-    register,
+  const { 
+    register, 
     handleSubmit,
-    watch,
+    control, 
     reset,
-    formState: { errors },
+    setError,
+    watch, 
+    formState: { errors } 
   } = useForm({
     resolver: yupResolver(clientSchema),
     defaultValues: defaultValues || {},
@@ -71,8 +73,19 @@ const ClientFormDialog = ({
       onClose();
       loadClients();
     } catch (error) {
-      showMessage(error.message, "error");
-    }
+        const data = error.response?.data;
+
+        console.log(" DATA:", data);
+
+        if (data?.field) {
+          setError(data.field, {
+            type: "manual",
+            message: data.message
+          });
+        } else {
+          showMessage(data?.message || "Error al guardar", "error");
+        }
+      }
   };
 
   return (

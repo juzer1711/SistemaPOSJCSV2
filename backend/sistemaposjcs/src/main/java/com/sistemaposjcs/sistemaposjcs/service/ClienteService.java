@@ -46,8 +46,10 @@ public class ClienteService {
         return clienteRepository.findByEstadoFalse(pageable);
     }
 
-    // Crear cliente
     public Cliente createCliente(Cliente cliente) {
+        if (cliente.getEstado() == null) {
+            cliente.setEstado(true);
+        }
         return clienteRepository.save(cliente);
     }
 

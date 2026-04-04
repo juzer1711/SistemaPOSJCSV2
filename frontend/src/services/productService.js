@@ -66,7 +66,7 @@ export const createProduct = async (productData) => {
     });
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw error;
   }
 };
 
@@ -111,16 +111,12 @@ function formatAxiosError(error) {
   if (error.response) {
     const data = error.response.data;
 
-    // Detecta el mensaje del backend
-    const backendMessage =
-      data?.message ||
-      Object.values(data)?.[0] ||   // si viene { campo: "error" }
-      JSON.stringify(data) ||
-      "Error desconocido";
+    const err = new Error(data?.message || "Error del servidor");
 
-    const err = new Error(backendMessage);
     err.status = error.response.status;
     err.raw = data;
+    err.field = data?.field; // 🔥 CLAVE
+
     return err;
   }
 
