@@ -64,6 +64,7 @@ public class Producto {
     @Column(nullable = false)
     private BigDecimal precioSinIva;
 
-    private Boolean estado = true;
+    @Column(nullable = false)
+    private Boolean estado;
 
 }

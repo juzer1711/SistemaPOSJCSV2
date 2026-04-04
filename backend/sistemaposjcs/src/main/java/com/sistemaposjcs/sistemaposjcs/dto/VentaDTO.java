@@ -27,7 +27,7 @@ public class VentaDTO {
     private BigDecimal totalIVA;
     private BigDecimal totalSinIVA;
     private String observaciones;
-    private Boolean estado;
+    private Boolean estado = true;
     private BigDecimal montoRecibido;
     private BigDecimal cambio;
     private List<ItemFacturaDTO> items;

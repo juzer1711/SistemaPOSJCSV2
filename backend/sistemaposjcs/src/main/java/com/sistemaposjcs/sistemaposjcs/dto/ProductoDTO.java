@@ -21,5 +21,5 @@ public class ProductoDTO {
     private BigDecimal precioventa;
     private IVA iva;
     private BigDecimal precioSinIva;
-    private Boolean estado;
+    private Boolean estado = true;
 }

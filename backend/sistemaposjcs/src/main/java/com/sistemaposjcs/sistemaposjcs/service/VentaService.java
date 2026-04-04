@@ -63,6 +63,10 @@ public class VentaService {
 // Crear Venta
 public Venta createVenta(Venta venta) {
 
+    if (venta.getEstado() == null) {
+    venta.setEstado(true);
+    }
+
     // Validar cliente real
     Cliente clienteReal = clienteRepository.findById(
             venta.getCliente().getIdCliente()
@@ -165,7 +169,6 @@ public Venta createVenta(Venta venta) {
     }
     return ventaRepository.save(venta);
 }
-
 
 
 // ✅ Actualizar venta

@@ -120,101 +120,122 @@ const CheckoutPanel = ({
 
 
   return (
-    <Paper
-        elevation={3}
-        sx={{ 
-          p:2, 
-          height: "calc(100vh - 48px)", 
-          position: "sticky", 
-          top: 24,
-          pointerEvents: loadingVenta ? "none" : "auto",
-          opacity: loadingVenta ? 0.7 : 1
-        }}
-      >
-
+  <Paper
+    elevation={3}
+    sx={{
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      borderRadius: 2,
+      overflow: "hidden",
+    }}
+  >
+    {/* HEADER */}
+    <Box sx={{ p: 2, borderBottom: "1px solid #e0e0e0" }}>
+      <Typography variant="h6">Checkout</Typography>
       {cajaActiva && (
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>
-          Caja activa: #{cajaActiva.idCaja} | Cajero: {cajaActiva.nombreCajero}
+        <Typography variant="body2" color="text.secondary">
+          Caja #{cajaActiva.idCaja} — {cajaActiva.nombreCajero}
         </Typography>
       )}
-      <Typography variant="h6">Pago</Typography>
+    </Box>
 
-      <Autocomplete
-        sx={{ mt:2 }}
-        options={clientes}
-        value={clienteSeleccionado}
-        isOptionEqualToValue={(o,v)=>o.idCliente===v?.idCliente}
-        onChange={(e,val)=>setClienteSeleccionado(val)}
-        getOptionLabel={(c)=> `${getClientName(c)} | ${c?.documento ?? ""}`}
-        renderOption={(props,c)=>{
-        const { key, ...rest } = props;
-        return (
-          <li key={key} {...rest} style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <span>{getClientName(c)} — {c.documento}</span>
+    {/* SCROLLABLE CONTENT */}
+    <Box sx={{ flex: 1, overflowY: "auto", p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
 
-            <IconButton
-              size="small"
-              onClick={(e)=>{
-                e.stopPropagation();
-                setClienteDetalle(c);
-                setOpenCliente(true);
-              }}
-            >
-              <VisibilityIcon fontSize="small"/>
-            </IconButton>
-          </li>
-        );
-        }}
-        renderInput={(params)=> <TextField {...params} label="Cliente" size="small" />}
-      />
+      {/* CLIENTE */}
+      <Box sx={{ p: 2, border: "1px solid #e0e0e0", borderRadius: 2 }}>
+        <Typography fontWeight={600} mb={1}>Cliente</Typography>
 
-      <TextField label="Observaciones" fullWidth multiline minRows={2} sx={{ mt:2 }} value={observaciones} onChange={e => setObservaciones(e.target.value)} />
-
-      <FormControl fullWidth sx={{ mt:2 }}>
-        <InputLabel>Método de pago</InputLabel>
-        <Select value={metodoPago} label="Metodo de pago" onChange={e=>setMetodoPago(e.target.value)}>
-          <MenuItem value="EFECTIVO">Efectivo</MenuItem>
-          <MenuItem value="TRANSFERENCIA">Transferencia</MenuItem>
-        </Select>
-      </FormControl>
-
-      {metodoPago === "EFECTIVO" && (
-        <Box sx={{ mt:2 }}>
-          <TextField
-            fullWidth
-            label="Monto recibido"
-            type="number"
-            value={montoRecibido}
-            onChange={(e)=>setMontoRecibido(e.target.value)}
-          />
-
-          <Typography variant="h6" sx={{ mt:1 }}>
-            Cambio: ${cambio.toLocaleString("es-CO")}
-          </Typography>
-        </Box>
-      )}
-
-      <hr style={{ margin: "12px 0" }} />
-
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="subtitle1">Total</Typography>
-        <Typography variant="h5">${total.toLocaleString()}</Typography>
+        <Autocomplete
+          options={clientes}
+          value={clienteSeleccionado}
+          isOptionEqualToValue={(o,v)=>o.idCliente===v?.idCliente}
+          onChange={(e,val)=>setClienteSeleccionado(val)}
+          getOptionLabel={(c)=> `${getClientName(c)} | ${c?.documento ?? ""}`}
+          renderInput={(params)=> <TextField {...params} size="small" />}
+        />
       </Box>
 
+      {/* PAGO */}
+      <Box sx={{ p: 2, border: "1px solid #e0e0e0", borderRadius: 2 }}>
+        <Typography fontWeight={600} mb={1}>Método de pago</Typography>
+
+        <FormControl fullWidth size="small">
+          <Select
+            value={metodoPago}
+            onChange={e=>setMetodoPago(e.target.value)}
+          >
+            <MenuItem value="EFECTIVO">Efectivo</MenuItem>
+            <MenuItem value="TRANSFERENCIA">Transferencia</MenuItem>
+          </Select>
+        </FormControl>
+
+        {metodoPago === "EFECTIVO" && (
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Monto recibido"
+              type="number"
+              value={montoRecibido}
+              onChange={(e)=>setMontoRecibido(e.target.value)}
+            />
+            <Typography mt={1} fontWeight={600}>
+              Cambio: ${cambio.toLocaleString("es-CO")}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      {/* OBSERVACIONES */}
+      <Box sx={{ p: 2, border: "1px solid #e0e0e0", borderRadius: 2 }}>
+        <Typography fontWeight={600} mb={1}>Observaciones</Typography>
+        <TextField
+          fullWidth
+          multiline
+          minRows={2}
+          size="small"
+          value={observaciones}
+          onChange={e => setObservaciones(e.target.value)}
+        />
+      </Box>
+    </Box>
+
+    {/* FOOTER TOTAL */}
+    <Box
+      sx={{
+        p: 2,
+        borderTop: "1px solid #e0e0e0",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <Typography variant="h6">Total</Typography>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          ${total.toLocaleString("es-CO")}
+        </Typography>
+      </Box>
 
       <Button
         variant="contained"
         color="success"
         fullWidth
-        sx={{ mt:3 }}
+        size="large"
         onClick={() => setOpenResumen(true)}
         disabled={
           loadingVenta || 
-          !clienteSeleccionado || items.length===0 ||
-        !metodoPago || (metodoPago === "EFECTIVO" && (!montoRecibido || Number(montoRecibido) < total))}
+          !clienteSeleccionado || 
+          items.length===0 ||
+          !metodoPago || 
+          (metodoPago === "EFECTIVO" && (!montoRecibido || Number(montoRecibido) < total))
+        }
       >
-        {loadingVenta ? <CircularProgress size={24} color="inherit" /> : "Ver Resumen & Cobrar"}
+        {loadingVenta
+          ? <CircularProgress size={24} color="inherit" />
+          : "Ver resumen y cobrar"}
       </Button>
+    </Box>
 
 
       <CheckoutResumenDialog
