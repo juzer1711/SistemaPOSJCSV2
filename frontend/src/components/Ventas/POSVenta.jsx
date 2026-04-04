@@ -9,7 +9,7 @@ import {registrarVenta} from "../../services/ventaService";
 import { getCajaActivaByUsuario } from "../../services/cajaService";
 import DialogAbrirCaja from "./POSVentaComponents/DialogAbrirCaja";
 import DialogCerrarCaja from "./POSVentaComponents/DialogCerrarCaja";
-import { abrirCaja, cerrarCaja } from "../../services/cajaService";
+import { abrirCaja, cerrarCaja, getCajasAbiertas } from "../../services/cajaService";
 
 export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
@@ -20,17 +20,13 @@ export default function VentaPOS () {
     const cargarCaja = async () => {
       try {
         const response = await getCajasAbiertas();
-        const cajas = response.data;
+        const cajas = response.data.content;
 
         const idUsuario = localStorage.getItem("id_usuario");
-
-        console.log("CAJAS COMPLETAS:", cajas);
 
         const caja = cajas.find(
           (c) => String(c.idUsuario) === String(idUsuario)
         );
-
-        console.log("CAJA DETECTADA:", caja);
 
         setCajaActual(caja);
 
@@ -79,9 +75,9 @@ export default function VentaPOS () {
     (async () => {
       try {
         const p = await getActiveProducts();
-        setProductos(p.data || []);
+        setProductos(p.data.content || []);
         const c = await getActiveClients();
-        setClientes(c.data || []);
+        setClientes(c.data.content || []);
       } catch (err) {
         console.error("Error cargando datos POS", err);
       }
