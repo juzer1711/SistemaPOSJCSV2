@@ -35,12 +35,13 @@ const UserFormDialog = ({
     handleSubmit,
     watch,
     setValue,
-    reset, 
+    reset,
+    setError, // 🔥 ESTA ES LA CLAVE
     formState: { errors }, 
   } = useForm({
-        resolver: yupResolver(userSchema),
-        defaultValues: defaultValues || {},
-      });
+    resolver: yupResolver(userSchema),
+    defaultValues: defaultValues || {},
+  });
 
   useEffect(() => {
     if (!open) return
@@ -103,8 +104,17 @@ const UserFormDialog = ({
       onClose();
       loadUsers();
     } catch (error) {
-      showMessage(error.message, "error");
-    }
+        const data = error.response?.data;
+
+        if (data?.field) {
+          setError(data.field, {
+            type: "manual",
+            message: data.message
+          });
+        } else {
+          showMessage(data?.message || "Error al guardar", "error");
+        }
+      }
 
   };
 

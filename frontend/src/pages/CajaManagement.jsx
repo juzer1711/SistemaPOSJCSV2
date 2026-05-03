@@ -178,7 +178,7 @@ const loadHistorial = async () => {
           <Grid item xs={12} md={8}>
             <Autocomplete
               fullWidth
-              size="small"
+              sx={{ width: 230 }}
               options={usuarios}
               getOptionLabel={(u) =>
                 `${u.primerNombre} ${u.primerApellido} - ${u.documento}`
