@@ -93,7 +93,6 @@ export const forzarCierreCaja = async (idCaja) => {
     throw formatAxiosError(error);
   }
 };
-
 // Manejo de errores
 function formatAxiosError(error) {
   if (error.response) {

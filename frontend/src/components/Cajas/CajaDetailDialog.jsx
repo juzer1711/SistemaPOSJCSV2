@@ -6,6 +6,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useState } from "react";
 import { getVentasPorCaja, getVentaById } from "../../services/ventaService";
+import { getMovimientosPorCaja } from "../../services/movimientosCajaService";
 import VentaDetailDialog from "../Ventas/VentaDetailDialog";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { formatDateTime } from "../../utils/formats";
@@ -16,6 +17,7 @@ export default function CajaDetailDialog({ open, onClose, caja }) {
   const [loadingVentas, setLoadingVentas] = useState(true);
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
   const [ventaOpen, setVentaOpen] = useState(false);
+  const [movimientos, setMovimientos] = useState([]);
 
   useEffect(() => {
     // La lógica condicional va DENTRO del useEffect
@@ -35,6 +37,14 @@ export default function CajaDetailDialog({ open, onClose, caja }) {
 
     fetchVentas();
   }, [open, caja?.idCaja]);
+
+  useEffect(() => {
+  if (caja?.idCaja) {
+    getMovimientosPorCaja(caja.idCaja)
+      .then(res => setMovimientos(res))
+      .catch(() => setMovimientos([]));
+  }
+}, [caja]);
 
   const verDetalleVenta = async (idVenta) => {
     const res = await getVentaById(idVenta);
@@ -173,6 +183,48 @@ export default function CajaDetailDialog({ open, onClose, caja }) {
             )}
           </TableBody>
         </Table>
+        
+      <Divider sx={{ my: 3 }} />
+
+      <Typography variant="h6" gutterBottom>
+        Movimientos de Caja
+      </Typography>
+
+      {movimientos.length === 0 ? (
+        <Typography variant="body2">No hay movimientos registrados.</Typography>
+      ) : (
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Fecha</TableCell>
+              <TableCell>Tipo</TableCell>
+              <TableCell>Monto</TableCell>
+              <TableCell>Motivo</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {movimientos.map((m) => (
+              <TableRow key={m.idMovimiento}>
+                <TableCell>{m.fecha}</TableCell>
+
+                <TableCell>
+                  <Chip
+                    label={m.tipo}
+                    color={m.tipo === "ENTRADA" ? "success" : "error"}
+                    size="small"
+                  />
+                </TableCell>
+
+                <TableCell>
+                  ${Number(m.monto).toLocaleString("es-CO")}
+                </TableCell>
+
+                <TableCell>{m.motivo}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
       </DialogContent>
 
       <DialogActions>

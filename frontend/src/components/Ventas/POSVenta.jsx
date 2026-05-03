@@ -10,11 +10,13 @@ import { getCajaActivaByUsuario } from "../../services/cajaService";
 import DialogAbrirCaja from "./POSVentaComponents/DialogAbrirCaja";
 import DialogCerrarCaja from "./POSVentaComponents/DialogCerrarCaja";
 import { abrirCaja, cerrarCaja, getCajasAbiertas } from "../../services/cajaService";
+import DialogMovimientoCaja from "./POSVentaComponents/DialogMovimientoCaja";
 
 export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [cajaActual, setCajaActual] = useState(null);
+  const [openMovimiento, setOpenMovimiento] = useState(false);
 
   useEffect(() => {
     const cargarCaja = async () => {
@@ -213,6 +215,14 @@ useEffect(() => {
         <Typography variant="body2">
           {new Date().toLocaleTimeString()}
         </Typography>
+        <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setOpenMovimiento(true)}
+        disabled={!cajaActiva}
+      >
+        Movimiento Caja
+      </Button>
 
         <Button
           variant="contained"
@@ -257,6 +267,11 @@ useEffect(() => {
         setObservaciones={setObservaciones}
         registrarVenta={registrarVenta}
         clearCart={clearCart}
+        cajaActiva={cajaActiva}
+      />
+      <DialogMovimientoCaja
+        open={openMovimiento}
+        onClose={() => setOpenMovimiento(false)}
         cajaActiva={cajaActiva}
       />
     </Box>
