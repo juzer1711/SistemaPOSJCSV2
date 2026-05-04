@@ -37,6 +37,8 @@ public class ProductoController {
                 p.getPrecioventa(),
                 p.getIva(),
                 p.getPrecioSinIva(),
+                p.getStockActual(),
+                p.getStockMinimo(),
                 p.getEstado()
             ));
     }
@@ -54,6 +56,8 @@ public class ProductoController {
                 p.getPrecioventa(),
                 p.getIva(),
                 p.getPrecioSinIva(),
+                p.getStockActual(),
+                p.getStockMinimo(),
                 p.getEstado()
             ));
     }
@@ -110,6 +114,8 @@ public class ProductoController {
             p.getPrecioventa(),
             p.getIva(),
             p.getPrecioSinIva(),
+            p.getStockActual(),
+            p.getStockMinimo(),
             p.getEstado()
         ));
     }

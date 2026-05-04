@@ -48,6 +48,29 @@ export default function ProductTable({
     { field: "precioSinIva", headerName: "Sin IVA", width: 150 },
 
     {
+      field: "stockActual",
+      headerName: "Stock",
+      width: 150,
+      renderCell: (params) => {
+        const stock = params.row.stockActual;
+        const min = params.row.stockMinimo;
+
+        let color = "success";
+        let label = stock;
+
+        if (stock <= 0) {
+          color = "error";
+          label = `Sin stock (${stock})`;
+        } else if (stock <= min) {
+          color = "warning";
+          label = `Bajo (${stock})`;
+        }
+
+        return <Chip label={label} color={color} size="small" />;
+      }
+    },
+
+    {
       field: "estado",
       headerName: "Estado",
       width: 140,

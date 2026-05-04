@@ -14,6 +14,7 @@ import com.sistemaposjcs.sistemaposjcs.repository.ClienteRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.CajaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.UserRepository;
+import com.sistemaposjcs.sistemaposjcs.service.InventarioService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,14 +37,16 @@ public class VentaService {
     private final ProductoRepository productoRepository;
     private final CajaRepository cajaRepository;
     private final UserRepository userRepository;
+    private final InventarioService inventarioService;
 
 
-    public VentaService(VentaRepository ventaRepository, ClienteRepository clienteRepository, ProductoRepository productoRepository, CajaRepository cajaRepository, UserRepository userRepository) {
+    public VentaService(VentaRepository ventaRepository, ClienteRepository clienteRepository, ProductoRepository productoRepository, CajaRepository cajaRepository, UserRepository userRepository, InventarioService inventarioService) {
         this.ventaRepository = ventaRepository;
         this.clienteRepository = clienteRepository;
         this.productoRepository = productoRepository;
         this.cajaRepository = cajaRepository;
         this.userRepository = userRepository;
+        this.inventarioService = inventarioService;
     }
     
     // ✅ Obtener venta por ID
@@ -167,7 +170,19 @@ public Venta createVenta(Venta venta) {
                 caja.getTotalTransferencia().add(totalVenta)
         );
     }
-    return ventaRepository.save(venta);
+    Venta ventaGuardada = ventaRepository.save(venta);
+
+    // 🔥 Descontar inventario
+    for (ItemFactura item : ventaGuardada.getItems()) {
+
+    inventarioService.registrarVenta(
+        item.getProducto().getIdProducto(),
+        item.getCantidad(),
+        "Venta ID: " + ventaGuardada.getIdVenta()
+    );
+    }
+
+    return ventaGuardada;
 }
 
 

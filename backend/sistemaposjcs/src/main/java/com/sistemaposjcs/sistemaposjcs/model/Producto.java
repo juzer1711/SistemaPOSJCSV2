@@ -65,6 +65,12 @@ public class Producto {
     private BigDecimal precioSinIva;
 
     @Column(nullable = false)
+    private Integer stockActual;
+
+    @Column(nullable = false)
+    private Integer stockMinimo;
+
+    @Column(nullable = false)
     private Boolean estado;
 
 }

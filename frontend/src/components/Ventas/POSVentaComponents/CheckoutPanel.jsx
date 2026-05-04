@@ -15,7 +15,7 @@ const CheckoutPanel = ({
   metodoPago, setMetodoPago,
   montoRecibido, setMontoRecibido,
   observaciones, setObservaciones,
-  registrarVenta, clearCart, cajaActiva
+  registrarVenta, clearCart, reloadProductos, cajaActiva
 }) => {
   const total = items.reduce((acc,i) => acc + (Number(i.precioUnitario) * Number(i.cantidad)), 0);
   const totalIVA = items.reduce((acc,i) => acc + (i.precioUnitario - i.precioSinIva) * i.cantidad, 0);
@@ -78,13 +78,12 @@ const CheckoutPanel = ({
       message: "✔ Venta registrada correctamente",
       severity: "success"
       });
-      setOpenResumen(false);
       clearCart();
       setClienteSeleccionado(null); // Limpia el cliente
       setMetodoPago("");        // Reset del método de pago
       setMontoRecibido("");     // Limpia el input de efectivo
       setObservaciones("");     // Limpia las notas
-      setLoadingVenta(false);
+      await reloadProductos();
     } catch (error) { 
       //extrae el mensaje de error real
       const mensajeReal = error.response?.data?.message || error.message || "Error desconocido";
@@ -101,7 +100,10 @@ const CheckoutPanel = ({
             severity: "error"
           });
         }
-    }
+    }finally {
+    setLoadingVenta(false);
+    setOpenResumen(false);
+  }
   };
 
   const [openCliente, setOpenCliente] = useState(false);

@@ -11,37 +11,54 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
-const ProductCard = ({ p, onAdd }) => (
-  <Card
-    sx={{
-      borderRadius: 2,
-      height: 120,
-      display: "flex",
-    }}
-  >
-    <CardActionArea
-      onClick={() => onAdd(p)}
+const ProductCard = ({ p, onAdd }) => {
+  const stock = p.stockActual ?? 0;
+  const min = p.stockMinimo ?? 0;
+
+  let color = "text.secondary";
+  let label = `Stock: ${stock}`;
+
+  if (stock <= 0) {
+    color = "error.main";
+    label = `Sin stock (${stock})`;
+  } else if (stock <= min) {
+    color = "warning.main";
+    label = `Bajo (${stock})`;
+  }
+
+  return (
+    <Card
       sx={{
-        p: 2,
+        borderRadius: 2,
+        height: 120,
         display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
+        border: stock <= 0 ? "2px solid red" : "none",
       }}
     >
-      <Typography variant="subtitle2" noWrap fontWeight={600}>
-        {p.nombre}
-      </Typography>
+      <CardActionArea
+        onClick={() => onAdd(p)}
+        sx={{
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        }}
+      >
+        <Typography variant="subtitle2" noWrap fontWeight={600}>
+          {p.nombre}
+        </Typography>
 
-      <Typography variant="h6" color="primary" fontWeight="bold">
-        ${Number(p.precioventa).toLocaleString("es-CO")}
-      </Typography>
+        <Typography variant="h6" color="primary" fontWeight="bold">
+          ${Number(p.precioventa).toLocaleString("es-CO")}
+        </Typography>
 
-      <Typography variant="caption" color="text.secondary">
-        Stock: {p.stock ?? "-"}
-      </Typography>
-    </CardActionArea>
-  </Card>
-);
+        <Typography variant="caption" sx={{ color }}>
+          {label}
+        </Typography>
+      </CardActionArea>
+    </Card>
+  );
+};
 
 const ProductSidebar = ({ productos, onAdd = () => {} }) => {
   const [q, setQ] = useState("");

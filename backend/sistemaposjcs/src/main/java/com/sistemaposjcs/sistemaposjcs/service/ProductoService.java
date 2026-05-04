@@ -46,6 +46,12 @@ public class ProductoService {
         if (producto.getEstado() == null) {
             producto.setEstado(true);
         }
+        if (producto.getStockActual() == null) {
+            producto.setStockActual(0);
+        }
+        if (producto.getStockMinimo() == null) {
+            producto.setStockMinimo(0);
+        }
 
         // Obtener valor numérico del IVA
         BigDecimal ivaValue = producto.getIva().getValue();

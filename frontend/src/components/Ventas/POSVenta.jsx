@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, Snackbar, Alert} from "@mui/material";
 import ProductSidebar from "./POSVentaComponents/ProductSidebar";
 import CartPanel from "./POSVentaComponents/CartPanel";
 import CheckoutPanel from "./POSVentaComponents/CheckoutPanel";
@@ -72,19 +72,38 @@ export default function VentaPOS () {
     const data = localStorage.getItem("pos_venta");
     return data ? JSON.parse(data).observaciones || "" : "";
   });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success"
+  });
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const p = await getActiveProducts();
-        setProductos(p.data.content || []);
-        const c = await getActiveClients();
-        setClientes(c.data.content || []);
-      } catch (err) {
-        console.error("Error cargando datos POS", err);
-      }
-    })();
-  }, []);
+const loadProductos = async () => {
+  try {
+    const res = await getActiveProducts();
+    setProductos(res.data.content || []);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      const [p, c] = await Promise.all([
+        getActiveProducts(),
+        getActiveClients()
+      ]);
+
+      setProductos(p.data.content || []);
+      setClientes(c.data.content || []);
+    } catch (err) {
+      console.error("Error cargando datos POS", err);
+    }
+  };
+
+  loadData();
+}, []);
 
   useEffect(() => {
   const data = {
@@ -123,17 +142,41 @@ useEffect(() => {
 
 
   // Añadir producto al carrito (incrementa si ya existe)
-  const addItem = (prod) => {
-    if (!prod?.idProducto) return;
-    setItems(prev => {
-      const found = prev.find(i => i.idProducto === prod.idProducto);
-      if (found) {
-        return prev.map(i => i.idProducto === prod.idProducto ? { ...i, cantidad: i.cantidad + 1 } : i);
+const addItem = (producto) => {
+  if (!producto?.idProducto) return;
+
+  // 🔥 ALERTAS
+  if (producto.stockActual <= 0) {
+    showMessage("⚠ Producto sin stock (venta permitida)", "warning");
+  } else if (producto.stockActual <= producto.stockMinimo) {
+    showMessage("⚠ Stock bajo", "warning");
+  }
+
+  // 🔥 AGREGAR AL CARRITO
+  setItems(prev => {
+    const found = prev.find(i => i.idProducto === producto.idProducto);
+
+    if (found) {
+      return prev.map(i =>
+        i.idProducto === producto.idProducto
+          ? { ...i, cantidad: i.cantidad + 1 }
+          : i
+      );
+    }
+
+    return [
+      ...prev,
+      {
+        idProducto: producto.idProducto,
+        nombre: producto.nombre,
+        precioUnitario: Number(producto.precioventa),
+        ivaPorcentaje: producto.iva.value,
+        precioSinIva: Number(producto.precioSinIva),
+        cantidad: 1
       }
-      return [...prev, { idProducto: prod.idProducto, nombre: prod.nombre, precioUnitario: Number(prod.precioventa), ivaPorcentaje: prod.iva.value,         // 0.19 por ejemplo
-        precioSinIva: Number(prod.precioSinIva),cantidad: 1 }];
-    });
-  };
+    ];
+  });
+};
 
   const updateQuantity = (idProducto, cantidad) => {
     setItems(prev => prev.map(i => i.idProducto === idProducto ? { ...i, cantidad } : i));
@@ -185,7 +228,11 @@ useEffect(() => {
       console.error(e);
     }
   };
-  
+
+  const showMessage = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   return (
   <>
     {/* HEADER POS */}
@@ -267,6 +314,7 @@ useEffect(() => {
         setObservaciones={setObservaciones}
         registrarVenta={registrarVenta}
         clearCart={clearCart}
+        reloadProductos={loadProductos}
         cajaActiva={cajaActiva}
       />
       <DialogMovimientoCaja
@@ -275,6 +323,19 @@ useEffect(() => {
         cajaActiva={cajaActiva}
       />
     </Box>
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={2500}
+      onClose={() => setSnackbar({ ...snackbar, open: false })}
+    >
+      <Alert
+        severity={snackbar.severity}
+        variant="filled"
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
     </>
 );};
 

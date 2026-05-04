@@ -45,6 +45,12 @@ const AdminDashboard = () => {
       action: () => navigate("/gestion-cajas"),
     },
     {
+      title: "Inventario",
+      description: "Administra y gestiona el stock de tus productos.",
+      icon: <InventoryIcon sx={{ fontSize: 60, color: "primary.main" }} />,
+      action: () => navigate("/inventario"),
+    },
+    {
       title: "Nueva Venta",
       description: "Registra una nueva venta al sistema.",
       icon: <ShoppingCartIcon sx={{ fontSize: 60, color: "primary.main" }} />,

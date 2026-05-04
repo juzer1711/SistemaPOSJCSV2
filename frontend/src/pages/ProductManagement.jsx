@@ -102,6 +102,15 @@ const handleShowAll = () => {
       setProducts(res.data.content || []);
       setTotalRows(res.data.totalElements || 0);
 
+      const lowStock = res.data.content.filter(
+          p => p.stockActual <= p.stockMinimo
+        );
+
+        if (lowStock.length > 0) {
+          showMessage(`⚠ ${lowStock.length} productos con stock bajo`, "warning");
+        }
+
+
     } catch (error) {
       console.error(error);
     }

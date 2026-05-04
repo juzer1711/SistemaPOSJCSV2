@@ -10,6 +10,7 @@ import PrivateRoute from "./PrivateRoute"; // Componente para proteger rutas
 import VentaManagement from "../pages/VentaManagement";
 import VentaPOS from "../components/Ventas/POSVenta";
 import CajaManagement from "../pages/CajaManagement";
+import InventarioManagement from "../pages/InventarioManagament";
 
 function AppRoutes() {
   return (
@@ -90,6 +91,15 @@ function AppRoutes() {
           element={
             <PrivateRoute roles={["ADMINISTRADOR"]}>
               <CajaManagement/>
+            </PrivateRoute>
+          }
+        />
+        {/* 🔹 Ruta modulo inventario (solo para administradores)  */}
+        <Route
+          path="/inventario"
+          element={
+            <PrivateRoute roles={["ADMINISTRADOR"]}>
+              <InventarioManagement/>
             </PrivateRoute>
           }
         />  
