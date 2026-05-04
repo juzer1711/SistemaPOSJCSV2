@@ -37,8 +37,9 @@ public class GlobalExceptionHandler {
 
         // 🔥 DEFAULT
         else {
-            response.put("field", "general");
-            response.put("message", "Error de datos duplicados");
+            response.put("field", "sistema");
+            // Esto te dirá la verdad en el JSON de respuesta
+            response.put("message", e.getMostSpecificCause().getMessage()); 
         }
 
         return ResponseEntity.badRequest().body(response);

@@ -212,6 +212,7 @@ const addItem = (producto) => {
   const handleCerrarCaja = async (efectivoReal, transferenciaReal) => {
     try {
       const idUsuario = localStorage.getItem("id_usuario");
+      console.log({ idUsuario, efectivoReal, transferenciaReal });
 
       await cerrarCaja({
         idUsuario,
@@ -323,6 +324,19 @@ const addItem = (producto) => {
         cajaActiva={cajaActiva}
       />
     </Box>
+          {/* 🔥 MODAL */}
+    <DialogAbrirCaja
+      open={openCajaModal}
+      onClose={() => {}}
+      onConfirm={handleAbrirCaja}
+    />
+
+    <DialogCerrarCaja
+      open={openCerrarCaja}
+      onClose={() => setOpenCerrarCaja(false)}
+      cajaActiva={cajaActiva}
+      onConfirm={handleCerrarCaja}
+    />
     <Snackbar
       open={snackbar.open}
       autoHideDuration={2500}
