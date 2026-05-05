@@ -62,7 +62,7 @@ function AppRoutes() {
         <Route
           path="/gestion-clientes"
           element={
-            <PrivateRoute roles={["ADMINISTRADOR"]}>
+            <PrivateRoute roles={["ADMINISTRADOR","CAJERO"]}>
               <ClientManagement />
             </PrivateRoute>
           }

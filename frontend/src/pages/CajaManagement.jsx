@@ -18,6 +18,8 @@ import CajaDetailDialog from "../components/Cajas/CajaDetailDialog";
 import CajasAbiertasGrid from "../components/Cajas/CajasAbiertasGrid";
 import HistorialCajasGrid from "../components/Cajas/HistorialCajasGrid";
 import { formatDateTime } from "../utils/formats";
+import { abrirCajaSchema } from "../validation/validationSchema";
+import { useSnackbar } from "../context/SnackBarProvider";
 
 
 export default function CajaManagement() {
@@ -36,10 +38,6 @@ export default function CajaManagement() {
   const [totalRowsAbiertas, setTotalRowsAbiertas] = useState(0);
   const [totalRowsHistorial, setTotalRowsHistorial] = useState(0);
 
-  // 🔹 Form abrir caja
-  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState("");
-  const [montoInicial, setMontoInicial] = useState("");
-
   // ================= FILTROS =================
   const [filtroAbiertas, setFiltroAbiertas] = useState({
     cajero: "",
@@ -51,6 +49,17 @@ export default function CajaManagement() {
     fechaFin: "",
     cajero: ""
   });
+
+  const [form, setForm] = useState({
+    usuario: null,
+    montoInicial: "",
+  });
+
+  const [errores, setErrores] = useState({});
+
+  const [saving, setSaving] = useState(false);
+
+  const { showSnackbar } = useSnackbar();
 
   const [loadingAbiertas, setLoadingAbiertas] = useState(false);
   const [loadingCerradas, setLoadingCerradas] = useState(false);
@@ -88,7 +97,7 @@ const loadUsuarios = async () => {
     const res = await searchUsers({
       page: 0,
       size: 20,
-      search: busquedaUsuario || undefined,
+      search: busquedaUsuario,
     });
 
     setUsuarios(res.data.content || []);
@@ -137,27 +146,57 @@ const loadHistorial = async () => {
   // ================== ACCIONES ==================
 
   const handleAbrirCaja = async () => {
-    await abrirCaja({
-      idUsuario: usuarioSeleccionado,
-      montoInicial
-    });
+    try {
+      setSaving(true);
+      setErrores({});
 
-    setUsuarioSeleccionado("");
-    setMontoInicial("");
+      await abrirCajaSchema.validate(form, { abortEarly: false });
 
-    loadCajasAbiertas();
+      await abrirCaja({
+        idUsuario: form.usuario.idUsuario,
+        montoInicial: Number(form.montoInicial),
+      });
+
+      showSnackbar("Caja abierta correctamente", "success"); 
+
+      setForm({ usuario: null, montoInicial: "" });
+      loadCajasAbiertas();
+
+    } catch (err) {
+      if (err.name === "ValidationError") {
+        const erroresYup = {};
+        err.inner.forEach((e) => {
+          erroresYup[e.path] = e.message;
+        });
+        setErrores(erroresYup);
+      } else {
+        showSnackbar("Error al abrir la caja", "error");
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCerrarCaja = async (idCaja) => {
-    await forzarCierreCaja(idCaja);
-    loadCajasAbiertas();
-    loadHistorial();
+    try {
+      await forzarCierreCaja(idCaja);
+
+      showSnackbar("Caja cerrada correctamente", "success");
+      loadCajasAbiertas();
+      loadHistorial();
+    } catch (e) {
+      showSnackbar("Error al cerrar la caja", "error");
+    }
   };
 
   const verDetalleCaja = async (idCaja) => {
-    const res = await getCajaById(idCaja);
-    setCajaSeleccionada(res.data);
-    setDetailOpen(true);
+    try {
+      const res = await getCajaById(idCaja);
+      setCajaSeleccionada(res.data);
+      setDetailOpen(true);
+    } catch {
+      showSnackbar("No se pudo cargar el detalle de la caja", "error");
+    }
   };
 
 
@@ -181,26 +220,27 @@ const loadHistorial = async () => {
         <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
             <Autocomplete
-              fullWidth
               sx={{ width: 230 }}
               options={usuarios}
+              value={form.usuario}
+              onChange={(e, newValue) => {
+                setForm({ ...form, usuario: newValue });
+                setErrores({ ...errores, usuario: undefined });
+              }}
               getOptionLabel={(u) =>
-                `${u.primerNombre} ${u.primerApellido} - ${u.documento}`
+                u
+                  ? `${u.primerNombre} ${u.primerApellido} - ${u.documento}`
+                  : ""
               }
-              value={usuarios.find(u => u.idUsuario === usuarioSeleccionado) || null}
-              onChange={(e, newValue) =>
-                setUsuarioSeleccionado(newValue?.idUsuario || "")
+              isOptionEqualToValue={(option, value) =>
+                option.idUsuario === value?.idUsuario
               }
-              onInputChange={(e, newInputValue) =>
-                setBusquedaUsuario(newInputValue)
-              }
-              loading={loadingUsuarios}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   label="Buscar cajero"
-                  placeholder="Nombre, apellido, documento o id"
-                  fullWidth
+                  error={!!errores.usuario}
+                  helperText={errores.usuario}
                 />
               )}
             />
@@ -208,21 +248,37 @@ const loadHistorial = async () => {
 
           <Grid item xs={4}>
             <TextField
-              fullWidth
+              sx={{ width: 230 }}
               label="Monto inicial"
-              value={montoInicial}
-              onChange={(e) => setMontoInicial(e.target.value)}
+              value={form.montoInicial}
+              onChange={(e) => {
+                setForm({ ...form, montoInicial: e.target.value });
+                setErrores({ ...errores, montoInicial: undefined });
+              }}
+              error={!!errores.montoInicial}
+              helperText={errores.montoInicial}
             />
           </Grid>
 
           <Grid item xs={3}>
-            <Button fullWidth variant="contained" onClick={handleAbrirCaja}>
-              Abrir Caja
+            <Button
+              fullWidth
+              size="large"
+              variant="contained"
+              onClick={handleAbrirCaja}
+              disabled={saving}
+            >
+              {saving ? "Abriendo..." : "Abrir Caja"}
             </Button>
           </Grid>
         </Grid>
       </CardContent>
     </Card>
+    {errores.general && (
+      <Typography color="error" mt={1}>
+        {errores.general}
+      </Typography>
+    )}
 
     {/* 🟩 CAJAS ABIERTAS CON DATAGRID */}
       

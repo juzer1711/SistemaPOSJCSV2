@@ -55,6 +55,9 @@ const Navbar = () => {
               <Button color="inherit" onClick={() => navigate("/gestion-cajas")}>
                 Cajas
               </Button>
+              <Button color="inherit" onClick={() => navigate("/inventario")}>
+                Inventario
+              </Button>
               <Button color="inherit" onClick={() => navigate("/reportes")}>
                 Reportes
               </Button>
@@ -69,8 +72,8 @@ const Navbar = () => {
               <Button color="inherit" onClick={() => navigate("/ventas")}>
                 Ventas
               </Button>
-              <Button color="inherit" onClick={() => navigate("/inventario")}>
-                Inventario
+              <Button color="inherit" onClick={() => navigate("/gestion-clientes")}>
+                Clientes
               </Button>
             </>
           )}

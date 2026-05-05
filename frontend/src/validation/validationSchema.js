@@ -230,3 +230,15 @@ export const ventaSchema = yup.object().shape({
     .max(255, "Máximo 255 caracteres")
 });
 
+export const abrirCajaSchema = yup.object().shape({
+  usuario: yup
+    .object()
+    .required("Debes seleccionar un cajero"),
+
+  montoInicial: yup
+    .number()
+    .typeError("El monto debe ser numérico")
+    .positive("El monto debe ser mayor a 0")
+    .required("El monto inicial es obligatorio"),
+});
+

@@ -3,6 +3,7 @@ import { Box, Grid, Card, CardContent, Typography, Button } from "@mui/material"
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import HistoryIcon from "@mui/icons-material/History";
+import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getCajasAbiertas } from "../services/cajaService";
@@ -55,21 +56,15 @@ const CajeroDashboard = () => {
     {
       title: "Nueva Venta",
       description: "Realiza una nueva transacción de venta.",
-      icon: <PointOfSaleIcon sx={{ fontSize: 40, color: "primary.main" }} />,
+      icon: <PointOfSaleIcon sx={{ fontSize: 60, color: "primary.main" }} />,
       action: () => navigate("/nueva-venta"),
     },
     {
-      title: "Inventario",
-      description: "Consulta productos y existencias disponibles.",
-      icon: <Inventory2Icon sx={{ fontSize: 40, color: "primary.main" }} />,
-      action: () => navigate("/inventario"),
-    },
-    {
-      title: "Historial de Ventas",
-      description: "Revisa tus ventas realizadas y detalles.",
-      icon: <HistoryIcon sx={{ fontSize: 40, color: "primary.main" }} />,
-      action: () => navigate("/historial"),
-    },
+      title: "Gestión de Clientes",
+      description: "Administra y gestiona los clientes del sistema.",
+      icon: <PersonIcon sx={{ fontSize: 60, color: "primary.main" }} />,
+      action: () => navigate("/gestion-clientes"),
+    }
   ];
 
 return (
