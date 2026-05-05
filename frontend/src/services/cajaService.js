@@ -61,7 +61,7 @@ export const abrirCaja = async (cajaData) => {
 };
 
 // Cerrar Caja
-export const cerrarCaja = async (id, cajaData) => {
+export const cerrarCaja = async (cajaData) => {
   try {
     const res = await axios.post(`${API_URL}/cerrar`, cajaData, {
       headers: getAuthHeaders()

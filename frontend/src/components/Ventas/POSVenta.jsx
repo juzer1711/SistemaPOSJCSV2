@@ -9,14 +9,17 @@ import {registrarVenta} from "../../services/ventaService";
 import { getCajaActivaByUsuario } from "../../services/cajaService";
 import DialogAbrirCaja from "./POSVentaComponents/DialogAbrirCaja";
 import DialogCerrarCaja from "./POSVentaComponents/DialogCerrarCaja";
+import DialogReporteCierre from "./POSVentaComponents/DialogReporteCierre";
 import { abrirCaja, cerrarCaja, getCajasAbiertas } from "../../services/cajaService";
 import DialogMovimientoCaja from "./POSVentaComponents/DialogMovimientoCaja";
+import { useNavigate } from "react-router-dom";
 
 export default function VentaPOS () {
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [cajaActual, setCajaActual] = useState(null);
   const [openMovimiento, setOpenMovimiento] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const cargarCaja = async () => {
@@ -43,6 +46,7 @@ export default function VentaPOS () {
   const [cajaActiva, setCajaActiva] = useState(null);
   const [openCajaModal, setOpenCajaModal] = useState(false);
   const [openCerrarCaja, setOpenCerrarCaja] = useState(false);
+  const [reporteCierre, setReporteCierre] = useState(null);
 
   const [montoInicial, setMontoInicial] = useState("");
 
@@ -192,16 +196,16 @@ const addItem = (producto) => {
 
   const handleAbrirCaja = async (montoInicial, password) => {
     try {
-      const idUsuario = localStorage.getItem("id_usuario");
+      const idUsuario = Number(localStorage.getItem("id_usuario"));
 
       await abrirCaja({
-        idUsuario,
-        montoInicial
+        idUsuario: idUsuario,
+        montoInicial: Number(montoInicial)  // 🔥🔥🔥 ESTA LÍNEA
       });
 
       setOpenCajaModal(false);
 
-      const res = await getCajaActivaByUsuario(Number(idUsuario));
+      const res = await getCajaActivaByUsuario(idUsuario);
       setCajaActiva(res.data);
 
     } catch (e) {
@@ -212,17 +216,24 @@ const addItem = (producto) => {
   const handleCerrarCaja = async (efectivoReal, transferenciaReal) => {
     try {
       const idUsuario = localStorage.getItem("id_usuario");
-      console.log({ idUsuario, efectivoReal, transferenciaReal });
 
-      await cerrarCaja({
+      // ✅ CAPTURAS la respuesta del backend
+      const res = await cerrarCaja({
         idUsuario,
         efectivoReal,
         transferenciaReal
       });
 
+      // 🔥 1. Guardas el reporte que devuelve el backend
+      setReporteCierre(res);
+
+      // 🔥 2. Mensaje éxito
+      showMessage("Caja cerrada correctamente", "success");
+
+      // 🔥 3. Cerrar modal
       setOpenCerrarCaja(false);
 
-      setCajaActiva(null); // 🔥 esto bloquea el POS otra vez
+      // 🔥 4. Limpiar POS
       clearCart();
 
     } catch (e) {
@@ -336,6 +347,20 @@ const addItem = (producto) => {
       onClose={() => setOpenCerrarCaja(false)}
       cajaActiva={cajaActiva}
       onConfirm={handleCerrarCaja}
+    />
+
+    <DialogReporteCierre
+      open={!!reporteCierre}
+      reporte={reporteCierre}
+      onClose={() => {
+        setReporteCierre(null);
+        const role = localStorage.getItem("role");
+        navigate(
+          role === "ADMINISTRADOR"
+            ? "/admin-dashboard"
+            : "/cajero-dashboard"
+        );// 🔥 salida elegante del POS
+      }}
     />
     <Snackbar
       open={snackbar.open}

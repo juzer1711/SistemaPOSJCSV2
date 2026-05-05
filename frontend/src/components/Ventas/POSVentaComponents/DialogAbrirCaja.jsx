@@ -10,7 +10,6 @@ const DialogAbrirCaja = ({
   onConfirm
 }) => {
   const [montoInicial, setMontoInicial] = useState("");
-  const [password, setPassword] = useState("");
 
   return (
     <Dialog open={open} disableEscapeKeyDown>
@@ -29,21 +28,13 @@ const DialogAbrirCaja = ({
           value={montoInicial}
           onChange={(e)=>setMontoInicial(e.target.value)}
         />
-
-        <TextField
-          label="Confirmar contraseña"
-          type="password"
-          fullWidth
-          value={password}
-          onChange={(e)=>setPassword(e.target.value)}
-        />
       </DialogContent>
 
       <DialogActions>
         <Button
           variant="contained"
           fullWidth
-          onClick={() => onConfirm(montoInicial, password)}
+          onClick={() => onConfirm(montoInicial)}
         >
           Abrir Caja
         </Button>

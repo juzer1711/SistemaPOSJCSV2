@@ -10,7 +10,6 @@ export default function HistorialCajasGrid({
   onVerDetalle,
   loading
 }) {
-
   const columns = [
     { field: "idCaja", headerName: "Caja", width: 90 },
     { field: "nombreCajero", headerName: "Cajero", flex: 1 },
@@ -50,14 +49,15 @@ export default function HistorialCajasGrid({
       rows={rows}
       columns={columns}
       getRowId={(row) => row.idCaja}
-      paginationMode="server"
       rowCount={totalRows}
-      pageSizeOptions={[10]}
-      pageSize={10}
-      page={page}
-      onPageChange={onPageChange}
-      autoHeight
       loading={loading}
+      paginationMode="server"
+      pageSizeOptions={[10]}
+      paginationModel={{ page, pageSize: 10 }}
+      onPaginationModelChange={(model) => {
+        onPageChange(model.page);
+      }}
+      autoHeight
     />
   );
 }

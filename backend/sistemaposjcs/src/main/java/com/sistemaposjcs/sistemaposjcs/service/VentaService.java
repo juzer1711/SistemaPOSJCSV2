@@ -14,7 +14,6 @@ import com.sistemaposjcs.sistemaposjcs.repository.ClienteRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.CajaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.UserRepository;
-import com.sistemaposjcs.sistemaposjcs.service.InventarioService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

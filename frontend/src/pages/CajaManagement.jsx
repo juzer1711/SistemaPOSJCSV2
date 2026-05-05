@@ -120,8 +120,12 @@ const loadHistorial = async () => {
     page: pageHistorial,
     size,
     search: filtroHistorial.cajero || undefined,
-    fechaApertura: filtroHistorial.fechaInicio || undefined,
-    fechaCierre: filtroHistorial.fechaFin || undefined,
+    fechaApertura: filtroHistorial.fechaInicio
+      ? `${filtroHistorial.fechaInicio}T00:00:00`
+      : undefined,
+    fechaCierre: filtroHistorial.fechaFin
+      ? `${filtroHistorial.fechaFin}T23:59:59`
+      : undefined,
     estado: "CERRADA",
   });
 
