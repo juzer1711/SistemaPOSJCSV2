@@ -17,7 +17,7 @@ export const getStockByProducto = async (idProducto) => {
 // 📜 Historial con paginación y filtros
 export const getMovimientos = async (params) => {
   return await axios.get(`${API_URL}/movimientos`, {
-    params,
+    params: params,
     headers: getAuthHeaders(),
   });
 };

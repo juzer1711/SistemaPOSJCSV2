@@ -8,7 +8,7 @@ import ProductManagement from "../pages/ProductManagement"; // CRUD de productos
 import ClientManagement from "../pages/ClientManagement"; // CRUD de clientes
 import PrivateRoute from "./PrivateRoute"; // Componente para proteger rutas
 import VentaManagement from "../pages/VentaManagement";
-import VentaPOS from "../components/Ventas/POSVenta";
+import VentaPOS from "../pages/POSVenta";
 import CajaManagement from "../pages/CajaManagement";
 import InventarioManagement from "../pages/InventarioManagament";
 

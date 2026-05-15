@@ -61,7 +61,8 @@ export default function MovimientosGrid({
       rowCount={totalRows}
       onRowClick={(params) => onRowClick(params.row)}
       paginationMode="server"
-      paginationModel={{ page }}
+      pageSizeOptions={[10]}
+      paginationModel={{ page, pageSize: 10 }}
       onPaginationModelChange={(model) => onPageChange(model.page)}
       autoHeight
     />

@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Button, Snackbar, Alert} from "@mui/material";
-import ProductSidebar from "./POSVentaComponents/ProductSidebar";
-import CartPanel from "./POSVentaComponents/CartPanel";
-import CheckoutPanel from "./POSVentaComponents/CheckoutPanel";
-import { getActiveProducts } from "../../services/productService";
-import { getActiveClients } from "../../services/clientService";
-import {registrarVenta} from "../../services/ventaService";
-import { getCajaActivaByUsuario } from "../../services/cajaService";
-import DialogAbrirCaja from "./POSVentaComponents/DialogAbrirCaja";
-import DialogCerrarCaja from "./POSVentaComponents/DialogCerrarCaja";
-import DialogReporteCierre from "./POSVentaComponents/DialogReporteCierre";
-import { abrirCaja, cerrarCaja, getCajasAbiertas } from "../../services/cajaService";
-import DialogMovimientoCaja from "./POSVentaComponents/DialogMovimientoCaja";
+import ProductSidebar from "../components/POSVentaComponents/ProductSidebar";
+import CartPanel from "../components/POSVentaComponents/CartPanel";
+import CheckoutPanel from "../components/POSVentaComponents/CheckoutPanel";
+import { getActiveProducts } from "../services/productService";
+import { getActiveClients } from "../services/clientService";
+import {registrarVenta} from "../services/ventaService";
+import { getCajaActivaByUsuario } from "../services/cajaService";
+import DialogAbrirCaja from "../components/POSVentaComponents/DialogAbrirCaja";
+import DialogCerrarCaja from "../components/POSVentaComponents/DialogCerrarCaja";
+import DialogReporteCierre from "../components/POSVentaComponents/DialogReporteCierre";
+import { abrirCaja, cerrarCaja, getCajasAbiertas } from "../services/cajaService";
+import DialogMovimientoCaja from "../components/POSVentaComponents/DialogMovimientoCaja";
 import { useNavigate } from "react-router-dom";
 
 export default function VentaPOS () {

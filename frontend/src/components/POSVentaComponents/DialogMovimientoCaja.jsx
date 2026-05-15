@@ -4,7 +4,7 @@ import {
   TextField, MenuItem, Button, DialogActions,
   Box
 } from "@mui/material";
-import { registrarMovimientoCaja } from "../../../services/movimientosCajaService";
+import { registrarMovimientoCaja } from "../../services/movimientosCajaService";
 
 export default function DialogMovimientoCaja({ open, onClose, cajaActiva }) {
   const [tipo, setTipo] = useState("ENTRADA");
@@ -34,7 +34,8 @@ export default function DialogMovimientoCaja({ open, onClose, cajaActiva }) {
 
       <DialogTitle>Movimiento de Caja</DialogTitle>
 
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
+      <DialogContent>
+        <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
         <TextField
           select
           label="Tipo de movimiento"
@@ -59,6 +60,7 @@ export default function DialogMovimientoCaja({ open, onClose, cajaActiva }) {
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
         />
+        </Box>
       </DialogContent>
 
       <DialogActions>

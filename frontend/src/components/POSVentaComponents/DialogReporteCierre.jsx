@@ -5,7 +5,7 @@ import {
   Box,
   Typography
 } from "@mui/material";
-import { formatDateTime, formatMoney } from "../../../utils/formats";
+import { formatDateTime, formatMoney } from "../../utils/formats";
 
 const DialogReporteCierre = ({ open, reporte, onClose }) => {
 
