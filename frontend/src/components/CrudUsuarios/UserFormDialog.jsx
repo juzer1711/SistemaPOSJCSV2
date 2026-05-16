@@ -1,98 +1,69 @@
 import React, { useEffect, useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent, 
-  DialogActions,
-  TextField, 
-  Button,
-  Box,
-  MenuItem, 
-  InputAdornment, 
-  IconButton,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Button, Box, MenuItem, InputAdornment,
+  IconButton, Typography, Chip, CircularProgress, Divider,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { userSchema } from "../../validation/validationSchema";
 import { createUser, updateUser } from "../../services/userService";
+import { styles } from "../../styles/users/stylesUserFormDialog";
 
-const UserFormDialog = ({ 
-  open, 
-  editing, 
-  selectedId, 
-  defaultValues, 
-  onClose, 
-  loadUsers, 
-  showMessage, 
-  tiposDocumento }) => {
+const TIPOS_DOCUMENTO = [
+  { value: "CEDULA_CIUDADANIA",   label: "Cédula de Ciudadanía" },
+  { value: "CEDULA_EXTRANJERIA",  label: "Cédula de Extranjería" },
+  { value: "TARJETA_EXTRANJERIA", label: "Tarjeta de Extranjería" },
+  { value: "PASAPORTE",           label: "Pasaporte" },
+  { value: "PEP",                 label: "Permiso Especial de Permanencia" },
+];
 
-  const [showPassword, setShowPassword] = useState(false);
+const UserFormDialog = ({
+  open, editing, selectedId, defaultValues,
+  onClose, loadUsers, showMessage,
+}) => {
+  const theme = useTheme();
+  const [showPassword, setShowPassword]   = useState(false);
   const [changePassword, setChangePassword] = useState(false);
-  const [roles, setRoles] = useState([]);
+  const [isSubmitting, setIsSubmitting]   = useState(false); // ✅ estado de carga
+
   const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    reset,
-    setError, // 🔥 ESTA ES LA CLAVE
-    formState: { errors }, 
+    register, handleSubmit, reset, setError,
+    formState: { errors },
   } = useForm({
     resolver: yupResolver(userSchema),
+    context: { isEditing: editing }, // ✅ contexto para el schema condicional de password
     defaultValues: defaultValues || {},
   });
 
+  // ── Reset al abrir/cerrar ────────────────────────────────────────
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      setChangePassword(false);
+      setShowPassword(false);
+      return;
+    }
     if (!editing) {
       reset({
-        username: "",
-        password: "",
-        primerNombre: "",
-        segundoNombre: "",
-        primerApellido: "",
-        segundoApellido: "",
-        tipoDocumento: "",
-        documento: "",
-        rolId: "",
-        email: "",
-        telefono: "",
+        username: "", password: "", primerNombre: "", segundoNombre: "",
+        primerApellido: "", segundoApellido: "", tipoDocumento: "",
+        documento: "", rolId: "", email: "", telefono: "",
       });
-  } else if (defaultValues) {
-    reset({
-      ...defaultValues,
-      rolId: defaultValues.rol?.id || "",
-    });
-  }
-}, [editing, defaultValues, reset, open]);
+    } else if (defaultValues) {
+      reset({ ...defaultValues, rolId: defaultValues.rol?.id || "" });
+    }
+  }, [editing, defaultValues, reset, open]);
 
-  // Cargar roles
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/api/roles", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await res.json();
-        setRoles(data);
-      } catch (e) {
-        console.error("Error cargando roles:", e);
-      }
-    };
-    fetchRoles();
-  }, []);
-
+  // ── Submit ───────────────────────────────────────────────────────
   const onSubmit = async (data) => {
-
+    setIsSubmitting(true);
     try {
-      if (!data.rolId) {
-        return alert("Debe seleccionar un rol.");
-      }
       data.rol = { id: data.rolId };
       delete data.rolId;
       if (!data.password) delete data.password;
+
       if (editing) {
         await updateUser(selectedId, data);
         showMessage("Usuario actualizado exitosamente", "success");
@@ -100,167 +71,225 @@ const UserFormDialog = ({
         await createUser(data);
         showMessage("Usuario creado exitosamente", "success");
       }
-      reset({});
+      reset();
       onClose();
       loadUsers();
     } catch (error) {
-        const data = error.response?.data;
-
-        if (data?.field) {
-          setError(data.field, {
-            type: "manual",
-            message: data.message
-          });
-        } else {
-          showMessage(data?.message || "Error al guardar", "error");
-        }
+      const resData = error.response?.data;
+      if (resData?.field) {
+        setError(resData.field, { type: "manual", message: resData.message });
+      } else {
+        // ✅ showMessage en vez de alert()
+        showMessage(resData?.message || "Error al guardar el usuario", "error");
       }
-
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{editing ? "Editar Usuario" : "Registrar Usuario"}</DialogTitle>
+  // ── Helper: campo de contraseña reutilizable ─────────────────────
+  const PasswordField = ({ label }) => (
+    <TextField
+      label={label}
+      type={showPassword ? "text" : "password"}
+      fullWidth
+      {...register("password")}
+      error={!!errors.password}
+      helperText={errors.password?.message}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton onClick={() => setShowPassword((p) => !p)} edge="end"
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}>
+              {showPassword ? <VisibilityOff /> : <Visibility />}
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
 
-      <DialogContent>
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth sx={styles.dialog}>
+
+      {/* ── Header ── */}
+      <DialogTitle component="div" sx={styles.dialogHeader}>
+        <Typography variant="h6" fontWeight={700}>
+          {editing ? "Editar Usuario" : "Registrar Usuario"}
+        </Typography>
+        <Chip
+          label={editing ? "Editando" : "Nuevo"}
+          size="small"
+          color={editing ? "warning" : "primary"}
+          variant="outlined"
+        />
+      </DialogTitle>
+
+      <DialogContent sx={{ pt: 2.5, pb: 0 }}>
         <Box
           component="form"
+          id="user-form"
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          sx={{ display: "grid", gap: 2, mt: 1 }}
         >
-          <TextField
-            label="Usuario"
-            {...register("username")}
-            error={!!errors.username}
-            helperText={errors.username?.message}
-          />
 
-          {/* Contraseña */}
-          {!editing ? (
-            <TextField
-              label="Contraseña"
-              type={showPassword ? "text" : "password"}
-              {...register("password")}
-              error={!!errors.password}
-              helperText={errors.password?.message}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          ) : (
-            <>
-              {!changePassword ? (
-                <Button variant="outlined" onClick={() => setChangePassword(true)}>
-                  Cambiar contraseña
-                </Button>
-              ) : (
-                <TextField
-                  label="Nueva contraseña"
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  error={!!errors.password}
-                  helperText={errors.password?.message}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              )}
-            </>
-          )}
+          {/* ── Sección 1: Cuenta de acceso ── */}
+          <Typography sx={styles.sectionLabel(theme)}>
+            Cuenta de acceso
+          </Typography>
 
+          <Box sx={styles.grid2}>
             <TextField
-              label="Primer Nombre"
-              {...register("primerNombre")}
-              error={!!errors.PrimerNombre}
-              helperText={errors.PrimerNombre?.message}
-            />
-            <TextField
-              label="Segundo Nombre"
-              {...register("segundoNombre")}
-              error={!!errors.SegundoNombre}
-              helperText={errors.SegundoNombre?.message}
-            />
-            <TextField
-              label="Primer Apellido"
-              {...register("primerApellido")}
-              error={!!errors.PrimerApellido}
-              helperText={errors.PrimerApellido?.message}
-            />
-            <TextField
-              label="Segundo Apellido"
-              {...register("segundoApellido")}
-              error={!!errors.SegundoApellido}
-              helperText={errors.SegundoApellido?.message}
+              label="Usuario *"
+              fullWidth
+              {...register("username")}
+              error={!!errors.username}
+              helperText={errors.username?.message || " "}
             />
             <TextField
               select
-              label="Tipo de Documento"
+              label="Rol *"
+              fullWidth
+              {...register("rolId")}
+              error={!!errors.rolId}
+              helperText={errors.rolId?.message || " "}
+              // ✅ fix: value controlado para que no quede vacío sin seleccionar
+              defaultValue=""
+            >
+              <MenuItem value={1}>Administrador</MenuItem>
+              <MenuItem value={2}>Cajero</MenuItem>
+            </TextField>
+          </Box>
+
+          {/* Contraseña — condicional crear/editar */}
+          {!editing ? (
+            <PasswordField label="Contraseña *" />
+          ) : (
+            !changePassword ? (
+              <Button
+                variant="outlined"
+                fullWidth
+                sx={styles.changePasswordBtn}
+                onClick={() => setChangePassword(true)}
+              >
+                Cambiar contraseña
+              </Button>
+            ) : (
+              <PasswordField label="Nueva contraseña" />
+            )
+          )}
+
+          {/* ── Sección 2: Datos personales ── */}
+          <Typography sx={{ ...styles.sectionLabel(theme), mt: 2.5 }}>
+            Datos personales
+          </Typography>
+
+          <Box sx={styles.grid2}>
+            <TextField
+              label="Primer nombre *"
+              fullWidth
+              {...register("primerNombre")}
+              error={!!errors.primerNombre}          // ✅ bug fix: camelCase correcto
+              helperText={errors.primerNombre?.message || " "}
+            />
+            <TextField
+              label="Segundo nombre"
+              fullWidth
+              {...register("segundoNombre")}
+              error={!!errors.segundoNombre}         // ✅ bug fix
+              helperText={errors.segundoNombre?.message || " "}
+            />
+            <TextField
+              label="Primer apellido *"
+              fullWidth
+              {...register("primerApellido")}
+              error={!!errors.primerApellido}        // ✅ bug fix
+              helperText={errors.primerApellido?.message || " "}
+            />
+            <TextField
+              label="Segundo apellido"
+              fullWidth
+              {...register("segundoApellido")}
+              error={!!errors.segundoApellido}       // ✅ bug fix
+              helperText={errors.segundoApellido?.message || " "}
+            />
+          </Box>
+
+          <Box sx={styles.grid2}>
+            <TextField
+              select
+              label="Tipo de documento *"
+              fullWidth
+              defaultValue=""
               {...register("tipoDocumento")}
               error={!!errors.tipoDocumento}
-              helperText={errors.tipoDocumento?.message}
+              helperText={errors.tipoDocumento?.message || " "}
             >
-              <MenuItem value="CEDULA_CIUDADANIA">Cédula Ciudadanía</MenuItem>
-              <MenuItem value="CEDULA_EXTRANJERIA">Cédula Extranjería</MenuItem>
-              <MenuItem value="TARJETA_EXTRANJERIA">Tarjeta Extranjería</MenuItem>
-              <MenuItem value="PASAPORTE">Pasaporte</MenuItem>
-              <MenuItem value="PEP">Permiso Especial de Permanencia</MenuItem>
+              {TIPOS_DOCUMENTO.map(({ value, label }) => (
+                <MenuItem key={value} value={value}>{label}</MenuItem>
+              ))}
             </TextField>
-
             <TextField
-              label="Documento"
-              {...register("documento")}
+              label="Número de documento *"
+              fullWidth
               disabled={editing}
+              {...register("documento")}
               error={!!errors.documento}
-              helperText={errors.documento?.message}
+              helperText={
+                editing
+                  ? "No se puede modificar"
+                  : errors.documento?.message || " "
+              }
             />
+          </Box>
 
-          <TextField
-            select
-            label="Rol"
-            {...register("rolId")}
-            error={!!errors.rolId}
-            helperText={errors.rolId?.message}
-          >
-            <MenuItem value={1}>Administrador</MenuItem>
-            <MenuItem value={2}>Cajero</MenuItem>
-          </TextField>
+          {/* ── Sección 3: Contacto ── */}
+          <Typography sx={{ ...styles.sectionLabel(theme), mt: 1 }}>
+            Contacto
+          </Typography>
 
+          <Box sx={styles.grid2}>
             <TextField
-              label="Email"
+              label="Email *"
+              fullWidth
+              type="email"
               {...register("email")}
               error={!!errors.email}
-              helperText={errors.email?.message}
+              helperText={errors.email?.message || " "}
             />
             <TextField
-              label="Teléfono"
+              label="Teléfono *"
+              fullWidth
               {...register("telefono")}
               error={!!errors.telefono}
-              helperText={errors.telefono?.message}
+              helperText={errors.telefono?.message || " "}
             />
-          <DialogActions sx={{ px: 0 }}>
-            <Button onClick={onClose}>Cancelar</Button>
-            <Button type="submit" variant="contained">
-              {editing ? "Guardar" : "Crear"}
-            </Button>
-          </DialogActions>
+          </Box>
+
         </Box>
       </DialogContent>
+
+      {/* ── Acciones — fuera del DialogContent ── */}
+      <DialogActions sx={styles.dialogActions}>
+        <Button onClick={onClose} disabled={isSubmitting}>
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          form="user-form"
+          variant="contained"
+          disabled={isSubmitting}
+          startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : null}
+        >
+          {isSubmitting
+            ? (editing ? "Guardando..." : "Creando...")
+            : (editing ? "Guardar cambios" : "Crear usuario")
+          }
+        </Button>
+      </DialogActions>
+
     </Dialog>
   );
 };
 
 export default UserFormDialog;
-

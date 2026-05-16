@@ -3,23 +3,30 @@ import UserTable from "../components/CrudUsuarios/UserTable";
 import UserFormDialog from "../components/CrudUsuarios/UserFormDialog";
 import UserSearchBar from "../components/CrudUsuarios/UserSearchBar";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { Box, Toolbar, Typography, Snackbar, Alert } from "@mui/material";
+import { Box, Typography } from "@mui/material";  // ✅ sin Toolbar, Snackbar, Alert
 
 export default function UserManagement() {
   const u = useUsers();
 
   return (
     <Box sx={{ p: 3 }}>
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Typography variant="h6">Gestión de Usuarios</Typography>
-      </Toolbar>
+
+      {/* ✅ Toolbar reemplazado por Box simple */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" fontWeight={700}>
+          Gestión de Usuarios
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Administra los accesos y roles del sistema
+        </Typography>
+      </Box>
 
       <UserSearchBar
         filter={u.filter}
         onFilterChange={u.setFilter}
         onAdd={u.handleAdd}
         showInactive={u.showInactive}
-        onToggleInactive={() => u.setShowInactive(prev => !prev)}
+        onToggleInactive={() => u.setShowInactive((prev) => !prev)}
         visibleColumns={u.visibleColumns}
         setVisibleColumns={u.setVisibleColumns}
         sortBy={u.sortBy}
@@ -42,6 +49,7 @@ export default function UserManagement() {
         onActivate={u.handleActivate}
         visibleColumns={u.visibleColumns}
         loading={u.loading}
+        setSortBy={u.setSortBy}
       />
 
       <UserFormDialog
@@ -67,16 +75,6 @@ export default function UserManagement() {
         onClose={() => u.setDialogOpen(false)}
         onConfirm={u.handleConfirm}
       />
-
-      <Snackbar
-        open={u.snackbar.open}
-        autoHideDuration={2500}
-        onClose={() => u.showMessage("")}
-      >
-        <Alert severity={u.snackbar.severity} variant="filled">
-          {u.snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

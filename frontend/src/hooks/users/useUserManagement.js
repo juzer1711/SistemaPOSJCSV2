@@ -5,8 +5,11 @@ import {
   searchUsers
 } from "../../services/userService";
 
+import { useSnackbar } from "../../context/SnackBarProvider";
+
 export default function useUsers() {
   const [users, setUsers] = useState([]);
+  const { showSnackbar } = useSnackbar();
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -151,14 +154,14 @@ export default function useUsers() {
   const handleActivate = (id) => openActivateDialog(id);
 
   const showMessage = (msg, type = "success") => {
-    setSnackbar({ open: true, message: msg, severity: type });
+    showSnackbar(msg, type);
   };
 
   return {
     users, page, setPage, pageSize, setPageSize, totalRows,
     filter, setFilter, open, editing, selectedUser,
     showInactive, setShowInactive,
-    dialogOpen, dialogInfo, snackbar,
+    dialogOpen, dialogInfo,
     visibleColumns, setVisibleColumns,
     sortBy, setSortBy,
     advancedFilters, setAdvancedFilters,
