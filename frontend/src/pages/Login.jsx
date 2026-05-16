@@ -1,102 +1,56 @@
-import React, { useState } from "react";
+// src/modules/login/Login.jsx
 import {
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
-  InputAdornment,
-  Box,
+  TextField, Button, Card, CardContent,
+  Typography, IconButton, InputAdornment, Box
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import logo from "../../assets/logo.png";
-
 import {
-  Visibility,
-  VisibilityOff,
-  Person,
-  Lock,
+  Visibility, VisibilityOff, Person, Lock
 } from "@mui/icons-material";
+import logo from "../assets/logo.png";
+import { useState } from "react";
+import { useLogin } from "../hooks/login/useLogin";
+import { styles } from "../styles/login/stylesLogin";
 
-function LoginForm({
-  username,
-  password,
-  onUsernameChange,
-  onPasswordChange,
-  onSubmit,
-  mensaje,
-}) {
-  const [showPassword, setShowPassword] = useState(false);
+export default function Login() {
   const theme = useTheme();
+  const {
+    username,
+    password,
+    mensaje,
+    setUsername,
+    setPassword,
+    handleSubmit,
+  } = useLogin();
+
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <Box
-      sx={{
-        height: "100vh",
-        display: "flex",
-        backgroundColor: theme.palette.background.default,
-      }}
-    >
-      {/* Branding */}
-      <Box
-        sx={{
-          flex: 1,
-          display: { xs: "none", md: "flex" },
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          background: `linear-gradient(180deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-          color: "white",
-          p: 6,
-        }}
-      >
+    <Box sx={styles.root(theme)}>
+      <Box sx={styles.branding(theme)}>
         <img src={logo} alt="POS System" style={{ width: 200, marginBottom: 30 }} />
-        
         <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2 }}>
           POS System
         </Typography>
-
         <Typography variant="body1" sx={{ opacity: 0.9, textAlign: "center", maxWidth: 320 }}>
           Sistema de ventas y control para papelerías modernas
         </Typography>
       </Box>
 
-      {/* Login */}
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          p: 3,
-        }}
-      >
-        <Card
-          sx={{
-            width: 420,
-            borderRadius: 4,
-            boxShadow: "0 20px 40px rgba(0,0,0,0.08)",
-            p: 3,
-          }}
-        >
+      <Box sx={styles.loginBox}>
+        <Card sx={styles.card}>
           <CardContent>
-            <Typography
-              variant="h5"
-              align="center"
-              sx={{ mb: 3 }}
-            >
+            <Typography variant="h5" align="center" sx={{ mb: 3 }}>
               Iniciar Sesión
             </Typography>
 
-            <form onSubmit={onSubmit}>
+            <form onSubmit={handleSubmit}>
               <TextField
                 label="Usuario"
                 fullWidth
                 margin="normal"
                 value={username}
-                onChange={onUsernameChange}
+                onChange={(e) => setUsername(e.target.value)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -112,7 +66,7 @@ function LoginForm({
                 fullWidth
                 margin="normal"
                 value={password}
-                onChange={onPasswordChange}
+                onChange={(e) => setPassword(e.target.value)}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -129,16 +83,7 @@ function LoginForm({
                 }}
               />
 
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                sx={{
-                  mt: 3,
-                  py: 1.4,
-                  fontSize: 16,
-                }}
-              >
+              <Button type="submit" variant="contained" fullWidth sx={{ mt: 3, py: 1.4, fontSize: 16 }}>
                 Entrar al sistema
               </Button>
             </form>
@@ -151,18 +96,11 @@ function LoginForm({
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        <Typography
-          variant="body2"
-          align="center"
-          sx={{ mt: 4, color: "#777" }}
-        >
-          © 2026 POS System — Desarrollado por: 
+        <Typography variant="body2" align="center" sx={{ mt: 4, color: "#777" }}>
+          © 2026 POS System — Desarrollado por:
           Juan Serna | Simon Sepulveda | Cristian Ospina
         </Typography>
       </Box>
     </Box>
   );
 }
-
-export default LoginForm;
