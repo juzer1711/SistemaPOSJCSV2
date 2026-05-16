@@ -1,6 +1,6 @@
 // AppRoutes.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginContainer from "../containers/LoginContainer";
+import Login from "../pages/Login";
 import AdminDashboard from "../pages/AdminDashboard";
 import CajeroDashboard from "../pages/CajeroDashboard";
 import UserManagement from "../pages/UserManagement"; // CRUD de usuarios
@@ -10,14 +10,14 @@ import PrivateRoute from "./PrivateRoute"; // Componente para proteger rutas
 import VentaManagement from "../pages/VentaManagement";
 import VentaPOS from "../pages/POSVenta";
 import CajaManagement from "../pages/CajaManagement";
-import InventarioManagement from "../pages/InventarioManagament";
+import InventarioManagement from "../pages/InventarioManagement";
 
 function AppRoutes() {
   return (
     <Router>
       <Routes>
         {/* 🔹 Ruta pública (login) */}
-        <Route path="/" element={<LoginContainer />} />
+        <Route path="/" element={<Login />} />
 
         {/* 🔹 Rutas específicas según tipo de usuario */}
         <Route

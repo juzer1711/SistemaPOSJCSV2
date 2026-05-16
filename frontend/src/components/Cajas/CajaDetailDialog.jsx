@@ -1,65 +1,27 @@
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Typography, IconButton,
   Box, Grid, Divider, Button, Table, TableHead, TableRow, TableCell,
-  TableBody, Chip
+  TableBody, Chip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { useEffect, useState } from "react";
-import { getVentasPorCaja, getVentaById } from "../../services/ventaService";
-import { getMovimientosPorCaja } from "../../services/movimientosCajaService";
-import VentaDetailDialog from "../Ventas/VentaDetailDialog";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useCajaDetail } from "../../hooks/cajas/useCajaDetail";
+import VentaDetailDialog from "../Ventas/VentaDetailDialog";
 import { formatDateTime } from "../../utils/formats";
 
 export default function CajaDetailDialog({ open, onClose, caja }) {
-  // 1. LOS HOOKS SIEMPRE PRIMERO
-  const [ventas, setVentas] = useState([]);
-  const [loadingVentas, setLoadingVentas] = useState(true);
-  const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
-  const [ventaOpen, setVentaOpen] = useState(false);
-  const [movimientos, setMovimientos] = useState([]);
+  const {
+    ventas,
+    loadingVentas,
+    ventaSeleccionada,
+    ventaOpen,
+    setVentaOpen,
+    movimientos,
+    verDetalleVenta,
+    diferenciaEfectivo,
+    diferenciaTransferencia,
+  } = useCajaDetail({ open, caja });
 
-  useEffect(() => {
-    // La lógica condicional va DENTRO del useEffect
-    if (!open || !caja?.idCaja) return;
-
-    const fetchVentas = async () => {
-      try {
-        setLoadingVentas(true);
-        const ventas = await getVentasPorCaja(caja.idCaja);
-        setVentas(ventas || []);
-      } catch (e) {
-        setVentas([]);
-      } finally {
-        setLoadingVentas(false);
-      }
-    };
-
-    fetchVentas();
-  }, [open, caja?.idCaja]);
-
-  useEffect(() => {
-  if (caja?.idCaja) {
-    getMovimientosPorCaja(caja.idCaja)
-      .then(res => setMovimientos(res))
-      .catch(() => setMovimientos([]));
-  }
-}, [caja]);
-
-  const verDetalleVenta = async (idVenta) => {
-    const res = await getVentaById(idVenta);
-    setVentaSeleccionada(res.data);
-    setVentaOpen(true);
-  };
-
-  // 2. CÁLCULOS SEGUROS (Usando ?. para evitar errores de null)
-  const diferenciaEfectivo =
-    Number(caja?.efectivoReal ?? 0) - Number(caja?.totalEfectivo ?? 0);
-
-  const diferenciaTransferencia =
-    Number(caja?.transferenciaReal ?? 0) - Number(caja?.totalTransferencia ?? 0);
-
-  // 3. VALIDACIÓN DE DATA (Justo antes del return final)
   if (!caja) return null;
 
   return (
@@ -122,7 +84,6 @@ export default function CajaDetailDialog({ open, onClose, caja }) {
             <Typography><b>Transferencia contada:</b> ${caja.transferenciaReal || 0}</Typography>
           </Grid>
           <Grid item xs={3}>
-            {/* Agregado component="div" para evitar error de anidación p > div */}
             <Typography component="div">
               <b>Diferencia efectivo:</b>{" "}
               <Chip
@@ -158,15 +119,17 @@ export default function CajaDetailDialog({ open, onClose, caja }) {
           </TableHead>
           <TableBody>
             {loadingVentas ? (
-              <TableRow><TableCell colSpan={5}>Cargando ventas...</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={5}>Cargando ventas...</TableCell>
+              </TableRow>
             ) : ventas.length === 0 ? (
-              <TableRow><TableCell colSpan={5}>No hay ventas en esta caja</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={5}>No hay ventas en esta caja</TableCell>
+              </TableRow>
             ) : (
               ventas.map((venta) => (
                 <TableRow key={venta.idVenta}>
-                  <TableCell>
-                      {venta.idVenta}
-                  </TableCell>
+                  <TableCell>{venta.idVenta}</TableCell>
                   <TableCell>{venta.fecha}</TableCell>
                   <TableCell>{venta.metodoPago}</TableCell>
                   <TableCell>${venta.total}</TableCell>
@@ -183,48 +146,41 @@ export default function CajaDetailDialog({ open, onClose, caja }) {
             )}
           </TableBody>
         </Table>
-        
-      <Divider sx={{ my: 3 }} />
 
-      <Typography variant="h6" gutterBottom>
-        Movimientos de Caja
-      </Typography>
+        <Divider sx={{ my: 3 }} />
 
-      {movimientos.length === 0 ? (
-        <Typography variant="body2">No hay movimientos registrados.</Typography>
-      ) : (
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Fecha</TableCell>
-              <TableCell>Tipo</TableCell>
-              <TableCell>Monto</TableCell>
-              <TableCell>Motivo</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {movimientos.map((m) => (
-              <TableRow key={m.idMovimiento}>
-                <TableCell>{m.fecha}</TableCell>
-
-                <TableCell>
-                  <Chip
-                    label={m.tipo}
-                    color={m.tipo === "ENTRADA" ? "success" : "error"}
-                    size="small"
-                  />
-                </TableCell>
-
-                <TableCell>
-                  ${Number(m.monto).toLocaleString("es-CO")}
-                </TableCell>
-
-                <TableCell>{m.motivo}</TableCell>
+        {/* Movimientos */}
+        <Typography variant="h6" gutterBottom>Movimientos de Caja</Typography>
+        {movimientos.length === 0 ? (
+          <Typography variant="body2">No hay movimientos registrados.</Typography>
+        ) : (
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Fecha</TableCell>
+                <TableCell>Tipo</TableCell>
+                <TableCell>Monto</TableCell>
+                <TableCell>Motivo</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+            </TableHead>
+            <TableBody>
+              {movimientos.map((m) => (
+                <TableRow key={m.idMovimiento}>
+                  <TableCell>{m.fecha}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={m.tipo}
+                      color={m.tipo === "ENTRADA" ? "success" : "error"}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>${Number(m.monto).toLocaleString("es-CO")}</TableCell>
+                  <TableCell>{m.motivo}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </DialogContent>
 
       <DialogActions>

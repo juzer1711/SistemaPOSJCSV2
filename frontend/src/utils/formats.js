@@ -22,3 +22,8 @@ export const formatMoney = (value) => {
     minimumFractionDigits: 0,
   }).format(value);
 };
+
+export const formatDateForApi = (date, end = false) => {
+  if (!date) return undefined;
+  return end ? `${date}T23:59:59` : `${date}T00:00:00`;
+};

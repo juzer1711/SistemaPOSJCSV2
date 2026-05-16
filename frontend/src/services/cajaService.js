@@ -84,7 +84,7 @@ export const searchCajas = (params) => {
 export const forzarCierreCaja = async (idCaja) => {
   try {
     const res = await axios.post(
-      `${API_URL}/forzar-cierre/${idCaja}`,
+      `${API_URL}/cerrar/admin/${idCaja}`,
       {},
       { headers: getAuthHeaders() }
     );
