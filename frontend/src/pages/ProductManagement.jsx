@@ -4,48 +4,57 @@ import ProductFormDialog from "../components/CrudProductos/ProductFormDialog";
 import ProductSearchBar from "../components/CrudProductos/ProductSearchBar";
 import CategoriaFormDialog from "../components/CrudProductos/CategoriaFormDialog";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { Box, Toolbar, Typography, Snackbar, Alert } from "@mui/material";
+import { Box } from "@mui/material";
+
+import PageHeader from "../components/ui/PageHeader";
+import ManagementToolbar from "../components/ui/ManagementToolbar";
+import TableContainer from "../components/ui/TableContainer";
 
 const ProductManagement = () => {
   const p = useProducts();
 
   return (
     <Box sx={{ p: 3 }}>
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Typography variant="h6">Gestión de Productos</Typography>
-      </Toolbar>
-
-      <ProductSearchBar
-        filter={p.filter}
-        onFilterChange={p.setFilter}
-        onAdd={p.handleAdd}
-        showInactive={p.showInactive}
-        onToggleInactive={() => p.setShowInactive(prev => !prev)}
-        visibleColumns={p.visibleColumns}
-        setVisibleColumns={p.setVisibleColumns}
-        sortBy={p.sortBy}
-        setSortBy={p.setSortBy}
-        advancedFilters={p.advancedFilters}
-        setAdvancedFilters={p.setAdvancedFilters}
-        handleShowAll={p.handleShowAll}
-        ALL_COLUMNS={p.ALL_COLUMNS}
-        categorias={p.categorias}
-        onEditCategoria={p.handleEditCategoria}
-        onAddCategoria={p.handleAddCategoria}
+      <PageHeader
+        title="Gestión de Productos"
+        subtitle="Administra productos, categorías e inventario"
       />
 
-      <ProductTable
-        products={p.products}
-        page={p.page}
-        setPage={p.setPage}
-        pageSize={p.pageSize}
-        setPageSize={p.setPageSize}
-        totalRows={p.totalRows}
-        loading={false}
-        onEdit={p.handleEdit}
-        onDelete={p.openDeactivateDialog}
-        onActivate={p.openActivateDialog}
-      />
+      <ManagementToolbar>
+        <ProductSearchBar
+          filter={p.filter}
+          onFilterChange={p.setFilter}
+          onAdd={p.handleAdd}
+          showInactive={p.showInactive}
+          onToggleInactive={() => p.setShowInactive(prev => !prev)}
+          visibleColumns={p.visibleColumns}
+          setVisibleColumns={p.setVisibleColumns}
+          sortBy={p.sortBy}
+          setSortBy={p.setSortBy}
+          advancedFilters={p.advancedFilters}
+          setAdvancedFilters={p.setAdvancedFilters}
+          handleShowAll={p.handleShowAll}
+          ALL_COLUMNS={p.ALL_COLUMNS}
+          categorias={p.categorias}
+          onEditCategoria={p.handleEditCategoria}
+          onAddCategoria={p.handleAddCategoria}
+        />
+      </ManagementToolbar>
+
+      <TableContainer>
+        <ProductTable
+          products={p.products}
+          page={p.page}
+          setPage={p.setPage}
+          pageSize={p.pageSize}
+          setPageSize={p.setPageSize}
+          totalRows={p.totalRows}
+          loading={false}
+          onEdit={p.handleEdit}
+          onDelete={p.openDeactivateDialog}
+          onActivate={p.openActivateDialog}
+        />
+      </TableContainer>
 
       <ProductFormDialog
         open={p.open}
@@ -86,16 +95,6 @@ const ProductManagement = () => {
         onClose={() => p.setDialogOpen(false)}
         onConfirm={p.handleConfirm}
       />
-
-      <Snackbar
-        open={p.snackbar.open}
-        autoHideDuration={2500}
-        onClose={() => p.showMessage("")}
-      >
-        <Alert severity={p.snackbar.severity} variant="filled">
-          {p.snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

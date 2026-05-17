@@ -9,20 +9,67 @@ const VentaDetailDialog = ({ open, onClose, venta }) => {
   if (!venta) return null;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: "24px",
+          overflow: "hidden",
+        }
+      }}
+    >
 
       {/* ENCABEZADO */}
-      <DialogTitle sx={{ textAlign: "center", pb: 1 }}>
-        <Typography variant="h5" fontWeight="bold">🧾 DETALLE DE VENTA</Typography>
-        <Typography variant="subtitle2" color="text.secondary">
+      <DialogTitle
+        sx={{
+          px: 3,
+          py: 2.5,
+          borderBottom: "1px solid #E2E8F0",
+          backgroundColor: "#FFFFFF",
+          textAlign: "center",
+        }}
+      >
+        <Typography
+          variant="h6"
+          fontWeight={700}
+          color="#0F172A"
+        >
+          Detalle de Venta
+        </Typography>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mt: 0.5 }}
+        >
           Factura #{venta.idVenta}
         </Typography>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ background: "#fafafa" }}>
+      <DialogContent
+        dividers
+        sx={{
+          backgroundColor: "#F8FAFC",
+          px: 3,
+          py: 3,
+        }}
+      >
 
         {/* INFO CLIENTE */}
-        <Box sx={{ textAlign: "center", mb: 2 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2.5,
+            mb: 3,
+            borderRadius: "20px",
+            border: "1px solid #E2E8F0",
+            backgroundColor: "#FFFFFF",
+            textAlign: "center",
+          }}
+        >
           <Typography fontWeight="bold" fontSize={17}>
             {venta.nombreCliente}
           </Typography>
@@ -41,7 +88,7 @@ const VentaDetailDialog = ({ open, onClose, venta }) => {
               "{venta.observaciones}"
             </Typography>
           )}
-        </Box>
+        </Paper>
 
         {/* SEPARADOR TIPO TICKET */}
         <Divider sx={{ borderStyle: "dashed", mb: 2 }} />
@@ -49,8 +96,19 @@ const VentaDetailDialog = ({ open, onClose, venta }) => {
         {/* TABLA DE PRODUCTOS */}
         <Typography fontWeight="bold" sx={{ mb: 1 }}>Productos</Typography>
 
-        <Table size="small">
-          <TableHead>
+        <Table
+          size="small"
+          sx={{
+            backgroundColor: "#FFFFFF",
+            borderRadius: "16px",
+            overflow: "hidden",
+          }}
+        >
+          <TableHead
+            sx={{
+              backgroundColor: "#F8FAFC",
+            }}
+          >
             <TableRow>
               <TableCell><b>Producto</b></TableCell>
               <TableCell align="center"><b>Cant</b></TableCell>
@@ -60,19 +118,34 @@ const VentaDetailDialog = ({ open, onClose, venta }) => {
 
           <TableBody>
             {venta.items.map((item, i) => (
-              <TableRow key={i}>
+              <TableRow
+                key={i}
+                sx={{
+                  "& td": {
+                    borderBottom: "1px solid #F1F5F9",
+                  },
+                }}
+              >
                 <TableCell>
                   {item.nombreProducto}
-                  <Typography fontSize={12} color="text.secondary">
-                    PU: ${item.precioUnitario?.toLocaleString("es-CO")}  
+
+                  <Typography
+                    fontSize={12}
+                    color="text.secondary"
+                  >
+                    PU: ${item.precioUnitario?.toLocaleString("es-CO")}
                     &nbsp;| IVA: {(item.ivaPorcentaje * 100)}%
                   </Typography>
                 </TableCell>
 
-                <TableCell align="center">{item.cantidad}</TableCell>
+                <TableCell align="center">
+                  {item.cantidad}
+                </TableCell>
 
                 <TableCell align="right">
-                  <b>${item.subtotal?.toLocaleString("es-CO")}</b>
+                  <b>
+                    ${item.subtotal?.toLocaleString("es-CO")}
+                  </b>
                 </TableCell>
               </TableRow>
             ))}
@@ -86,10 +159,10 @@ const VentaDetailDialog = ({ open, onClose, venta }) => {
         <Paper
           elevation={0}
           sx={{
-            p: 2,
-            borderRadius: "12px",
-            background: "#ffffff",
-            border: "1px solid #ddd"
+            p: 3,
+            borderRadius: "20px",
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E2E8F0",
           }}
         >
 
@@ -146,8 +219,25 @@ const VentaDetailDialog = ({ open, onClose, venta }) => {
 
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} variant="contained" fullWidth>
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2,
+          borderTop: "1px solid #E2E8F0",
+          backgroundColor: "#FFFFFF",
+        }}
+      >
+        <Button
+          onClick={onClose}
+          variant="contained"
+          fullWidth
+          sx={{
+            borderRadius: "12px",
+            textTransform: "none",
+            fontWeight: 600,
+            py: 1.2,
+          }}
+        >
           Cerrar
         </Button>
       </DialogActions>
@@ -156,4 +246,3 @@ const VentaDetailDialog = ({ open, onClose, venta }) => {
 };
 
 export default VentaDetailDialog;
-

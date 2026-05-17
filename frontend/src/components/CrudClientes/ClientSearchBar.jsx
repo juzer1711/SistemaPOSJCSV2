@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import {
   Box, TextField, InputAdornment, Button, IconButton,
-  Menu, MenuItem, Checkbox, FormControlLabel,
-  Select, FormControl, InputLabel
+  Menu, MenuItem, Checkbox, FormControlLabel, Chip, Tooltip
 } from "@mui/material";
 import { Add, Search, Settings } from "@mui/icons-material";
-import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 
 const SORT_FIELDS = [
   { value: "primerNombre", label: "Primer Nombre" },
@@ -42,37 +40,108 @@ const ClientSearchBar = ({
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, gap: 2, flexWrap: "wrap" }}>
-      
-      {/* BUSCADOR + CONFIG */}
-      <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-        
+
+    <Box
+      sx={{
+        mb: 2.5,
+        p: 2,
+        borderRadius: "16px",
+        backgroundColor: "background.paper",
+        border: "1px solid #E2E8F0",
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 2,
+      }}
+    >
+
+      {/* IZQUIERDA */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1.5,
+          alignItems: "center",
+          flexWrap: "wrap",
+          flex: 1,
+        }}
+      >
+
+        {/* BUSCADOR */}
         <TextField
           size="small"
           placeholder="Buscar cliente..."
           value={filter}
           onChange={(e) => onFilterChange(e.target.value)}
+          sx={{
+            minWidth: 260,
+
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "12px",
+              backgroundColor: "#FFFFFF",
+            },
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search />
+                <Search sx={{ color: "#64748B" }} />
               </InputAdornment>
             ),
           }}
         />
 
         {/* COLUMNAS */}
-        <IconButton size="small" onClick={handleColumnsClick}>
-          <Settings />
-        </IconButton>
+        <Tooltip title="Configurar columnas" arrow>
+          <IconButton
+            size="small"
+            onClick={handleColumnsClick}
+            sx={{
+              border: "1px solid #E2E8F0",
+              borderRadius: "10px",
+              backgroundColor: "#FFFFFF",
+            }}
+          >
+            <Settings />
+          </IconButton>
+        </Tooltip>
 
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleColumnsClose}>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleColumnsClose}
+          PaperProps={{
+            sx: {
+              width: 240,
+              borderRadius: "14px",
+              mt: 1,
+            },
+          }}
+        >
+
+          <MenuItem
+            disableRipple
+            sx={{
+              opacity: 0.7,
+              fontWeight: 700,
+              cursor: "default",
+              fontSize: "0.8rem",
+            }}
+          >
+            Columnas visibles
+          </MenuItem>
+
           <MenuItem onClick={handleShowAll}>
             <FormControlLabel
-              control={<Checkbox checked={Object.values(visibleColumns).every(v => v)} />}
+              control={
+                <Checkbox
+                  checked={Object.values(visibleColumns).every(v => v)}
+                />
+              }
               label="Mostrar todas"
             />
           </MenuItem>
+
+          <Box sx={{ borderTop: "1px solid #E2E8F0", my: 1 }} />
 
           {Object.keys(visibleColumns).map((k) => (
             <MenuItem key={k} onClick={() => toggleColumn(k)}>
@@ -82,85 +151,89 @@ const ClientSearchBar = ({
               />
             </MenuItem>
           ))}
+
         </Menu>
 
-        {/* ACTIVO / INACTIVO */}
-        <ToggleButtonGroup
+        {/* TIPO CLIENTE */}
+        <TextField
+          select
           size="small"
-          value={showInactive ? "inactive" : "active"}
-          exclusive
-          onChange={(e, val) => {
-            if (val !== null) onToggleInactive();
-          }}
+          label="Tipo Cliente"
+          value={advancedFilters.tipoCliente || ""}
+          onChange={(e) =>
+            handleAdvFilterChange("tipoCliente", e.target.value)
+          }
+          sx={{ minWidth: 180 }}
         >
-          <ToggleButton value="active">Activos</ToggleButton>
-          <ToggleButton value="inactive">Inactivos</ToggleButton>
-        </ToggleButtonGroup>
+          <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="PERSONA_NATURAL">
+            Persona Natural
+          </MenuItem>
+          <MenuItem value="EMPRESA">
+            Empresa
+          </MenuItem>
+        </TextField>
 
-        {/* ORDEN */}
-        <FormControl size="small">
-          <InputLabel>Ordenar</InputLabel>
-          <Select
-            value={`${sortBy.key}|${sortBy.direction}`}
-            label="Ordenar"
-            onChange={handleSortChange}
-          >
-            {SORT_FIELDS.map(s => (
-              <MenuItem key={`${s.value}|asc`} value={`${s.value}|asc`}>
-                {s.label} (A→Z)
-              </MenuItem>
-            ))}
-            {SORT_FIELDS.map(s => (
-              <MenuItem key={`${s.value}|desc`} value={`${s.value}|desc`}>
-                {s.label} (Z→A)
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {/* DOCUMENTO */}
+        <TextField
+          select
+          size="small"
+          label="Tipo Documento"
+          value={advancedFilters.tipoDocumento || ""}
+          onChange={(e) =>
+            handleAdvFilterChange("tipoDocumento", e.target.value)
+          }
+          sx={{ minWidth: 190 }}
+        >
+          <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="CEDULA_CIUDADANIA">
+            Cédula
+          </MenuItem>
+          <MenuItem value="NIT">
+            NIT
+          </MenuItem>
+          <MenuItem value="PASAPORTE">
+            Pasaporte
+          </MenuItem>
+        </TextField>
 
-        {/* FILTROS */}
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Tipo Cliente</InputLabel>
-          <Select
-            value={advancedFilters.tipoCliente || ""}
-            label="Tipo Cliente"
-            onChange={(e) => handleAdvFilterChange("tipoCliente", e.target.value)}
-          >
-            <MenuItem value="">Todos</MenuItem>
-            <MenuItem value="PERSONA_NATURAL">Persona Natural</MenuItem>
-            <MenuItem value="EMPRESA">Empresa</MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Tipo Documento</InputLabel>
-          <Select
-            value={advancedFilters.tipoDocumento || ""}
-            label="Tipo Documento"
-            onChange={(e) => handleAdvFilterChange("tipoDocumento", e.target.value)}
-          >
-            <MenuItem value="">Todos</MenuItem>
-            <MenuItem value="CEDULA_CIUDADANIA">Cédula</MenuItem>
-            <MenuItem value="NIT">NIT</MenuItem>
-            <MenuItem value="PASAPORTE">Pasaporte</MenuItem>
-          </Select>
-        </FormControl>
+        {/* ACTIVOS */}
+        <Tooltip title={showInactive ? "Mostrar activos" : "Mostrar inactivos"}>
+          <Chip
+            label={showInactive ? "Inactivos" : "Activos"}
+            color={showInactive ? "default" : "primary"}
+            onClick={onToggleInactive}
+            clickable
+            sx={{
+              height: 38,
+              px: 1,
+              fontWeight: 600,
+            }}
+          />
+        </Tooltip>
 
       </Box>
 
       {/* BOTÓN */}
-      <Box>
+      <Tooltip title="Registrar nuevo cliente" arrow>
         <Button
           variant="contained"
           startIcon={<Add />}
           onClick={onAdd}
+          sx={{
+            borderRadius: "12px",
+            px: 2.2,
+            fontWeight: 600,
+            boxShadow: "none",
+          }}
         >
-          Agregar
+          Nuevo Cliente
         </Button>
-      </Box>
+      </Tooltip>
+
     </Box>
+
   );
 };
 
 export default ClientSearchBar;
-

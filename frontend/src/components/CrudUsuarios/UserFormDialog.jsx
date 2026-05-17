@@ -11,6 +11,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { userSchema } from "../../validation/validationSchema";
 import { createUser, updateUser } from "../../services/userService";
 import { styles } from "../../styles/users/stylesUserFormDialog";
+import FormSection from "../ui/FormSection";
 
 const TIPOS_DOCUMENTO = [
   { value: "CEDULA_CIUDADANIA",   label: "Cédula de Ciudadanía" },
@@ -110,22 +111,77 @@ const UserFormDialog = ({
   );
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth sx={styles.dialog}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      sx={{
+        "& .MuiDialog-paper": {
+          borderRadius: "24px",
+          overflow: "hidden",
+        },
+      }}
+    >
 
       {/* ── Header ── */}
-      <DialogTitle component="div" sx={styles.dialogHeader}>
-        <Typography variant="h6" fontWeight={700}>
-          {editing ? "Editar Usuario" : "Registrar Usuario"}
-        </Typography>
-        <Chip
-          label={editing ? "Editando" : "Nuevo"}
-          size="small"
-          color={editing ? "warning" : "primary"}
-          variant="outlined"
-        />
+      <DialogTitle
+        sx={{
+          px: 4,
+          pt: 3,
+          pb: 2,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          backgroundColor: "#FFFFFF",
+        }}
+      >
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+
+          <Box>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+              }}
+            >
+              {editing ? "Editar Usuario" : "Nuevo Usuario"}
+            </Typography>
+
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 0.5 }}
+            >
+              Completa la información del usuario
+            </Typography>
+          </Box>
+
+          <Chip
+            label={editing ? "Editando" : "Nuevo"}
+            color={editing ? "warning" : "primary"}
+            sx={{
+              fontWeight: 600,
+            }}
+          />
+
+        </Box>
+
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 2.5, pb: 0 }}>
+      <DialogContent
+        sx={{
+          px: 4,
+          py: 3,
+          backgroundColor: "#FCFDFE",
+        }}
+      >
         <Box
           component="form"
           id="user-form"
@@ -134,144 +190,152 @@ const UserFormDialog = ({
         >
 
           {/* ── Sección 1: Cuenta de acceso ── */}
-          <Typography sx={styles.sectionLabel(theme)}>
-            Cuenta de acceso
-          </Typography>
+          <FormSection title="Cuenta de acceso">
 
-          <Box sx={styles.grid2}>
-            <TextField
-              label="Usuario *"
-              fullWidth
-              {...register("username")}
-              error={!!errors.username}
-              helperText={errors.username?.message || " "}
-            />
-            <TextField
-              select
-              label="Rol *"
-              fullWidth
-              {...register("rolId")}
-              error={!!errors.rolId}
-              helperText={errors.rolId?.message || " "}
-              // ✅ fix: value controlado para que no quede vacío sin seleccionar
-              defaultValue=""
-            >
-              <MenuItem value={1}>Administrador</MenuItem>
-              <MenuItem value={2}>Cajero</MenuItem>
-            </TextField>
-          </Box>
-
-          {/* Contraseña — condicional crear/editar */}
-          {!editing ? (
-            <PasswordField label="Contraseña *" />
-          ) : (
-            !changePassword ? (
-              <Button
-                variant="outlined"
+            <Box sx={styles.grid2}>
+              <TextField
+                label="Usuario *"
                 fullWidth
-                sx={styles.changePasswordBtn}
-                onClick={() => setChangePassword(true)}
+                {...register("username")}
+                error={!!errors.username}
+                helperText={errors.username?.message || " "}
+              />
+
+              <TextField
+                select
+                label="Rol *"
+                fullWidth
+                {...register("rolId")}
+                error={!!errors.rolId}
+                helperText={errors.rolId?.message || " "}
+                defaultValue=""
               >
-                Cambiar contraseña
-              </Button>
+                <MenuItem value={1}>Administrador</MenuItem>
+                <MenuItem value={2}>Cajero</MenuItem>
+              </TextField>
+            </Box>
+
+            {!editing ? (
+              <PasswordField label="Contraseña *" />
             ) : (
-              <PasswordField label="Nueva contraseña" />
-            )
-          )}
+              !changePassword ? (
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  sx={styles.changePasswordBtn}
+                  onClick={() => setChangePassword(true)}
+                >
+                  Cambiar contraseña
+                </Button>
+              ) : (
+                <PasswordField label="Nueva contraseña" />
+              )
+            )}
 
+          </FormSection>
           {/* ── Sección 2: Datos personales ── */}
-          <Typography sx={{ ...styles.sectionLabel(theme), mt: 2.5 }}>
-            Datos personales
-          </Typography>
+          <FormSection title="Datos personales">
 
-          <Box sx={styles.grid2}>
-            <TextField
-              label="Primer nombre *"
-              fullWidth
-              {...register("primerNombre")}
-              error={!!errors.primerNombre}          // ✅ bug fix: camelCase correcto
-              helperText={errors.primerNombre?.message || " "}
-            />
-            <TextField
-              label="Segundo nombre"
-              fullWidth
-              {...register("segundoNombre")}
-              error={!!errors.segundoNombre}         // ✅ bug fix
-              helperText={errors.segundoNombre?.message || " "}
-            />
-            <TextField
-              label="Primer apellido *"
-              fullWidth
-              {...register("primerApellido")}
-              error={!!errors.primerApellido}        // ✅ bug fix
-              helperText={errors.primerApellido?.message || " "}
-            />
-            <TextField
-              label="Segundo apellido"
-              fullWidth
-              {...register("segundoApellido")}
-              error={!!errors.segundoApellido}       // ✅ bug fix
-              helperText={errors.segundoApellido?.message || " "}
-            />
-          </Box>
+            <Box sx={styles.grid2}>
+              <TextField
+                label="Primer nombre *"
+                fullWidth
+                {...register("primerNombre")}
+                error={!!errors.primerNombre}          // ✅ bug fix: camelCase correcto
+                helperText={errors.primerNombre?.message || " "}
+              />
+              <TextField
+                label="Segundo nombre"
+                fullWidth
+                {...register("segundoNombre")}
+                error={!!errors.segundoNombre}         // ✅ bug fix
+                helperText={errors.segundoNombre?.message || " "}
+              />
+              <TextField
+                label="Primer apellido *"
+                fullWidth
+                {...register("primerApellido")}
+                error={!!errors.primerApellido}        // ✅ bug fix
+                helperText={errors.primerApellido?.message || " "}
+              />
+              <TextField
+                label="Segundo apellido"
+                fullWidth
+                {...register("segundoApellido")}
+                error={!!errors.segundoApellido}       // ✅ bug fix
+                helperText={errors.segundoApellido?.message || " "}
+              />
+            </Box>
 
-          <Box sx={styles.grid2}>
-            <TextField
-              select
-              label="Tipo de documento *"
-              fullWidth
-              defaultValue=""
-              {...register("tipoDocumento")}
-              error={!!errors.tipoDocumento}
-              helperText={errors.tipoDocumento?.message || " "}
-            >
-              {TIPOS_DOCUMENTO.map(({ value, label }) => (
-                <MenuItem key={value} value={value}>{label}</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label="Número de documento *"
-              fullWidth
-              disabled={editing}
-              {...register("documento")}
-              error={!!errors.documento}
-              helperText={
-                editing
-                  ? "No se puede modificar"
-                  : errors.documento?.message || " "
-              }
-            />
-          </Box>
-
+            <Box sx={styles.grid2}>
+              <TextField
+                select
+                label="Tipo de documento *"
+                fullWidth
+                defaultValue=""
+                {...register("tipoDocumento")}
+                error={!!errors.tipoDocumento}
+                helperText={errors.tipoDocumento?.message || " "}
+              >
+                {TIPOS_DOCUMENTO.map(({ value, label }) => (
+                  <MenuItem key={value} value={value}>{label}</MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="Número de documento *"
+                fullWidth
+                disabled={editing}
+                {...register("documento")}
+                error={!!errors.documento}
+                helperText={
+                  editing
+                    ? "No se puede modificar"
+                    : errors.documento?.message || " "
+                }
+              />
+            </Box>
+          </FormSection>        
           {/* ── Sección 3: Contacto ── */}
-          <Typography sx={{ ...styles.sectionLabel(theme), mt: 1 }}>
-            Contacto
-          </Typography>
+          <FormSection title="Contacto">
 
-          <Box sx={styles.grid2}>
-            <TextField
-              label="Email *"
-              fullWidth
-              type="email"
-              {...register("email")}
-              error={!!errors.email}
-              helperText={errors.email?.message || " "}
-            />
-            <TextField
-              label="Teléfono *"
-              fullWidth
-              {...register("telefono")}
-              error={!!errors.telefono}
-              helperText={errors.telefono?.message || " "}
-            />
-          </Box>
-
+            <Box sx={styles.grid2}>
+              <TextField
+                label="Email *"
+                fullWidth
+                type="email"
+                {...register("email")}
+                error={!!errors.email}
+                helperText={errors.email?.message || " "}
+              />
+              <TextField
+                label="Teléfono *"
+                fullWidth
+                {...register("telefono")}
+                error={!!errors.telefono}
+                helperText={errors.telefono?.message || " "}
+              />
+            </Box>
+          </FormSection>
         </Box>
       </DialogContent>
 
       {/* ── Acciones — fuera del DialogContent ── */}
-      <DialogActions sx={styles.dialogActions}>
-        <Button onClick={onClose} disabled={isSubmitting}>
+      <DialogActions
+        sx={{
+          px: 4,
+          py: 2.5,
+          borderTop: "1px solid",
+          borderColor: "divider",
+          backgroundColor: "#FFFFFF",
+          justifyContent: "space-between",
+        }}
+      >
+        <Button
+          variant="text"
+          color="inherit"
+          onClick={onClose}
+          disabled={isSubmitting}
+        >
           Cancelar
         </Button>
         <Button

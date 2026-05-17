@@ -1,6 +1,7 @@
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, IconButton, Button, Chip } from "@mui/material";
+import { Box, IconButton, Button, Chip, Tooltip } from "@mui/material";
 import { Edit, CheckCircle, Cancel } from "@mui/icons-material";
+import { dataGridStyles } from "../../styles/dataGridStyles";
 
 export default function ProductTable({
   products,
@@ -66,7 +67,29 @@ export default function ProductTable({
           label = `Bajo (${stock})`;
         }
 
-        return <Chip label={label} color={color} size="small" />;
+        let bg = "rgba(22,163,74,0.12)";
+        let text = "#16A34A";
+
+        if (stock <= 0) {
+          bg = "rgba(239,68,68,0.12)";
+          text = "#DC2626";
+        } else if (stock <= min) {
+          bg = "rgba(245,158,11,0.14)";
+          text = "#D97706";
+        }
+
+        return (
+          <Chip
+            label={label}
+            size="small"
+            sx={{
+              fontWeight: 600,
+              borderRadius: "8px",
+              backgroundColor: bg,
+              color: text,
+            }}
+          />
+        );
       }
     },
 
@@ -79,9 +102,20 @@ export default function ProductTable({
         return (
           <Chip
             icon={active ? <CheckCircle /> : <Cancel />}
-            label={active ? "ACTIVO" : "INACTIVO"}
+            label={active ? "Activo" : "Inactivo"}
             size="small"
-            color={active ? "success" : "default"}
+            sx={{
+              fontWeight: 600,
+              borderRadius: "8px",
+
+              backgroundColor: active
+                ? "rgba(22,163,74,0.12)"
+                : "rgba(148,163,184,0.16)",
+
+              color: active
+                ? "#16A34A"
+                : "#64748B",
+            }}
           />
         );
       }
@@ -97,28 +131,47 @@ export default function ProductTable({
         const active = p.estado === true || p.estado === 1;
 
         return (
-          <Box>
-            <IconButton size="small" onClick={() => onEdit(p)}>
-              <Edit />
-            </IconButton>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
+            <Tooltip title="Editar usuario" arrow>
+              <IconButton size="small" onClick={() => onEdit(p)}>
+                <Edit fontSize="small" />
+              </IconButton>
+            </Tooltip>
 
-            {active ? (
+            <Tooltip 
+              title={active ? "Desactivar producto" : "Activar producto"} 
+              arrow
+            >
               <Button
                 size="small"
-                color="error"
-                onClick={() => onDelete(p.idProducto)}
+                color={active ? "error" : "primary"}
+                onClick={() =>
+                  active
+                    ? onDelete(p.idProducto)
+                    : onActivate(p.idProducto)
+                }
+                sx={{
+                  minWidth: "auto",
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  color: active ? "#DC2626" : "#2563EB",
+
+                  "&:hover": {
+                    backgroundColor: active
+                      ? "rgba(220,38,38,0.08)"
+                      : "rgba(37,99,235,0.08)",
+                  },
+                }}
               >
-                Desactivar
+                {active ? "Desactivar" : "Activar"}
               </Button>
-            ) : (
-              <Button
-                size="small"
-                color="primary"
-                onClick={() => onActivate(p.idProducto)}
-              >
-                Activar
-              </Button>
-            )}
+            </Tooltip>
           </Box>
         );
       }
@@ -128,6 +181,7 @@ export default function ProductTable({
   return (
     <Box sx={{ height: 550, width: "100%" }}>
       <DataGrid
+        sx={dataGridStyles}
         rows={products || []}
         columns={columns}
         getRowId={(row) => row.idProducto}
