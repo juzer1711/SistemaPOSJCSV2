@@ -105,9 +105,7 @@ export const useVentaPOS = () => {
     localStorage.setItem("pos_venta", JSON.stringify(data));
   }, [items, clienteSeleccionado, metodoPago, montoRecibido, observaciones]);
 
-  // Verificar caja activa del cajero
-  useEffect(() => {
-    const fetchCaja = async () => {
+  const fetchCajaActiva = async () => {
       const idUsuario = localStorage.getItem("id_usuario");
       try {
         const res = await getCajaActivaByUsuario(Number(idUsuario));
@@ -118,7 +116,10 @@ export const useVentaPOS = () => {
         setLoadingCaja(false);
       }
     };
-    fetchCaja();
+
+  // Verificar caja activa del cajero
+  useEffect(() => {
+    fetchCajaActiva();
   }, []);
 
   // Abrir modal de caja si no hay caja activa
@@ -241,6 +242,7 @@ export const useVentaPOS = () => {
     setObservaciones,
     // Caja
     cajaActiva,
+    fetchCajaActiva,
     loadingCaja,
     openCajaModal,
     openCerrarCaja,

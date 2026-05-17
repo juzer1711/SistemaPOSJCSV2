@@ -1,137 +1,118 @@
 import {
-  Box, Typography, Card, CardContent, Grid,
-  TextField, Button, Autocomplete,
+  Box, Typography, Card, TextField,
+  Button, ToggleButton, ToggleButtonGroup, Chip,
 } from "@mui/material";
-import { useCajaManagement } from "../hooks/cajas/useCajaManagement";
-import CajaDetailDialog from "../components/Cajas/CajaDetailDialog";
-import CajasAbiertasGrid from "../components/Cajas/CajasAbiertasGrid";
-import HistorialCajasGrid from "../components/Cajas/HistorialCajasGrid";
+import {
+  PointOfSale as CajaIcon,
+  History     as HistoryIcon,
+  LockOpen    as LockOpenIcon,
+} from "@mui/icons-material";
+import { useState } from "react";
+import { useCajaManagement }   from "../hooks/cajas/useCajaManagement";
+import CajaDetailDialog        from "../components/Cajas/CajaDetailDialog";
+import CajasAbiertasGrid       from "../components/Cajas/CajasAbiertasGrid";
+import HistorialCajasGrid      from "../components/Cajas/HistorialCajasGrid";
+import DialogAbrirCaja         from "../components/Cajas/DialogAbrirCaja";
+import { styles }              from "../styles/cajas/stylesCaja";
 
 export default function CajaManagement() {
   const {
-    // Datos
-    usuarios,
-    cajasAbiertas,
-    historial,
-    cajaSeleccionada,
-    // Paginación
-    pageAbiertas,
-    setPageAbiertas,
-    pageHistorial,
-    setPageHistorial,
-    totalRowsAbiertas,
-    totalRowsHistorial,
-    // Filtros
-    filtroAbiertas,
-    setFiltroAbiertas,
-    filtroHistorial,
-    setFiltroHistorial,
-    // Formulario abrir caja
-    form,
-    setForm,
-    errores,
-    setErrores,
-    saving,
-    // Búsqueda usuario
-    setBusquedaUsuario,
-    loadingUsuarios,
-    // Loading grids
-    loadingAbiertas,
-    loadingCerradas,
-    // Dialog
-    detailOpen,
-    setDetailOpen,
-    // Handlers
-    handleAbrirCaja,
-    handleCerrarCaja,
-    verDetalleCaja,
+    usuarios, cajasAbiertas, historial, cajaSeleccionada,
+    pageAbiertas, setPageAbiertas,
+    pageHistorial, setPageHistorial,
+    totalRowsAbiertas, totalRowsHistorial,
+    filtroAbiertas, setFiltroAbiertas,
+    filtroHistorial, setFiltroHistorial,
+    form, setForm, errores, setErrores, saving,
+    setBusquedaUsuario, loadingUsuarios,
+    loadingAbiertas, loadingCerradas,
+    detailOpen, setDetailOpen,
+    handleAbrirCaja, handleCerrarCaja, verDetalleCaja,
   } = useCajaManagement();
 
+  // ── Estado local de la página ────────────────────────────────────
+  const [vistaActiva, setVistaActiva]       = useState("abiertas");
+  const [openDialogAbrir, setOpenDialogAbrir] = useState(false);
+
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h5" fontWeight="bold" mb={3}>
-        Panel Administrativo de Cajas
-      </Typography>
+    <Box sx={styles.page}>
 
-      {/* 🟦 Abrir Caja */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" mb={2}>
-            Abrir caja a un cajero
+      {/* ── Header con acción ── */}
+      <Box sx={{
+        display: "flex", alignItems: "flex-start",
+        justifyContent: "space-between", flexWrap: "wrap",
+        gap: 2, mb: 3,
+      }}>
+        <Box>
+          <Typography variant="h5" fontWeight={700}>
+            Gestión de Cajas
           </Typography>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={8}>
-              <Autocomplete
-                sx={{ width: 230 }}
-                options={usuarios}
-                value={form.usuario}
-                loading={loadingUsuarios}
-                onChange={(e, newValue) => {
-                  setForm({ ...form, usuario: newValue });
-                  setErrores({ ...errores, usuario: undefined });
-                }}
-                onInputChange={(e, value) => setBusquedaUsuario(value)}
-                getOptionLabel={(u) =>
-                  u ? `${u.primerNombre} ${u.primerApellido} - ${u.documento}` : ""
-                }
-                isOptionEqualToValue={(option, value) =>
-                  option.idUsuario === value?.idUsuario
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Buscar cajero"
-                    error={!!errores.usuario}
-                    helperText={errores.usuario}
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={4}>
-              <TextField
-                sx={{ width: 230 }}
-                label="Monto inicial"
-                value={form.montoInicial}
-                onChange={(e) => {
-                  setForm({ ...form, montoInicial: e.target.value });
-                  setErrores({ ...errores, montoInicial: undefined });
-                }}
-                error={!!errores.montoInicial}
-                helperText={errores.montoInicial}
-              />
-            </Grid>
-
-            <Grid item xs={3}>
-              <Button
-                fullWidth
-                size="large"
-                variant="contained"
-                onClick={handleAbrirCaja}
-                disabled={saving}
-              >
-                {saving ? "Abriendo..." : "Abrir Caja"}
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-
-      {errores.general && (
-        <Typography color="error" mt={1}>
-          {errores.general}
-        </Typography>
-      )}
-
-      {/* 🟩 Cajas abiertas */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" mb={2}>
-            Cajas abiertas ahora mismo
+          <Typography variant="body2" color="text.secondary">
+            Administra las cajas activas e historial de turnos
           </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          color="success"
+          startIcon={<LockOpenIcon />}
+          onClick={() => setOpenDialogAbrir(true)}
+          sx={{ fontWeight: 700, borderRadius: 2 }}
+        >
+          Abrir Caja
+        </Button>
+      </Box>
 
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+      {/* ── Toggle de vista ── */}
+      <Box sx={{
+        display: "flex", alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap", gap: 1, mb: 2,
+      }}>
+        <ToggleButtonGroup
+          value={vistaActiva}
+          exclusive
+          onChange={(_, val) => { if (val) setVistaActiva(val); }}
+          size="small"
+          sx={{
+            "& .MuiToggleButton-root": {
+              px: 2.5, fontWeight: 600,
+              borderRadius: "8px !important",
+            },
+          }}
+        >
+          <ToggleButton value="abiertas">
+            <CajaIcon sx={{ fontSize: 16, mr: 0.8 }} />
+            Cajas abiertas
+            {cajasAbiertas.length > 0 && (
+              <Chip
+                label={cajasAbiertas.length}
+                color="success"
+                size="small"
+                sx={{ ml: 1, height: 18, fontSize: "0.65rem" }}
+              />
+            )}
+          </ToggleButton>
+          <ToggleButton value="historial">
+            <HistoryIcon sx={{ fontSize: 16, mr: 0.8 }} />
+            Historial
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      {/* ── Vista: Cajas abiertas ── */}
+      {vistaActiva === "abiertas" && (
+        <Card elevation={0} sx={styles.card}>
+          <Box sx={styles.cardHeader}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CajaIcon fontSize="small" color="success" />
+              <Typography variant="subtitle2" fontWeight={700}>
+                Cajas abiertas ahora mismo
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Filtros */}
+          <Box sx={{ px: 2.5, pt: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>
             <TextField
               label="Cajero"
               size="small"
@@ -143,6 +124,8 @@ export default function CajaManagement() {
             <TextField
               type="date"
               size="small"
+              label="Fecha"
+              InputLabelProps={{ shrink: true }}
               value={filtroAbiertas.fecha}
               onChange={(e) =>
                 setFiltroAbiertas({ ...filtroAbiertas, fecha: e.target.value })
@@ -159,17 +142,23 @@ export default function CajaManagement() {
             onForzarCierre={handleCerrarCaja}
             loading={loadingAbiertas}
           />
-        </CardContent>
-      </Card>
+        </Card>
+      )}
 
-      {/* 🟨 Historial */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" mb={2}>
-            Historial de cajas cerradas
-          </Typography>
+      {/* ── Vista: Historial ── */}
+      {vistaActiva === "historial" && (
+        <Card elevation={0} sx={styles.card}>
+          <Box sx={styles.cardHeader}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <HistoryIcon fontSize="small" color="primary" />
+              <Typography variant="subtitle2" fontWeight={700}>
+                Historial de cajas cerradas
+              </Typography>
+            </Box>
+          </Box>
 
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          {/* Filtros */}
+          <Box sx={{ px: 2.5, pt: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>
             <TextField
               label="Cajero"
               size="small"
@@ -185,10 +174,7 @@ export default function CajaManagement() {
               InputLabelProps={{ shrink: true }}
               value={filtroHistorial.fechaInicio}
               onChange={(e) =>
-                setFiltroHistorial({
-                  ...filtroHistorial,
-                  fechaInicio: e.target.value,
-                })
+                setFiltroHistorial({ ...filtroHistorial, fechaInicio: e.target.value })
               }
             />
             <TextField
@@ -198,10 +184,7 @@ export default function CajaManagement() {
               InputLabelProps={{ shrink: true }}
               value={filtroHistorial.fechaFin}
               onChange={(e) =>
-                setFiltroHistorial({
-                  ...filtroHistorial,
-                  fechaFin: e.target.value,
-                })
+                setFiltroHistorial({ ...filtroHistorial, fechaFin: e.target.value })
               }
             />
           </Box>
@@ -214,8 +197,29 @@ export default function CajaManagement() {
             onVerDetalle={verDetalleCaja}
             loading={loadingCerradas}
           />
-        </CardContent>
-      </Card>
+        </Card>
+      )}
+
+      {/* ── Dialogs ── */}
+      <DialogAbrirCaja
+        open={openDialogAbrir}
+        onClose={() => setOpenDialogAbrir(false)}
+        usuarios={usuarios}
+        form={form}
+        setForm={setForm}
+        errores={errores}
+        setErrores={setErrores}
+        saving={saving}
+        loadingUsuarios={loadingUsuarios}
+        setBusquedaUsuario={setBusquedaUsuario}
+        handleAbrirCaja={async () => {
+          await handleAbrirCaja();
+          // Solo cierra si no hay errores — el hook los pone en errores.general
+          if (!errores.general && !errores.usuario && !errores.montoInicial) {
+            setOpenDialogAbrir(false);
+          }
+        }}
+      />
 
       <CajaDetailDialog
         open={detailOpen}

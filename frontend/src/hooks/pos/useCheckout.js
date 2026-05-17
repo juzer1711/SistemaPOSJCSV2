@@ -14,6 +14,7 @@ export const useCheckout = ({
   setObservaciones,
   clearCart,
   reloadProductos,
+  fetchCajaActiva,
 }) => {
   const { showSnackbar } = useSnackbar();
 
@@ -90,6 +91,7 @@ export const useCheckout = ({
       setMontoRecibido("");
       setObservaciones("");
       await reloadProductos();
+      await fetchCajaActiva();
     } catch (error) {
       const mensajeReal =
         error.response?.data?.message || error.message || "Error desconocido";

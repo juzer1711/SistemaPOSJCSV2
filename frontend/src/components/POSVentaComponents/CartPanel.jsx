@@ -1,138 +1,112 @@
 import React, { useMemo } from "react";
-import {
-  Paper,
-  Typography,
-  IconButton,
-  Box,
-  Divider,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
+import { Paper, Typography, IconButton, Box, Divider, Badge } from "@mui/material";
+import DeleteIcon  from "@mui/icons-material/Delete";
+import AddIcon     from "@mui/icons-material/Add";
+import RemoveIcon  from "@mui/icons-material/Remove";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { useTheme } from "@mui/material/styles";
+import { posStyles as sx } from "../../styles/pos/stylesPOS";
 
-const CartItem = ({ i, onChangeQty, onRemove }) => (
-  <Box
-    sx={{
-      p: 2,
-      borderRadius: 2,
-      mb: 1.5,
-      border: "1px solid #e0e0e0",
-      backgroundColor: "#fafafa",
-    }}
-  >
-    <Typography fontWeight={600} noWrap>
-      {i.nombre}
-    </Typography>
-
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        mt: 1,
-      }}
-    >
-      {/* Precio unitario */}
-      <Typography variant="body2" color="text.secondary">
-        ${Number(i.precioUnitario).toLocaleString("es-CO")}
-      </Typography>
-
-      {/* Cantidad */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton
-          size="small"
-          onClick={() =>
-            onChangeQty(i.idProducto, Math.max(1, i.cantidad - 1))
-          }
-        >
-          <RemoveIcon fontSize="small" />
-        </IconButton>
-
-        <Typography fontWeight={600}>{i.cantidad}</Typography>
-
-        <IconButton
-          size="small"
-          onClick={() =>
-            onChangeQty(i.idProducto, i.cantidad + 1)
-          }
-        >
-          <AddIcon fontSize="small" />
+const CartItem = ({ i, onChangeQty, onRemove }) => {
+  const theme = useTheme();
+  return (
+    <Box sx={sx.cartItem}>
+      {/* Nombre + eliminar */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+        <Typography variant="body2" fontWeight={600} noWrap sx={{ flex: 1, mr: 1 }}>
+          {i.nombre}
+        </Typography>
+        <IconButton size="small" color="error" onClick={() => onRemove(i.idProducto)}
+          sx={{ p: 0.3 }}>
+          <DeleteIcon fontSize="small" />
         </IconButton>
       </Box>
 
-      {/* Subtotal */}
-      <Typography fontWeight="bold">
-        ${(i.precioUnitario * i.cantidad).toLocaleString("es-CO")}
-      </Typography>
+      {/* Controles */}
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Typography variant="caption" color="text.secondary">
+          ${Number(i.precioUnitario).toLocaleString("es-CO")} c/u
+        </Typography>
 
-      {/* Eliminar */}
-      <IconButton color="error" onClick={() => onRemove(i.idProducto)}>
-        <DeleteIcon />
-      </IconButton>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
+          <IconButton size="small" sx={sx.qtyBtn(theme)}
+            onClick={() => onChangeQty(i.idProducto, Math.max(1, i.cantidad - 1))}>
+            <RemoveIcon sx={{ fontSize: 14 }} />
+          </IconButton>
+          <Typography variant="body2" fontWeight={700} sx={{ minWidth: 20, textAlign: "center" }}>
+            {i.cantidad}
+          </Typography>
+          <IconButton size="small" sx={sx.qtyBtn(theme)}
+            onClick={() => onChangeQty(i.idProducto, i.cantidad + 1)}>
+            <AddIcon sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Box>
+
+        <Typography variant="body2" fontWeight={700} color="primary.main">
+          ${(i.precioUnitario * i.cantidad).toLocaleString("es-CO")}
+        </Typography>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 const CartPanel = ({ items = [], onChangeQty = () => {}, onRemove = () => {} }) => {
   const total = useMemo(
-    () =>
-      items.reduce(
-        (acc, i) => acc + Number(i.precioUnitario) * Number(i.cantidad),
-        0
-      ),
+    () => items.reduce((acc, i) => acc + Number(i.precioUnitario) * Number(i.cantidad), 0),
     [items]
   );
 
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        borderRadius: 2,
-        overflow: "hidden",
-      }}
-    >
-      {/* Header */}
-      <Box sx={{ p: 2, borderBottom: "1px solid #e0e0e0" }}>
-        <Typography variant="h6">Carrito de compra</Typography>
+    <Paper elevation={0} sx={sx.panel}>
+      {/* Header con badge de cantidad */}
+      <Box sx={sx.panelHeader}>
+        <Typography variant="subtitle2" fontWeight={700}>
+          Carrito
+        </Typography>
+        <Badge
+          badgeContent={items.length}
+          color="primary"
+          showZero
+        >
+          <ShoppingCartIcon fontSize="small" color={items.length ? "primary" : "disabled"} />
+        </Badge>
       </Box>
 
-      {/* Lista con scroll */}
-      <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
+      {/* Items */}
+      <Box sx={sx.scrollArea}>
         {items.length === 0 ? (
-          <Typography color="text.secondary">
-            🛒 Aún no hay productos en el carrito
-          </Typography>
+          // ✅ Estado vacío ilustrativo
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", height: "100%", color: "text.disabled", gap: 1 }}>
+            <ShoppingCartIcon sx={{ fontSize: 56 }} />
+            <Typography variant="body2" fontWeight={500}>
+              El carrito está vacío
+            </Typography>
+            <Typography variant="caption" textAlign="center">
+              Haz clic en un producto del panel izquierdo para agregarlo
+            </Typography>
+          </Box>
         ) : (
-          items.map((i) => (
-            <CartItem
-              key={i.idProducto}
-              i={i}
-              onChangeQty={onChangeQty}
-              onRemove={onRemove}
-            />
-          ))
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            {items.map((i) => (
+              <CartItem key={i.idProducto} i={i} onChangeQty={onChangeQty} onRemove={onRemove} />
+            ))}
+          </Box>
         )}
       </Box>
 
-      <Divider />
-
-      {/* Total fijo abajo tipo POS */}
-      <Box
-        sx={{
-          p: 2,
-          backgroundColor: "#f5f5f5",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h6">TOTAL</Typography>
-        <Typography variant="h4" fontWeight="bold" color="primary">
-          ${total.toLocaleString("es-CO")}
-        </Typography>
+      {/* Footer total */}
+      <Box sx={sx.cartFooter}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary" fontWeight={600}>
+              {items.length} {items.length === 1 ? "producto" : "productos"}
+            </Typography>
+            <Typography variant="h5" fontWeight={800} color="primary.main" lineHeight={1.1}>
+              ${total.toLocaleString("es-CO")}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
     </Paper>
   );
