@@ -1,66 +1,94 @@
 import React, { useMemo, useState } from "react";
 import {
-  Paper,
-  TextField,
-  Grid,
-  Card,
-  Typography,
-  CardActionArea,
-  Box,
-  InputAdornment,
+  Paper, TextField, Typography, Box,
+  InputAdornment, Badge,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import SearchIcon     from "@mui/icons-material/Search";
+import CategoryIcon   from "@mui/icons-material/Category";
+import { posStyles as sx } from "../../styles/pos/stylesPOS";
+
+// ── Nivel de stock ────────────────────────────────────────────────────
+const getStockNivel = (p) => {
+  const stock = p.stockActual ?? 0;
+  const min   = p.stockMinimo ?? 0;
+  if (stock <= 0)   return { nivel: "none", label: "Sin stock" };
+  if (stock <= min) return { nivel: "low",  label: `Bajo: ${stock}` };
+  return               { nivel: "ok",   label: `Stock: ${stock}` };
+};
 
 const ProductCard = ({ p, onAdd }) => {
-  const stock = p.stockActual ?? 0;
-  const min = p.stockMinimo ?? 0;
-
-  let color = "text.secondary";
-  let label = `Stock: ${stock}`;
-
-  if (stock <= 0) {
-    color = "error.main";
-    label = `Sin stock (${stock})`;
-  } else if (stock <= min) {
-    color = "warning.main";
-    label = `Bajo (${stock})`;
-  }
+  const { nivel, label } = getStockNivel(p);
 
   return (
-    <Card
+    <Box
       sx={{
         borderRadius: 2,
-        height: 120,
+        border: "1px solid",
+        borderColor:
+          nivel === "none" ? "error.light"
+          : nivel === "low" ? "warning.light"
+          : "divider",
+        backgroundColor:
+          nivel === "none" ? "#fff5f5"
+          : nivel === "low" ? "#fffbf0"
+          : "background.paper",
+        cursor: "pointer",
+        transition: "all 0.15s ease",
+        "&:hover": {
+          borderColor:
+            nivel === "none" ? "error.main"
+            : nivel === "low" ? "warning.main"
+            : "primary.light",
+          transform: "translateX(2px)",
+        },
+        p: 1.2,
         display: "flex",
-        border: stock <= 0 ? "2px solid red" : "none",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 1,
       }}
+      onClick={() => onAdd(p)}
     >
-      <CardActionArea
-        onClick={() => onAdd(p)}
-        sx={{
-          p: 2,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-        }}
-      >
-        <Typography variant="subtitle2" noWrap fontWeight={600}>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="body2" fontWeight={600} noWrap>
           {p.nombre}
         </Typography>
-
-        <Typography variant="h6" color="primary" fontWeight="bold">
-          ${Number(p.precioventa).toLocaleString("es-CO")}
-        </Typography>
-
-        <Typography variant="caption" sx={{ color }}>
+        <Box
+          sx={{
+            display: "inline-block",
+            fontSize: "0.68rem",
+            fontWeight: 600,
+            px: 0.8,
+            py: 0.2,
+            borderRadius: 1,
+            mt: 0.3,
+            backgroundColor:
+              nivel === "none" ? "#ffebee"
+              : nivel === "low" ? "#fff3e0"
+              : "#e8f5e9",
+            color:
+              nivel === "none" ? "#c62828"
+              : nivel === "low" ? "#e65100"
+              : "#2e7d32",
+          }}
+        >
           {label}
-        </Typography>
-      </CardActionArea>
-    </Card>
+        </Box>
+      </Box>
+
+      <Typography
+        variant="subtitle2"
+        fontWeight={700}
+        color="primary.main"
+        sx={{ flexShrink: 0 }}
+      >
+        ${Number(p.precioventa).toLocaleString("es-CO")}
+      </Typography>
+    </Box>
   );
 };
 
-const ProductSidebar = ({ productos, onAdd = () => {} }) => {
+const ProductSidebar = ({ productos = [], onAdd = () => {} }) => {
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -74,49 +102,56 @@ const ProductSidebar = ({ productos, onAdd = () => {} }) => {
   }, [productos, q]);
 
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        borderRadius: 2,
-        backgroundColor: "#fff",
-      }}
-    >
-      {/* Buscador fijo */}
-      <Box sx={{ p: 2, borderBottom: "1px solid #e0e0e0" }}>
+    <Paper elevation={0} sx={sx.panel}>
+      {/* Header */}
+      <Box sx={sx.panelHeader}>
+        <Typography variant="subtitle2" fontWeight={700}>
+          Productos
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {productos.length} productos
+        </Typography>
+      </Box>
+
+      {/* Buscador */}
+      <Box sx={{ px: 1.5, py: 1, borderBottom: "1px solid", borderColor: "divider", flexShrink: 0 }}>
         <TextField
           fullWidth
-          placeholder="Buscar producto o escanear código..."
+          size="small"
+          placeholder="Buscar o escanear código..."
           value={q}
           onChange={(e) => setQ(e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon />
+                <SearchIcon fontSize="small" />
               </InputAdornment>
             ),
           }}
         />
       </Box>
 
-      {/* Lista con scroll REAL */}
-      <Box
-        sx={{
-          flex: 1,
-          overflowY: "auto",
-          p: 2,
-        }}
-      >
-        <Grid container spacing={2}>
-          {filtered.map((p) => (
-            <Grid key={p.idProducto} item xs={12}>
-              <ProductCard p={p} onAdd={onAdd} />
-            </Grid>
-          ))}
-        </Grid>
+      {/* Lista */}
+      <Box sx={sx.scrollArea}>
+        {productos.length === 0 ? (
+          // Estado vacío — sin productos cargados
+          <Box sx={{ textAlign: "center", mt: 6, color: "text.disabled" }}>
+            <CategoryIcon sx={{ fontSize: 48, mb: 1 }} />
+            <Typography variant="body2">No hay productos disponibles</Typography>
+          </Box>
+        ) : filtered.length === 0 ? (
+          // Sin resultados de búsqueda
+          <Box sx={{ textAlign: "center", mt: 6, color: "text.disabled" }}>
+            <SearchIcon sx={{ fontSize: 48, mb: 1 }} />
+            <Typography variant="body2">Sin resultados para "{q}"</Typography>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.8 }}>
+            {filtered.map((p) => (
+              <ProductCard key={p.idProducto} p={p} onAdd={onAdd} />
+            ))}
+          </Box>
+        )}
       </Box>
     </Paper>
   );

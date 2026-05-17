@@ -1,244 +1,214 @@
 import {
-  Box, Typography, Card, CardContent, Grid,
-  TextField, MenuItem, Button, Autocomplete,
-  Chip, Dialog, DialogTitle, DialogContent,
+  Box, Typography, Card,
+  TextField, Button, Autocomplete,
+  Chip, Dialog, DialogContent, DialogActions,
+  ToggleButton, ToggleButtonGroup,
 } from "@mui/material";
-import { CircularProgress } from "@mui/material";
+import {
+  Inventory2 as InventoryIcon,
+  History as HistoryIcon,
+  Warning as WarningIcon,
+  Add as AddIcon,
+} from "@mui/icons-material";
+import { useState } from "react";
 import { useInventarioManagement } from "../hooks/inventario/useInventarioManagement";
-import InventarioGrid from "../components/Inventario/InventarioGrid";
-import MovimientosGrid from "../components/Inventario/MovimientosGrid";
+import InventarioGrid              from "../components/Inventario/InventarioGrid";
+import MovimientosGrid             from "../components/Inventario/MovimientosGrid";
+import DialogRegistrarMovimiento   from "../components/Inventario/DialogRegistrarMovimiento";
+import { styles }                  from "../styles/inventario/stylesInventario";
 
 export default function InventarioManagement() {
   const {
-    // Datos
-    productos,
-    movimientos,
-    movimientoSeleccionado,
-    lowStockProducts,
-    inventarioFiltrado,
-    // Paginación
-    pageInv,
-    setPageInv,
-    pageMov,
-    setPageMov,
-    totalRowsMov,
-    // Filtros
-    filtroMov,
-    setFiltroMov,
-    tipoFiltro,
-    setTipoFiltro,
-    // Formulario movimiento
-    productoSeleccionado,
-    setProductoSeleccionado,
-    tipoMovimiento,
-    setTipoMovimiento,
-    cantidad,
-    setCantidad,
-    motivo,
-    setMotivo,
-    loadingMovimiento,
-    // Dialog detalle
-    openDetalle,
-    setOpenDetalle,
-    handleRowClick,
-    // Stock bajo
-    showOnlyLowStock,
-    setShowOnlyLowStock,
-    // Handlers
+    productos, movimientos, movimientoSeleccionado,
+    lowStockProducts, inventarioFiltrado,
+    pageInv, setPageInv, pageMov, setPageMov, totalRowsMov,
+    filtroMov, setFiltroMov, tipoFiltro, setTipoFiltro,
+    productoSeleccionado, setProductoSeleccionado,
+    tipoMovimiento, setTipoMovimiento,
+    cantidad, setCantidad, motivo, setMotivo,
+    loadingMovimiento, openDetalle, setOpenDetalle,
+    handleRowClick, showOnlyLowStock, setShowOnlyLowStock,
     handleRegistrarMovimiento,
   } = useInventarioManagement();
 
-  return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h5" fontWeight="bold" mb={3}>
-        Gestión de Inventario
-      </Typography>
+  // ── Estado local de la página ────────────────────────────────────
+  const [vistaActiva, setVistaActiva]     = useState("stock");    // "stock" | "historial"
+  const [openDialogMov, setOpenDialogMov] = useState(false);
 
-      {/* ⚠ Banner stock bajo */}
-      {lowStockProducts.length > 0 && (
-        <Box
-          sx={{
-            mb: 2,
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: "#fff3cd",
-            border: "1px solid #ffeeba",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Typography fontWeight="bold">
-            ⚠ {lowStockProducts.length} productos con stock bajo
+  return (
+    <Box sx={styles.page}>
+
+      {/* ── Header con acciones ── */}
+      <Box sx={{
+        display: "flex", alignItems: "flex-start",
+        justifyContent: "space-between", flexWrap: "wrap",
+        gap: 2, mb: 3,
+      }}>
+        <Box>
+          <Typography variant="h5" fontWeight={700}>
+            Gestión de Inventario
           </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Controla el stock y los movimientos de tus productos
+          </Typography>
+        </Box>
+
+        {/* ✅ Botón para abrir el dialog de registro */}
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setOpenDialogMov(true)}
+          sx={{ fontWeight: 700, borderRadius: 2 }}
+        >
+          Registrar movimiento
+        </Button>
+      </Box>
+
+      {/* ── Banner stock bajo ── */}
+      {lowStockProducts.length > 0 && (
+        <Box sx={styles.banner}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <WarningIcon sx={{ color: "#f9a825", fontSize: 26 }} />
+            <Box>
+              <Typography fontWeight={700} color="#7c5700" fontSize={14}>
+                {lowStockProducts.length}{" "}
+                {lowStockProducts.length === 1
+                  ? "producto con stock bajo o agotado"
+                  : "productos con stock bajo o agotado"}
+              </Typography>
+              <Typography fontSize={12} color="#a07030">
+                Revisa y ajusta el inventario para evitar quiebres de stock
+              </Typography>
+            </Box>
+          </Box>
           <Button
             size="small"
-            color="warning"
-            onClick={() => setShowOnlyLowStock(true)}
+            variant="contained"
+            sx={{ backgroundColor: "#f9a825", "&:hover": { backgroundColor: "#f59f00" } }}
+            onClick={() => {
+              setShowOnlyLowStock(true);
+              setVistaActiva("stock"); // lleva al stock si está en historial
+            }}
           >
             Ver productos
           </Button>
         </Box>
       )}
 
-      {/* 🔵 PANEL MOVIMIENTO */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" mb={2}>
-            Registrar movimiento manual
-          </Typography>
+      {/* ── Toggle de vista ── */}
+      <Box sx={{ display: "flex", alignItems: "center",
+        justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={3}>
-              <Autocomplete
-                size="small"
-                sx={{ width: 250 }}
-                options={productos}
-                getOptionLabel={(p) => `${p.nombre} | Stock: ${p.stockActual}`}
-                value={productoSeleccionado}
-                onChange={(e, val) => setProductoSeleccionado(val)}
-                renderInput={(params) => (
-                  <TextField {...params} label="Producto" />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={2}>
-              <TextField
-                size="small"
-                sx={{ width: 150 }}
-                select
-                fullWidth
-                label="Tipo"
-                value={tipoMovimiento}
-                onChange={(e) => setTipoMovimiento(e.target.value)}
-              >
-                <MenuItem value="ENTRADA">Entrada</MenuItem>
-                <MenuItem value="SALIDA">Salida</MenuItem>
-              </TextField>
-            </Grid>
-
-            <Grid item xs={12} md={2}>
-              <TextField
-                size="small"
-                fullWidth
-                label="Cantidad"
-                type="number"
-                value={cantidad}
-                onChange={(e) => setCantidad(e.target.value)}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={3}>
-              <TextField
-                size="small"
-                fullWidth
-                label="Motivo"
-                value={motivo}
-                onChange={(e) => setMotivo(e.target.value)}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={2}>
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={handleRegistrarMovimiento}
-                disabled={loadingMovimiento}
-              >
-                {loadingMovimiento ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  "Registrar"
-                )}
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-
-      {/* 🟩 INVENTARIO ACTUAL */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6">
-            Inventario actual
+        <ToggleButtonGroup
+          value={vistaActiva}
+          exclusive
+          onChange={(_, val) => { if (val) setVistaActiva(val); }}
+          size="small"
+          sx={{ "& .MuiToggleButton-root": { px: 2.5, fontWeight: 600, borderRadius: "8px !important" } }}
+        >
+          <ToggleButton value="stock">
+            <InventoryIcon sx={{ fontSize: 16, mr: 0.8 }} />
+            Stock actual
             {lowStockProducts.length > 0 && (
               <Chip
-                label={`${lowStockProducts.length} bajo stock`}
+                label={lowStockProducts.length}
                 color="error"
                 size="small"
-                sx={{ ml: 1 }}
+                sx={{ ml: 1, height: 18, fontSize: "0.65rem" }}
               />
             )}
-          </Typography>
+          </ToggleButton>
+          <ToggleButton value="historial">
+            <HistoryIcon sx={{ fontSize: 16, mr: 0.8 }} />
+            Historial
+          </ToggleButton>
+        </ToggleButtonGroup>
 
-          {showOnlyLowStock && (
-            <Button size="small" onClick={() => setShowOnlyLowStock(false)}>
-              Mostrar todos
-            </Button>
-          )}
+        {/* Botón "Mostrar todos" solo en vista stock con filtro activo */}
+        {vistaActiva === "stock" && showOnlyLowStock && (
+          <Button size="small" variant="outlined"
+            onClick={() => setShowOnlyLowStock(false)}>
+            Mostrar todos los productos
+          </Button>
+        )}
+      </Box>
 
+      {/* ── Vista Stock actual ── */}
+      {vistaActiva === "stock" && (
+        <Card elevation={0} sx={styles.card}>
+          <Box sx={styles.cardHeader}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <InventoryIcon fontSize="small" color="primary" />
+              <Typography variant="subtitle2" fontWeight={700}>
+                {showOnlyLowStock ? "Productos con stock bajo" : "Inventario actual"}
+              </Typography>
+              {lowStockProducts.length > 0 && (
+                <Chip label={`${lowStockProducts.length} bajo stock`}
+                  color="error" size="small" sx={{ fontSize: "0.68rem" }} />
+              )}
+            </Box>
+          </Box>
           <InventarioGrid
             rows={inventarioFiltrado}
             page={pageInv}
             onPageChange={setPageInv}
           />
-        </CardContent>
-      </Card>
+        </Card>
+      )}
 
-      {/* 🟨 HISTORIAL */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" mb={2}>
-            Historial de movimientos
-          </Typography>
-
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-            <Autocomplete
-              size="small"
-              sx={{ width: 250 }}
-              options={productos}
-              getOptionLabel={(p) => p.nombre}
-              value={filtroMov.producto}
-              onChange={(e, val) =>
-                setFiltroMov({ ...filtroMov, producto: val })
-              }
-              renderInput={(params) => (
-                <TextField {...params} label="Producto" />
-              )}
-            />
-
-            <Box sx={{ display: "flex", gap: 1 }}>
-              {["", "ENTRADA", "SALIDA", "VENTA"].map((tipo) => (
-                <Chip
-                  key={tipo}
-                  label={tipo || "Todos"}
-                  clickable
-                  color={tipoFiltro === tipo ? "primary" : "default"}
-                  onClick={() => setTipoFiltro(tipo)}
-                />
-              ))}
+      {/* ── Vista Historial ── */}
+      {vistaActiva === "historial" && (
+        <Card elevation={0} sx={styles.card}>
+          <Box sx={styles.cardHeader}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <HistoryIcon fontSize="small" color="primary" />
+              <Typography variant="subtitle2" fontWeight={700}>
+                Historial de movimientos
+              </Typography>
             </Box>
-
-            <TextField
-              type="date"
-              size="small"
-              value={filtroMov.fechaInicio}
-              onChange={(e) =>
-                setFiltroMov({ ...filtroMov, fechaInicio: e.target.value })
-              }
-            />
-
-            <TextField
-              type="date"
-              size="small"
-              value={filtroMov.fechaFin}
-              onChange={(e) =>
-                setFiltroMov({ ...filtroMov, fechaFin: e.target.value })
-              }
-            />
           </Box>
-
+          <Box sx={{ px: 2.5, pt: 2 }}>
+            {/* Filtros */}
+            <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap",
+              alignItems: "center", mb: 2 }}>
+              <Autocomplete
+                size="small"
+                sx={{ width: 230 }}
+                options={productos}
+                getOptionLabel={(p) => p.nombre}
+                value={filtroMov.producto}
+                onChange={(_, val) => setFiltroMov({ ...filtroMov, producto: val })}
+                renderInput={(params) => (
+                  <TextField {...params} placeholder="Filtrar por producto..." />
+                )}
+              />
+              <Box sx={{ display: "flex", gap: 0.8 }}>
+                {["", "ENTRADA", "SALIDA", "VENTA"].map((tipo) => (
+                  <Chip
+                    key={tipo}
+                    label={tipo || "Todos"}
+                    size="small"
+                    clickable
+                    color={tipoFiltro === tipo ? "primary" : "default"}
+                    variant={tipoFiltro === tipo ? "filled" : "outlined"}
+                    onClick={() => setTipoFiltro(tipo)}
+                  />
+                ))}
+              </Box>
+              <TextField
+                type="date" size="small" label="Desde"
+                InputLabelProps={{ shrink: true }}
+                value={filtroMov.fechaInicio}
+                onChange={(e) => setFiltroMov({ ...filtroMov, fechaInicio: e.target.value })}
+              />
+              <TextField
+                type="date" size="small" label="Hasta"
+                InputLabelProps={{ shrink: true }}
+                value={filtroMov.fechaFin}
+                onChange={(e) => setFiltroMov({ ...filtroMov, fechaFin: e.target.value })}
+              />
+            </Box>
+          </Box>
           <MovimientosGrid
             rows={movimientos}
             totalRows={totalRowsMov}
@@ -246,36 +216,90 @@ export default function InventarioManagement() {
             page={pageMov}
             onPageChange={setPageMov}
           />
-        </CardContent>
-      </Card>
+        </Card>
+      )}
 
-      {/* 🔍 Dialog detalle movimiento */}
+      {/* ── Dialog: Registrar movimiento ── */}
+      <DialogRegistrarMovimiento
+        open={openDialogMov}
+        onClose={() => setOpenDialogMov(false)}
+        productos={productos}
+        productoSeleccionado={productoSeleccionado}
+        setProductoSeleccionado={setProductoSeleccionado}
+        tipoMovimiento={tipoMovimiento}
+        setTipoMovimiento={setTipoMovimiento}
+        cantidad={cantidad}
+        setCantidad={setCantidad}
+        motivo={motivo}
+        setMotivo={setMotivo}
+        loadingMovimiento={loadingMovimiento}
+        handleRegistrarMovimiento={handleRegistrarMovimiento}
+      />
+
+      {/* ── Dialog: Detalle movimiento ── */}
       <Dialog
         open={openDetalle}
         onClose={() => setOpenDetalle(false)}
+        maxWidth="xs"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle>Detalle del movimiento</DialogTitle>
-        <DialogContent>
-          <Typography>
-            <b>Producto:</b> {movimientoSeleccionado?.nombreProducto}
+        <Box sx={{ px: 2.5, py: 2, borderBottom: "1px solid",
+          borderColor: "divider", display: "flex",
+          alignItems: "center", justifyContent: "space-between" }}>
+          <Typography variant="subtitle1" fontWeight={700}>
+            Detalle del movimiento
           </Typography>
-          <Typography>
-            <b>Tipo:</b> {movimientoSeleccionado?.tipo}
-          </Typography>
-          <Typography>
-            <b>Cantidad:</b> {movimientoSeleccionado?.cantidad}
-          </Typography>
-          <Typography>
-            <b>Motivo:</b> {movimientoSeleccionado?.motivo}
-          </Typography>
-          <Typography>
-            <b>Fecha:</b>{" "}
-            {movimientoSeleccionado?.fecha &&
-              new Date(movimientoSeleccionado.fecha).toLocaleString("es-CO")}
-          </Typography>
+          {movimientoSeleccionado?.tipo && (
+            <Chip
+              label={movimientoSeleccionado.tipo}
+              size="small"
+              color={
+                movimientoSeleccionado.tipo === "ENTRADA" ? "success"
+                : movimientoSeleccionado.tipo === "SALIDA"  ? "error"
+                : "info"
+              }
+            />
+          )}
+        </Box>
+        <DialogContent sx={{ pt: 2 }}>
+          <Box sx={styles.detailGrid}>
+            {[
+              { label: "Producto", value: movimientoSeleccionado?.nombreProducto },
+              { label: "Cantidad", value: movimientoSeleccionado?.cantidad },
+              { label: "Tipo",     value: movimientoSeleccionado?.tipo },
+              { label: "Fecha",    value: movimientoSeleccionado?.fecha
+                  ? new Date(movimientoSeleccionado.fecha).toLocaleString("es-CO")
+                  : "—" },
+            ].map(({ label, value }) => (
+              <Box key={label} sx={styles.detailItem}>
+                <Typography variant="caption" fontWeight={700} color="text.disabled"
+                  textTransform="uppercase" letterSpacing="0.07em" display="block">
+                  {label}
+                </Typography>
+                <Typography variant="body2" fontWeight={600} mt={0.3}>
+                  {value ?? "—"}
+                </Typography>
+              </Box>
+            ))}
+            <Box sx={{ ...styles.detailItem, gridColumn: "1 / -1" }}>
+              <Typography variant="caption" fontWeight={700} color="text.disabled"
+                textTransform="uppercase" letterSpacing="0.07em" display="block">
+                Motivo
+              </Typography>
+              <Typography variant="body2" fontWeight={600} mt={0.3}>
+                {movimientoSeleccionado?.motivo ?? "—"}
+              </Typography>
+            </Box>
+          </Box>
         </DialogContent>
+        <DialogActions sx={{ px: 2.5, py: 1.5, borderTop: "1px solid", borderColor: "divider" }}>
+          <Button onClick={() => setOpenDetalle(false)} variant="outlined" size="small">
+            Cerrar
+          </Button>
+        </DialogActions>
       </Dialog>
+
     </Box>
   );
 }

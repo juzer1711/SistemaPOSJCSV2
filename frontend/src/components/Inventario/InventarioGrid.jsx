@@ -1,37 +1,88 @@
 import { DataGrid } from "@mui/x-data-grid";
-import { Chip } from "@mui/material";
+import { Chip, Box, Typography } from "@mui/material";
 
-export default function InventarioGrid({ rows }) {
+const getEstado = (row) => {
+  if (row.stockActual <= 0)
+    return { label: "Sin stock", color: "error" };
+  // ✅ solo activa "Bajo" si stockMinimo está configurado
+  if (row.stockMinimo > 0 && row.stockActual <= row.stockMinimo)
+    return { label: "Bajo", color: "warning" };
+  return { label: "Normal", color: "success" };
+};
 
-  const getEstado = (row) => {
-    if (row.stockActual === 0) return { label: "Sin stock", color: "error" };
-    if (row.stockActual <= row.stockMinimo) return { label: "Bajo", color: "warning" };
-    return { label: "Normal", color: "success" };
-  };
+const getStockColor = (row) => {
+  if (row.stockActual <= 0) return "error.main";
+  if (row.stockMinimo > 0 && row.stockActual <= row.stockMinimo) return "warning.main";
+  return "success.main";
+};
 
+export default function InventarioGrid({ rows, page, onPageChange }) {
   const columns = [
-    { field: "idProducto", headerName: "ID", width: 90 },
-    { field: "nombre", headerName: "Producto", flex: 1 },
-    { field: "stockActual", headerName: "Stock", width: 120 },
-    { field: "stockMinimo", headerName: "Stock mínimo", width: 140 },
+    {
+      field: "idProducto",
+      headerName: "ID",
+      width: 70,
+    },
+    {
+      field: "nombre",
+      headerName: "Producto",
+      flex: 1,
+      minWidth: 160,
+    },
+    {
+      field: "stockActual",
+      headerName: "Stock actual",
+      width: 130,
+      renderCell: (params) => (
+        <Typography
+          variant="body2"
+          fontWeight={700}
+          color={getStockColor(params.row)}
+        >
+          {params.value}
+        </Typography>
+      ),
+    },
+    {
+      field: "stockMinimo",
+      headerName: "Stock mínimo",
+      width: 140,
+      renderCell: (params) => (
+        <Typography variant="body2" color={params.value > 0 ? "text.primary" : "text.disabled"}>
+          {params.value > 0 ? params.value : "No configurado"}
+        </Typography>
+      ),
+    },
     {
       field: "estado",
       headerName: "Estado",
       width: 140,
       renderCell: (params) => {
-        const estado = getEstado(params.row);
-        return <Chip label={estado.label} color={estado.color} />;
-      }
-    }
+        const { label, color } = getEstado(params.row);
+        return <Chip label={label} color={color} size="small" />;
+      },
+    },
   ];
 
   return (
-    <DataGrid
-      rows={rows}
-      getRowId={(row) => row.idProducto}
-      columns={columns}
-      autoHeight
-      pageSizeOptions={[10]}
-    />
+    <Box sx={{ width: "100%" }}>
+      <DataGrid
+        rows={rows || []}
+        getRowId={(row) => row.idProducto}
+        columns={columns}
+        autoHeight
+        pageSizeOptions={[10, 25]}
+        paginationModel={{ page: page ?? 0, pageSize: 10 }}
+        onPaginationModelChange={(model) => onPageChange?.(model.page)}
+        disableRowSelectionOnClick
+        sx={{
+          border: "none",
+          "& .MuiDataGrid-columnHeaders": {
+            backgroundColor: "background.default",
+            fontSize: "0.75rem",
+          },
+        }}
+      />
+    </Box>
   );
 }
