@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from "react";
 import { 
-  Box, TextField, InputAdornment, Button, IconButton,
+  Box, Chip, TextField, InputAdornment, Button, IconButton,
   Menu, MenuItem, Checkbox, FormControlLabel, Select, FormControl, 
-  InputLabel, Autocomplete
+  InputLabel, Autocomplete,
+  Tooltip
 } from "@mui/material";
 import { Add, Search, Settings } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
-import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 
 const SORT_FIELDS = [
   { value: "nombre", label: "Nombre Producto" },
@@ -40,10 +40,27 @@ const ProductSearchBar = ({
       };
 
   return (
-  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, gap: 2, flexWrap: "wrap" }}>
-    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+  <Box
+    sx={{
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 2,
+      alignItems: "center",
+      justifyContent: "space-between",
+    }}
+  >
+    <Box
+      sx={{
+        display: "flex",
+        gap: 1.5,
+        alignItems: "center",
+        flexWrap: "wrap",
+        flex: 1,
+      }}
+    >
     <TextField
       size="small"
+      sx={{ minWidth: 260 }}
       placeholder="Buscar producto..."
       value={filter}
       onChange={(e) => onFilterChange(e.target.value)}
@@ -55,9 +72,20 @@ const ProductSearchBar = ({
         ),
       }}
     />
-    <IconButton size="small" onClick={handleColumnsClick} title="Configurar columnas">
-      <Settings />
-    </IconButton>
+    {/* COLUMNAS */}
+    <Tooltip title="Configurar columnas" arrow>
+      <IconButton
+        size="small"
+        onClick={handleColumnsClick}
+        sx={{
+          border: "1px solid #E2E8F0",
+          borderRadius: "10px",
+          backgroundColor: "#FFFFFF",
+        }}
+      >
+        <Settings />
+      </IconButton>
+    </Tooltip>
 
     <Menu 
       anchorEl={anchorEl} 
@@ -98,20 +126,6 @@ const ProductSearchBar = ({
     ))}
   </Menu>
 
-
-    <ToggleButtonGroup
-      size="small"
-      color="primary"
-      value={showInactive ? "inactive" : "active"}
-      exclusive
-      onChange={(e, val) => {
-        if (val !== null) onToggleInactive();
-      }}
-    >
-      <ToggleButton value="active">Activos</ToggleButton>
-      <ToggleButton value="inactive">Inactivos</ToggleButton>
-    </ToggleButtonGroup>
-
     {/* Filtros rápidos */}
     <Autocomplete
       size="small"
@@ -143,30 +157,41 @@ const ProductSearchBar = ({
       )}
     />
 
+    <Tooltip title={showInactive ? "Mostrar activos" : "Mostrar inactivos"}>
+      <Chip
+        label={showInactive ? "Inactivos" : "Activos"}
+        color={showInactive ? "default" : "primary"}
+        onClick={onToggleInactive}
+        clickable
+        sx={{
+          height: 38,
+          px: 1,
+          fontWeight: 600,
+        }}
+      />
+    </Tooltip>
   </Box>
       {/* Botones */}
-      <Box>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          startIcon={<Add />} 
-          sx={{ mr: 1 }}
+      <Tooltip title="Agregar nueva categoria" arrow>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
           onClick={onAddCategoria}
         >
           Agregar Categoria
         </Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          startIcon={<Add />} 
-          sx={{ mr: 1 }}
+      </Tooltip>
+      <Tooltip title="Agregar nuevo producto" arrow>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
           onClick={onAdd}
         >
-          Agregar
+          Agregar Producto
         </Button>
-      </Box>
+      </Tooltip>
     </Box>
-  );
+);
 };
 
 export default ProductSearchBar;

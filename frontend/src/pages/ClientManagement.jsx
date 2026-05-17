@@ -3,16 +3,20 @@ import ClientTable from "../components/CrudClientes/ClientTable";
 import ClientFormDialog from "../components/CrudClientes/ClientFormDialog";
 import ClientSearchBar from "../components/CrudClientes/ClientSearchBar";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { Box, Toolbar, Typography, Snackbar, Alert } from "@mui/material";
+import { Box } from "@mui/material";
+import PageHeader from "../components/ui/PageHeader";
+import ManagementToolbar from "../components/ui/ManagementToolbar";
+import TableContainer from "../components/ui/TableContainer";
 
 const ClientManagement = () => {
   const c = useClients();
 
   return (
     <Box sx={{ p: 3 }}>
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Typography variant="h6">Gestión de Clientes</Typography>
-      </Toolbar>
+      <PageHeader
+        title="Gestión de Clientes"
+        subtitle="Administra la información y estado de los clientes"
+      />
 
       <ClientSearchBar
         filter={c.filter}
@@ -29,20 +33,22 @@ const ClientManagement = () => {
         handleShowAll={c.handleShowAll}
         ALL_COLUMNS={c.ALL_COLUMNS}
       />
-
-      <ClientTable
-        clients={c.clients}
-        page={c.page}
-        setPage={c.setPage}
-        pageSize={c.pageSize}
-        setPageSize={c.setPageSize}
-        totalRows={c.totalRows}
-        loading={false}
-        onEdit={c.handleEdit}
-        onDelete={c.openDeactivateDialog}
-        onActivate={c.openActivateDialog}
-        visibleColumns={c.visibleColumns}
-      />
+      
+      <TableContainer>
+        <ClientTable
+          clients={c.clients}
+          page={c.page}
+          setPage={c.setPage}
+          pageSize={c.pageSize}
+          setPageSize={c.setPageSize}
+          totalRows={c.totalRows}
+          loading={false}
+          onEdit={c.handleEdit}
+          onDelete={c.openDeactivateDialog}
+          onActivate={c.openActivateDialog}
+          visibleColumns={c.visibleColumns}
+        />
+      </TableContainer>
 
       <ClientFormDialog
         open={c.open}
@@ -67,16 +73,6 @@ const ClientManagement = () => {
         onClose={() => c.setDialogOpen(false)}
         onConfirm={c.handleConfirm}
       />
-
-      <Snackbar
-        open={c.snackbar.open}
-        autoHideDuration={2500}
-        onClose={() => c.showMessage("")}
-      >
-        <Alert severity={c.snackbar.severity} variant="filled">
-          {c.snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

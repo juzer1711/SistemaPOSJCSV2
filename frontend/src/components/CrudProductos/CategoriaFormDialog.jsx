@@ -78,17 +78,18 @@ useEffect(() => {
             error={!!errors.nombre}
             helperText={errors.nombre?.message}
           />
-            <DialogActions>
-              <Button onClick={onClose}>Cancelar</Button>
-              <Button
-                type="submit"
-                variant="contained"
-              >
-                {editing ? "Guardar" : "Crear"}
-              </Button>
-          </DialogActions>
         </Box>
       </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancelar</Button>
+        <Button
+          type="submit"
+          form="categoria-form"
+          variant="contained"
+        >
+          {editing ? "Guardar" : "Crear"}
+        </Button>
+      </DialogActions>      
     </Dialog>
   );
 };

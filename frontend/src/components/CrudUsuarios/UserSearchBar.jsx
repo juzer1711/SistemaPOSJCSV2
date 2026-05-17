@@ -1,24 +1,40 @@
 import React from "react";
+
 import {
-  Box, TextField, InputAdornment, Button,
-  MenuItem, ToggleButton, ToggleButtonGroup, Tooltip,
+  Box,
+  TextField,
+  InputAdornment,
+  Button,
+  MenuItem,
+  Tooltip,
+  Chip,
+  Stack,
 } from "@mui/material";
-import { Add, Search } from "@mui/icons-material";
+
+import {
+  Add,
+  Search,
+} from "@mui/icons-material";
 
 const UserSearchBar = ({
-  filter, onFilterChange, onAdd,
-  showInactive, onToggleInactive,
-  advancedFilters, setAdvancedFilters,
+  filter,
+  onFilterChange,
+  onAdd,
+  showInactive,
+  onToggleInactive,
+  advancedFilters,
+  setAdvancedFilters,
 }) => {
+
   const handleChange = (field, value) =>
-    setAdvancedFilters((prev) => ({ ...prev, [field]: value }));
+    setAdvancedFilters((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
   return (
     <Box
       sx={{
-        mb: 2, p: 2, borderRadius: 2,
-        backgroundColor: "background.paper",
-        boxShadow: 1,
         display: "flex",
         flexWrap: "wrap",
         gap: 2,
@@ -26,14 +42,24 @@ const UserSearchBar = ({
         justifyContent: "space-between",
       }}
     >
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
+
+      {/* LEFT SIDE */}
+      <Stack
+        direction="row"
+        spacing={2}
+        useFlexGap
+        flexWrap="wrap"
+        alignItems="center"
+      >
 
         <TextField
           size="small"
-          placeholder="Buscar nombre, email..."
+          placeholder="Buscar usuario o email..."
           value={filter}
           onChange={(e) => onFilterChange(e.target.value)}
-          sx={{ minWidth: 240 }}
+          sx={{
+            width: 280,
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -44,10 +70,14 @@ const UserSearchBar = ({
         />
 
         <TextField
-          select size="small" label="Rol"
+          select
+          size="small"
+          label="Rol"
           value={advancedFilters.rol || ""}
           onChange={(e) => handleChange("rol", e.target.value)}
-          sx={{ minWidth: 150 }}
+          sx={{
+            minWidth: 160,
+          }}
         >
           <MenuItem value="">Todos</MenuItem>
           <MenuItem value="ADMINISTRADOR">Administrador</MenuItem>
@@ -55,35 +85,60 @@ const UserSearchBar = ({
         </TextField>
 
         <TextField
-          select size="small" label="Tipo Doc."
+          select
+          size="small"
+          label="Documento"
           value={advancedFilters.tipoDocumento || ""}
           onChange={(e) => handleChange("tipoDocumento", e.target.value)}
-          sx={{ minWidth: 180 }}
+          sx={{
+            minWidth: 180,
+          }}
         >
           <MenuItem value="">Todos</MenuItem>
-          <MenuItem value="CEDULA_CIUDADANIA">Cédula Ciudadanía</MenuItem>
-          <MenuItem value="CEDULA_EXTRANJERIA">Cédula Extranjería</MenuItem>
-          <MenuItem value="NIT">NIT</MenuItem>
-          <MenuItem value="PASAPORTE">Pasaporte</MenuItem>
+          <MenuItem value="CEDULA_CIUDADANIA">
+            Cédula Ciudadanía
+          </MenuItem>
+
+          <MenuItem value="CEDULA_EXTRANJERIA">
+            Cédula Extranjería
+          </MenuItem>
+
+          <MenuItem value="NIT">
+            NIT
+          </MenuItem>
+
+          <MenuItem value="PASAPORTE">
+            Pasaporte
+          </MenuItem>
         </TextField>
 
-        <ToggleButtonGroup
-          size="small" color="primary" exclusive
-          value={showInactive ? "inactive" : "active"}
-          onChange={(_, val) => { if (val !== null) onToggleInactive(); }}
-        >
-          <ToggleButton value="active">Activos</ToggleButton>
-          <ToggleButton value="inactive">Inactivos</ToggleButton>
-        </ToggleButtonGroup>
+        <Tooltip title={showInactive ? "Mostrar activos" : "Mostrar inactivos"}>
+          <Chip
+            label={showInactive ? "Inactivos" : "Activos"}
+            color={showInactive ? "default" : "primary"}
+            onClick={onToggleInactive}
+            clickable
+            sx={{
+              height: 38,
+              px: 1,
+              fontWeight: 600,
+            }}
+          />
+        </Tooltip>
 
-      </Box>
+      </Stack>
 
-      {/* ✅ sin color hardcodeado */}
+      {/* RIGHT SIDE */}
       <Tooltip title="Registrar nuevo usuario" arrow>
-        <Button variant="contained" startIcon={<Add />} onClick={onAdd}>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={onAdd}
+        >
           Nuevo Usuario
         </Button>
       </Tooltip>
+
     </Box>
   );
 };

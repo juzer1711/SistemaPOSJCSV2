@@ -112,7 +112,7 @@ const Navbar = () => {
           {/* ── Branding ── */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mr: 2 }}>
             <StorefrontIcon sx={{ fontSize: 22, opacity: 0.9 }} />
-            <Typography variant="h6" fontWeight={700} letterSpacing={-0.3} noWrap>
+            <Typography variant="h6" fontWeight={700} letterSpacing={-0.3} noWrap color="white">
               POS JCS
             </Typography>
           </Box>

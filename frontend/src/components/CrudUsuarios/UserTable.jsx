@@ -1,6 +1,7 @@
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, IconButton, Button, Chip, Tooltip } from "@mui/material";
 import { Edit, CheckCircle, Cancel } from "@mui/icons-material";
+import { dataGridStyles } from "../../styles/dataGridStyles";
 
 export default function UserTable({
   users, page, setPage, pageSize, setPageSize,
@@ -27,7 +28,20 @@ export default function UserTable({
           <Chip
             label={nombre}
             size="small"
-            color={nombre === "ADMINISTRADOR" ? "primary" : "secondary"}
+            sx={{
+              fontWeight: 600,
+              borderRadius: "8px",
+
+              backgroundColor:
+                nombre === "ADMINISTRADOR"
+                  ? "rgba(37,99,235,0.12)"
+                  : "rgba(71,85,105,0.12)",
+
+              color:
+                nombre === "ADMINISTRADOR"
+                  ? "#2563EB"
+                  : "#475569",
+            }}
           />
         );
       },
@@ -46,7 +60,18 @@ export default function UserTable({
             icon={active ? <CheckCircle /> : <Cancel />}
             label={active ? "Activo" : "Inactivo"}
             size="small"
-            color={active ? "success" : "default"}
+            sx={{
+              fontWeight: 600,
+              borderRadius: "8px",
+
+              backgroundColor: active
+                ? "rgba(22,163,74,0.12)"
+                : "rgba(148,163,184,0.16)",
+
+              color: active
+                ? "#16A34A"
+                : "#64748B",
+            }}
           />
         );
       },
@@ -55,7 +80,7 @@ export default function UserTable({
     {
       field: "acciones",
       headerName: "Acciones",
-      width: 120,
+      width: 150,
       sortable: false,
       renderCell: (params) => {
         const u = params.row;
@@ -67,13 +92,30 @@ export default function UserTable({
                 <Edit fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title={active ? "Desactivar usuario" : "Activar usuario"} arrow>
+            <Tooltip 
+              title={active ? "Desactivar usuario" : "Activar usuario"} 
+              arrow
+            >
               <Button
                 size="small"
                 color={active ? "error" : "primary"}
-                variant="outlined"
-                sx={{ fontSize: 11, py: 0.3 }}
-                onClick={() => active ? onDelete(u.idUsuario) : onActivate(u.idUsuario)}
+                onClick={() =>
+                  active
+                    ? onDelete(u.idUsuario)
+                    : onActivate(u.idUsuario)
+                }
+                sx={{
+                  minWidth: "auto",
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  color: active ? "#DC2626" : "#2563EB",
+
+                  "&:hover": {
+                    backgroundColor: active
+                      ? "rgba(220,38,38,0.08)"
+                      : "rgba(37,99,235,0.08)",
+                  },
+                }}
               >
                 {active ? "Desactivar" : "Activar"}
               </Button>
@@ -85,7 +127,9 @@ export default function UserTable({
   ];
 
   return (
-    <Box sx={{ height: 550, width: "100%" }}>
+    <Box
+      sx={dataGridStyles}
+    >
       <DataGrid
         rows={users || []}
         columns={columns}

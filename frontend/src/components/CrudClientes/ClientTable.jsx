@@ -1,6 +1,7 @@
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, IconButton, Button, Chip } from "@mui/material";
+import { Box, IconButton, Button, Chip, Tooltip } from "@mui/material";
 import { Edit, CheckCircle, Cancel } from "@mui/icons-material";
+import { dataGridStyles } from "../../styles/dataGridStyles";
 
 export default function ClientTable({
   clients,
@@ -55,9 +56,20 @@ export default function ClientTable({
         return (
           <Chip
             icon={active ? <CheckCircle /> : <Cancel />}
-            label={active ? "ACTIVO" : "INACTIVO"}
+            label={active ? "Activo" : "Inactivo"}
             size="small"
-            color={active ? "success" : "default"}
+            sx={{
+              fontWeight: 600,
+              borderRadius: "8px",
+
+              backgroundColor: active
+                ? "rgba(22,163,74,0.12)"
+                : "rgba(148,163,184,0.16)",
+
+              color: active
+                ? "#16A34A"
+                : "#64748B",
+            }}
           />
         );
       }
@@ -73,28 +85,39 @@ export default function ClientTable({
         const active = c.estado === true || c.estado === 1;
 
         return (
-          <Box>
-            <IconButton size="small" onClick={() => onEdit(c)}>
-              <Edit />
-            </IconButton>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
 
-            {active ? (
+            <Tooltip title="Editar cliente" arrow>
+              <IconButton
+                size="small"
+                onClick={() => onEdit(c)}
+              >
+                <Edit fontSize="small" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip
+              title={active ? "Desactivar cliente" : "Activar cliente"}
+              arrow
+            >
               <Button
                 size="small"
-                color="error"
-                onClick={() => onDelete(c.idCliente)}
+                color={active ? "error" : "primary"}
+                onClick={() =>
+                  active
+                    ? onDelete(c.idCliente)
+                    : onActivate(c.idCliente)
+                }
+                sx={{
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  fontWeight: 600,
+                }}
               >
-                Desactivar
+                {active ? "Desactivar" : "Activar"}
               </Button>
-            ) : (
-              <Button
-                size="small"
-                color="primary"
-                onClick={() => onActivate(c.idCliente)}
-              >
-                Activar
-              </Button>
-            )}
+            </Tooltip>
+
           </Box>
         );
       }
@@ -104,6 +127,7 @@ export default function ClientTable({
   return (
     <Box sx={{ height: 550, width: "100%" }}>
       <DataGrid
+        sx={dataGridStyles}
         rows={clients || []}
         columns={columns}
         getRowId={(row) => row.idCliente}

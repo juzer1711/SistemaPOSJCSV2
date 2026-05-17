@@ -5,8 +5,8 @@ import {
   InputAdornment,
   Button,
   MenuItem,
-  ToggleButton,
-  ToggleButtonGroup
+  Chip,
+  Tooltip
 } from "@mui/material";
 import { Search, Add } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -32,11 +32,6 @@ const VentaSearchBar = ({
   return (
     <Box
       sx={{
-        mb: 2,
-        p: 2,
-        borderRadius: 2,
-        backgroundColor: "#fff",
-        boxShadow: 1,
         display: "flex",
         flexWrap: "wrap",
         gap: 2,
@@ -44,6 +39,7 @@ const VentaSearchBar = ({
         justifyContent: "space-between"
       }}
     >
+
       {/* 🔍 FILTROS */}
       <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
 
@@ -107,31 +103,41 @@ const VentaSearchBar = ({
           }}
         />
 
-        {/* TOGGLE ACTIVO / INACTIVO */}
-        <ToggleButtonGroup
-          size="small"
-          value={showInactive ? "inactive" : "active"}
-          exclusive
-          onChange={(e, val) => {
-            if (val !== null) onToggleInactive();
-          }}
-        >
-          <ToggleButton value="active">Activas</ToggleButton>
-          <ToggleButton value="inactive">Inactivas</ToggleButton>
-        </ToggleButtonGroup>
-
+        <Tooltip title={showInactive ? "Mostrar activos" : "Mostrar inactivos"}>
+          <Chip
+            label={showInactive ? "Inactivos" : "Activos"}
+            color={showInactive ? "default" : "primary"}
+            onClick={onToggleInactive}
+            clickable
+            sx={{
+              height: 38,
+              px: 1,
+              fontWeight: 600,
+            }}
+          />
+        </Tooltip>
       </Box>
+        {/* BOTÓN */}
+        <Tooltip title="Registrar nueva venta" arrow>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={onAddVenta}
+            sx={{
+              borderRadius: "12px",
+              textTransform: "none",
+              fontWeight: 600,
+              px: 2.2,
+              boxShadow: "none",
 
-      {/* ACCIONES */}
-      <Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={onAddVenta}
-        >
-          Nueva Venta
-        </Button>
-      </Box>
+              "&:hover": {
+                boxShadow: "none",
+              },
+            }}
+          >
+            Nueva Venta
+          </Button>
+        </Tooltip>
     </Box>
   );
 };
