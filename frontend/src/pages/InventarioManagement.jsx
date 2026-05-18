@@ -1,7 +1,7 @@
 import {
   Box, Typography, Card,
   TextField, Button, Autocomplete,
-  Chip, Dialog, DialogContent, DialogActions,
+  Chip, Dialog, DialogContent, DialogActions, DialogTitle,
   ToggleButton, ToggleButtonGroup,
 } from "@mui/material";
 import {
@@ -9,8 +9,9 @@ import {
   History as HistoryIcon,
   Warning as WarningIcon,
   Add as AddIcon,
+  Edit
 } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useInventarioManagement } from "../hooks/inventario/useInventarioManagement";
 import InventarioGrid              from "../components/Inventario/InventarioGrid";
 import MovimientosGrid             from "../components/Inventario/MovimientosGrid";
@@ -22,18 +23,30 @@ export default function InventarioManagement() {
     productos, movimientos, movimientoSeleccionado,
     lowStockProducts, inventarioFiltrado,
     pageInv, setPageInv, pageMov, setPageMov, totalRowsMov,
-    filtroMov, setFiltroMov, tipoFiltro, setTipoFiltro,
+    filtroMov, setFiltroMov, tipoFiltro, setTipoFiltro, 
     productoSeleccionado, setProductoSeleccionado,
     tipoMovimiento, setTipoMovimiento,
     cantidad, setCantidad, motivo, setMotivo,
     loadingMovimiento, openDetalle, setOpenDetalle,
     handleRowClick, showOnlyLowStock, setShowOnlyLowStock,
-    handleRegistrarMovimiento,
+    handleRegistrarMovimiento,handleUpdateStockMinimo,handleSearchMovimientos, filtroInv,
+    setFiltroInv, 
   } = useInventarioManagement();
 
   // ── Estado local de la página ────────────────────────────────────
   const [vistaActiva, setVistaActiva]     = useState("stock");    // "stock" | "historial"
   const [openDialogMov, setOpenDialogMov] = useState(false);
+  const [openEditStock, setOpenEditStock] = useState(false);
+  const [productoEditando, setProductoEditando] = useState(null);
+  const [nuevoStockMinimo, setNuevoStockMinimo] = useState("");
+  const [busquedaProducto, setBusquedaProducto] = useState("");
+  const debounceRef = useRef(null);
+
+  const handleOpenEditStock = (producto) => {
+    setProductoEditando(producto);
+    setNuevoStockMinimo(producto.stockMinimo || "");
+    setOpenEditStock(true);
+  };
 
   return (
     <Box sx={styles.page}>
@@ -148,11 +161,23 @@ export default function InventarioManagement() {
               )}
             </Box>
           </Box>
-          <InventarioGrid
-            rows={inventarioFiltrado}
-            page={pageInv}
-            onPageChange={setPageInv}
-          />
+          <Box sx={{ px: 2.5, pt: 2 }}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Buscar por nombre o código de barras..."
+              value={filtroInv.texto}
+              onChange={(e) =>
+                setFiltroInv({ ...filtroInv, texto: e.target.value })
+              }
+            />
+          </Box>
+            <InventarioGrid
+              rows={inventarioFiltrado}
+              page={pageInv}
+              onPageChange={setPageInv}
+              onEditStockMinimo={handleOpenEditStock}
+            />
         </Card>
       )}
 
@@ -171,17 +196,16 @@ export default function InventarioManagement() {
             {/* Filtros */}
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap",
               alignItems: "center", mb: 2 }}>
-              <Autocomplete
-                size="small"
-                sx={{ width: 230 }}
-                options={productos}
-                getOptionLabel={(p) => p.nombre}
-                value={filtroMov.producto}
-                onChange={(_, val) => setFiltroMov({ ...filtroMov, producto: val })}
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="Filtrar por producto..." />
-                )}
-              />
+               <TextField
+                  label="Buscar por nombre o código de barras"
+                  size="small"
+                  fullWidth
+                  value={busquedaProducto}
+                  onChange={(e) => {
+                    setBusquedaProducto(e.target.value);       // actualiza el input visualmente ya
+                    handleSearchMovimientos(e.target.value);   // debounce → llama al backend
+                  }}
+                />
               <Box sx={{ display: "flex", gap: 0.8 }}>
                 {["", "ENTRADA", "SALIDA", "VENTA"].map((tipo) => (
                   <Chip
@@ -299,7 +323,50 @@ export default function InventarioManagement() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        open={openEditStock}
+        onClose={() => setOpenEditStock(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Editar stock mínimo
+        </DialogTitle>
 
+        <DialogContent sx={{ pt: 2 }}>
+          <Typography variant="body2" mb={1}>
+            Producto: <strong>{productoEditando?.nombre}</strong>
+          </Typography>
+
+          <TextField
+            label="Nuevo stock mínimo"
+            type="number"
+            fullWidth
+            value={nuevoStockMinimo}
+            onChange={(e) => setNuevoStockMinimo(e.target.value)}
+            inputProps={{ min: 0 }}
+          />
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setOpenEditStock(false)}>
+            Cancelar
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={async () => {
+              await handleUpdateStockMinimo(
+                productoEditando,
+                Number(nuevoStockMinimo)
+              );
+              setOpenEditStock(false);
+            }}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

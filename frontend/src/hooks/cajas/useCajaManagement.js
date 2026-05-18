@@ -26,6 +26,7 @@ export const useCajaManagement = () => {
 
   // ================= FILTROS =================
   const [filtroAbiertas, setFiltroAbiertas] = useState({
+    idCaja: "",
     cajero: "",
     fecha: "",
   });
@@ -34,6 +35,7 @@ export const useCajaManagement = () => {
     fechaInicio: "",
     fechaFin: "",
     cajero: "",
+    idCaja: "",
   });
 
   const [form, setForm] = useState({
@@ -91,6 +93,7 @@ export const useCajaManagement = () => {
       const res = await searchCajas({
         page: pageAbiertas,
         size,
+        idCaja: filtroAbiertas.idCaja || undefined,
         search: filtroAbiertas.cajero || undefined,
         fechaApertura: filtroAbiertas.fecha || undefined,
         estado: "ABIERTA",
@@ -108,6 +111,7 @@ export const useCajaManagement = () => {
       const res = await searchCajas({
         page: pageHistorial,
         size,
+        idCaja: filtroHistorial.idCaja || undefined,
         search: filtroHistorial.cajero || undefined,
         fechaApertura: filtroHistorial.fechaInicio
           ? `${filtroHistorial.fechaInicio}T00:00:00`

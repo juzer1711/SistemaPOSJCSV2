@@ -185,97 +185,6 @@ public Venta createVenta(Venta venta) {
 }
 
 
-// ✅ Actualizar venta
-@Transactional
-public Venta updateVenta(Long id, Venta ventaDetails) {
-
-    // Obtener venta real
-    Venta venta = getVentaById(id);
-
-    BigDecimal totalAnterior = venta.getTotal();
-    MetodoPago metodoAnterior = venta.getMetodoPago();
-
-    // 🔥 Actualizar cliente si cambia
-    if (ventaDetails.getCliente() != null && ventaDetails.getCliente().getIdCliente() != null) {
-        Cliente nuevoCliente = clienteRepository.findById(ventaDetails.getCliente().getIdCliente())
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
-        venta.setCliente(nuevoCliente);
-    }
-
-    // 🔥 Actualizar datos básicos
-    venta.setMetodoPago(ventaDetails.getMetodoPago());
-    venta.setObservaciones(ventaDetails.getObservaciones());
-
-    // 🔥 Manejar items
-    venta.getItems().clear();  // Eliminar los items anteriores
-
-    BigDecimal total = BigDecimal.ZERO;
-
-    for (ItemFactura itemDetails : ventaDetails.getItems()) {
-
-        // 🔥 Validar producto real
-        Producto producto = productoRepository.findById(itemDetails.getProducto().getIdProducto())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-
-        ItemFactura nuevoItem = new ItemFactura();
-
-        nuevoItem.setProducto(producto);
-        nuevoItem.setCantidad(itemDetails.getCantidad());
-        nuevoItem.setPrecioUnitario(producto.getPrecioventa());
-
-        BigDecimal subtotal = producto.getPrecioventa()
-                .multiply(BigDecimal.valueOf(itemDetails.getCantidad()));
-
-        nuevoItem.setSubtotal(subtotal);
-
-        // 🔥 Relación inversa
-        nuevoItem.setVenta(venta);
-
-        // Agregar item a la venta
-        venta.getItems().add(nuevoItem);
-
-        // Sumar al total
-        total = total.add(subtotal);
-    }
-
-    // 🔥 Actualizar total final
-    venta.setTotal(total);
-
-    Caja caja = venta.getCaja();
-
-    // restar total anterior
-    caja.setTotalVentas(
-        caja.getTotalVentas().subtract(totalAnterior)
-    );
-
-    caja.setTotalVentas(
-        caja.getTotalVentas().add(total)
-    );
-    if (metodoAnterior == MetodoPago.EFECTIVO) {
-        caja.setTotalEfectivo(
-            caja.getTotalEfectivo().subtract(totalAnterior)
-        );
-    }
-
-    if (metodoAnterior == MetodoPago.TRANSFERENCIA) {
-        caja.setTotalTransferencia(
-            caja.getTotalTransferencia().subtract(totalAnterior)
-        );
-    }
-    if (venta.getMetodoPago() == MetodoPago.EFECTIVO) {
-    caja.setTotalEfectivo(
-        caja.getTotalEfectivo().add(total)
-    );
-}
-
-    if (venta.getMetodoPago() == MetodoPago.TRANSFERENCIA) {
-        caja.setTotalTransferencia(
-            caja.getTotalTransferencia().add(total)
-        );
-    }
-    return ventaRepository.save(venta);
-}
-
 @Transactional
 public void desactivarVenta(Long id) {
 
@@ -347,15 +256,48 @@ public Venta activarVenta(Long id) {
     return ventaRepository.save(v);
 }
 
+@Transactional
+public Venta cambiarMetodoPago(Long id, MetodoPago nuevoMetodo) {
+
+    Venta venta = getVentaById(id);
+
+    MetodoPago metodoAnterior = venta.getMetodoPago();
+    BigDecimal total = venta.getTotal();
+    Caja caja = venta.getCaja();
+
+    if (metodoAnterior == nuevoMetodo) {
+        return venta;
+    }
+
+    // Restar del método anterior
+    if (metodoAnterior == MetodoPago.EFECTIVO) {
+        caja.setTotalEfectivo(caja.getTotalEfectivo().subtract(total));
+    } else if (metodoAnterior == MetodoPago.TRANSFERENCIA) {
+        caja.setTotalTransferencia(caja.getTotalTransferencia().subtract(total));
+    }
+
+    // Sumar al nuevo método
+    if (nuevoMetodo == MetodoPago.EFECTIVO) {
+        caja.setTotalEfectivo(caja.getTotalEfectivo().add(total));
+    } else if (nuevoMetodo == MetodoPago.TRANSFERENCIA) {
+        caja.setTotalTransferencia(caja.getTotalTransferencia().add(total));
+    }
+
+    venta.setMetodoPago(nuevoMetodo);
+
+    return ventaRepository.save(venta);
+}
+
 public Page<Venta> searchVentas(
     Pageable pageable,
     String search,
     String metodoPago,
     Boolean estado,
+    Long idCaja,
     LocalDate fechaInicio,
     LocalDate fechaFin
 ) {
-    Specification<Venta> spec = buildSpec(search, metodoPago, estado, fechaInicio, fechaFin);
+    Specification<Venta> spec = buildSpec(search, metodoPago, estado, idCaja, fechaInicio, fechaFin);
     return ventaRepository.findAll(spec, pageable);
 }
 
@@ -363,6 +305,7 @@ public Specification<Venta> buildSpec(
     String search,
     String metodoPago,
     Boolean estado,
+    Long idCaja,
     LocalDate fechaInicio,
     LocalDate fechaFin
 ) {
@@ -401,8 +344,6 @@ public Specification<Venta> buildSpec(
             ));
         }
 
-
-
         // 💳 método pago
         if (metodoPago != null && !metodoPago.isEmpty()) {
             predicates.add(cb.equal(root.get("metodoPago"), metodoPago));
@@ -411,6 +352,12 @@ public Specification<Venta> buildSpec(
         // 🟢 estado
         if (estado != null) {
             predicates.add(cb.equal(root.get("estado"), estado));
+        }
+
+        if (idCaja != null) {
+                predicates.add(
+                    cb.equal(root.get("caja").get("idCaja"), idCaja)
+                );
         }
 
         // 📅 fechas

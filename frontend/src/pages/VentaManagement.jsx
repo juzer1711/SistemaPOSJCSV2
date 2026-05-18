@@ -46,6 +46,7 @@ export default function VentaManagement() {
     handleOpenPOS,
     handleInactive,
     handleActivate,
+    handleCambiarMetodoPago,
     verDetalle,
   } = useVentaManagement();
 
@@ -85,6 +86,7 @@ export default function VentaManagement() {
           onView={verDetalle}
           onDeactivate={handleInactive}
           onActivate={handleActivate}
+          onCambiarMetodoPago={handleCambiarMetodoPago} 
           visibleColumns={visibleColumns}
           loading={loading}
         />

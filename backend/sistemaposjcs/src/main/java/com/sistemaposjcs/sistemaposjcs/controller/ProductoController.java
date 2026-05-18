@@ -95,6 +95,29 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.activarProducto(id));
     }
 
+    @PatchMapping("/{id}/stock-minimo")
+    public ResponseEntity<ProductoDTO> actualizarStockMinimo(
+            @PathVariable Long id,
+            @RequestParam Integer stockMinimo
+    ) {
+        Producto p = productoService.actualizarStockMinimo(id, stockMinimo);
+
+        return ResponseEntity.ok(new ProductoDTO(
+            p.getIdProducto(),
+            p.getNombre(),
+            p.getCategoria(),
+            p.getCodigoBarras(),
+            p.getDescripcion(),
+            p.getCosto(),
+            p.getPrecioventa(),
+            p.getIva(),
+            p.getPrecioSinIva(),
+            p.getStockActual(),
+            p.getStockMinimo(),
+            p.getEstado()
+        ));
+    }
+
     @GetMapping("/search")
     public Page<ProductoDTO> searchProductos(
         Pageable pageable,

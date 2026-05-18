@@ -94,6 +94,23 @@ export const updateProduct = async (id, productData) => {
   }
 };
 
+// UPDATE Stock mínimo (regla de inventario)
+export const updateStockMinimo = async (id, stockMinimo) => {
+  try {
+    const res = await axios.patch(
+      `${API_URL}/${id}/stock-minimo`,
+      null,
+      {
+        params: { stockMinimo },
+        headers: getAuthHeaders(),
+      }
+    );
+    return res.data;
+  } catch (error) {
+    throw formatAxiosError(error);
+  }
+};
+
 // UPDATE Categoria
 export const updateCategoria = async (id, categoriaData) => {
   try {

@@ -1,5 +1,6 @@
 import { DataGrid } from "@mui/x-data-grid";
-import { Chip, Box, Typography } from "@mui/material";
+import { Chip, Box, Typography, IconButton, Tooltip } from "@mui/material";
+import { Edit } from "@mui/icons-material";
 
 const getEstado = (row) => {
   if (row.stockActual <= 0)
@@ -16,7 +17,7 @@ const getStockColor = (row) => {
   return "success.main";
 };
 
-export default function InventarioGrid({ rows, page, onPageChange }) {
+export default function InventarioGrid({ rows, page, onPageChange, onEditStockMinimo }) {
   const columns = [
     {
       field: "idProducto",
@@ -46,11 +47,26 @@ export default function InventarioGrid({ rows, page, onPageChange }) {
     {
       field: "stockMinimo",
       headerName: "Stock mínimo",
-      width: 140,
+      width: 170,
       renderCell: (params) => (
-        <Typography variant="body2" color={params.value > 0 ? "text.primary" : "text.disabled"}>
-          {params.value > 0 ? params.value : "No configurado"}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography
+            variant="body2"
+            color={params.value > 0 ? "text.primary" : "text.disabled"}
+            fontWeight={600}
+          >
+            {params.value > 0 ? params.value : "No configurado"}
+          </Typography>
+
+          <Tooltip title="Editar stock mínimo">
+            <IconButton
+              size="small"
+              onClick={() => onEditStockMinimo(params.row)}
+            >
+              <Edit fontSize="inherit" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       ),
     },
     {

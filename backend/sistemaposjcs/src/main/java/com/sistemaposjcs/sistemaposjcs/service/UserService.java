@@ -16,6 +16,7 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Expression;
 import java.util.List;
 import jakarta.persistence.criteria.Predicate;
+import static com.sistemaposjcs.sistemaposjcs.specification.SpecificationUtils.nombreCompleto;
 
 @Service
 public class UserService {
@@ -112,10 +113,9 @@ public class UserService {
         String search,
         String rol,
         Boolean estado,
-        TipoDocumento tipoDocumento,
-        String documento
+        TipoDocumento tipoDocumento
     ) {
-        Specification<Usuario> spec = buildSpec(search, rol, estado, tipoDocumento, documento);
+        Specification<Usuario> spec = buildSpec(search, rol, estado, tipoDocumento);
         return userRepository.findAll(spec, pageable);
     }
 
@@ -123,29 +123,21 @@ public class UserService {
         String search,
         String rol,
         Boolean estado,
-        TipoDocumento tipoDocumento,
-        String documento
+        TipoDocumento tipoDocumento
     ) {
         return (root, query, cb) -> {
                 List<Predicate> predicates = new ArrayList<>();
 
                 // 🔍 búsqueda global (nombre o email)
                 if (search != null && !search.isEmpty()) {
-                    String searchLower = "%" + search.toLowerCase() + "%";
+                    String like = "%" + search.toLowerCase().replace(" ", "") + "%";
+                    Expression<String> nombre = nombreCompleto(cb, root);
 
-                    Expression<String> nombreCompletoUsuario = cb.concat(cb.lower(root.get("primerNombre")), " ");
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(cb.coalesce(root.get("segundoNombre"), "")));
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(root.get("primerApellido")));
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(root.get("segundoApellido")));
-                        predicates.add(cb.or(
-                            cb.like(nombreCompletoUsuario, searchLower),
-                            cb.like(cb.lower(root.get("email")), "%" + search.toLowerCase() + "%"),
-                            cb.like(cb.lower(root.get("username")), "%" + search.toLowerCase() + "%"),
-                            cb.like(cb.lower(root.get("documento")), "%" + search.toLowerCase() + "%")
-                        ));
-                    }
+                    predicates.add(cb.or(
+                        cb.like(nombre, like),
+                        cb.like(cb.lower(root.get("documento")), like)
+                    ));
+                }
 
                 // 🎭 rol
                 // 🎭 Filtro por Rol (Entidad)

@@ -57,6 +57,18 @@ export const activateVenta = (id) =>
 export const deactivateVenta = (id) =>
   axios.patch(`${API_URL}/desactivar/${id}`, { headers: getAuthHeaders() });
 
+// 📌 Cambiar método de pago de una venta (cruce contable)
+export const cambiarMetodoPago = (idVenta, metodoPago) => {
+  return axios.patch(
+    `${API_URL}/${idVenta}/metodo-pago`,
+    null,
+    {
+      params: { metodoPago },
+      headers: getAuthHeaders(),
+    }
+  );
+};
+
 export const searchVentas = (params) => {
   return axios.get(`${API_URL}/search`, {
     params,

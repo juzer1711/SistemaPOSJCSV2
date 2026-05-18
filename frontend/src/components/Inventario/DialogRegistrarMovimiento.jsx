@@ -8,6 +8,8 @@ import {
   ArrowUpward   as SalidaIcon,
 } from "@mui/icons-material";
 
+import { createFilterOptions } from "@mui/material";
+
 const TIPOS = [
   {
     value: "ENTRADA", label: "Entrada", icon: EntradaIcon,
@@ -39,7 +41,9 @@ export default function DialogRegistrarMovimiento({
       ? stockActual + cantidadNum
       : stockActual - cantidadNum
     : null;
-
+  const filtrarProductos = createFilterOptions({
+    stringify: (p) => `${p.nombre} ${p.codigoBarras ?? ""}`, // busca en nombre Y código
+    });
   // ── Cierra y limpia ──────────────────────────────────────────────
   const handleClose = () => {
     setProductoSeleccionado(null);
@@ -90,6 +94,7 @@ export default function DialogRegistrarMovimiento({
               size="small"
               fullWidth
               options={productos}
+              filterOptions={filtrarProductos} 
               getOptionLabel={(p) => `${p.nombre} | Stock: ${p.stockActual}`}
               value={productoSeleccionado}
               onChange={(_, val) => setProductoSeleccionado(val)}

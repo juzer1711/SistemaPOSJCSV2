@@ -103,11 +103,10 @@ public class UserController {
         @RequestParam(required = false) String search,
         @RequestParam(required = false) String rol,
         @RequestParam(required = false) Boolean estado,
-        @RequestParam(required = false) TipoDocumento tipoDocumento,
-        @RequestParam(required = false) String documento
+        @RequestParam(required = false) TipoDocumento tipoDocumento
     ) {
         return userService.searchUsuarios(
-            pageable, search, rol, estado, tipoDocumento, documento
+            pageable, search, rol, estado, tipoDocumento
         ).map(this::convertirUser);
     }
 }

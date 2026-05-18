@@ -113,6 +113,15 @@ export default function CajaManagement() {
 
           {/* Filtros */}
           <Box sx={{ px: 2.5, pt: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>
+             <TextField
+                label="ID Caja"
+                size="small"
+                type="number"
+                value={filtroAbiertas.idCaja}
+                onChange={(e) =>
+                  setFiltroAbiertas({ ...filtroAbiertas, idCaja: e.target.value })
+                }
+              />
             <TextField
               label="Cajero"
               size="small"
@@ -159,6 +168,15 @@ export default function CajaManagement() {
 
           {/* Filtros */}
           <Box sx={{ px: 2.5, pt: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>
+             <TextField
+                label="ID Caja"
+                size="small"
+                type="number"
+                value={filtroHistorial.idCaja}
+                onChange={(e) =>
+                  setFiltroHistorial({ ...filtroHistorial, idCaja: e.target.value })
+                }
+              />
             <TextField
               label="Cajero"
               size="small"

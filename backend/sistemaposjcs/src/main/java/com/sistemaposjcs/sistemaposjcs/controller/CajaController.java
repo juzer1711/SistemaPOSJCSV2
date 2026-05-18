@@ -105,13 +105,13 @@ public class CajaController {
     public Page<CajaDTO> searchCajas(
         Pageable pageable,
         @RequestParam(required = false) String search,
+        @RequestParam(required = false) Long idCaja,
         @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaApertura,
-        @RequestParam(required = false) 
         @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaCierre,
         @RequestParam(required = false) EstadoCaja estado
     ) {
         return cajaService.searchCajas(
-            pageable, search, fechaApertura, fechaCierre, estado
+            pageable, search, idCaja, fechaApertura, fechaCierre, estado
         ).map(this::convertirCaja);
     }
 

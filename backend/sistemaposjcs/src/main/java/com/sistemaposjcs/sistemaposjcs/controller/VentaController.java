@@ -4,6 +4,7 @@ import com.sistemaposjcs.sistemaposjcs.dto.ItemFacturaDTO;
 import com.sistemaposjcs.sistemaposjcs.dto.VentaCajaDTO;
 import com.sistemaposjcs.sistemaposjcs.dto.VentaDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Venta;
+import com.sistemaposjcs.sistemaposjcs.model.Enum.MetodoPago;
 import com.sistemaposjcs.sistemaposjcs.service.VentaService;
 
 import jakarta.validation.Valid;
@@ -101,24 +102,11 @@ public class VentaController {
         return ResponseEntity.ok(convertirVenta(nuevaVenta));
     }
 
-    // ✅ 5. Actualizar venta
-    @PutMapping("/{id}")
-    public ResponseEntity<VentaDTO> updateVenta(
-            @PathVariable Long id,
-            @Valid @RequestBody Venta venta
-    ) {
-
-        Venta ventaActualizada = ventaService.updateVenta(id, venta);
-
-        return ResponseEntity.ok(convertirVenta(ventaActualizada));
-    }
-
     // ✅ 6. Desactivar venta (anular)
     @PatchMapping("/desactivar/{id}")
     public ResponseEntity<Void> desactivarVenta(@PathVariable Long id) {
 
         ventaService.desactivarVenta(id);
-
         return ResponseEntity.noContent().build();
     }
 
@@ -137,19 +125,29 @@ public class VentaController {
         @RequestParam(required = false) String search,
         @RequestParam(required = false) String metodoPago,
         @RequestParam(required = false) Boolean estado,
-        @RequestParam(required = false) 
+        @RequestParam(required = false) Long idCaja,
         @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaInicio,
         @RequestParam(required = false) 
         @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaFin
     ) {
         return ventaService.searchVentas(
-            pageable, search, metodoPago, estado, fechaInicio, fechaFin
+            pageable, search, metodoPago, estado, idCaja, fechaInicio, fechaFin
         ).map(this::convertirVenta);
     }
 
-@GetMapping("/por-caja/{idCaja}")
-public ResponseEntity<List<VentaCajaDTO>> obtenerVentasPorCaja(@PathVariable Long idCaja) {
-    return ResponseEntity.ok(ventaService.obtenerVentasPorCaja(idCaja));
-}
+    @GetMapping("/por-caja/{idCaja}")
+    public ResponseEntity<List<VentaCajaDTO>> obtenerVentasPorCaja(@PathVariable Long idCaja) {
+        return ResponseEntity.ok(ventaService.obtenerVentasPorCaja(idCaja));
+    }
+
+    @PatchMapping("/{id}/metodo-pago")
+    public ResponseEntity<VentaDTO> cambiarMetodoPago(
+            @PathVariable Long id,
+            @RequestParam MetodoPago metodoPago
+    ) {
+        Venta v = ventaService.cambiarMetodoPago(id, metodoPago);
+        return ResponseEntity.ok(convertirVenta(v));
+    }
+
 }
 

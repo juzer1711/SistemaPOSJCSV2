@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { dataGridStyles } from "../../styles/dataGridStyles";
-import {  CheckCircle, Cancel } from "@mui/icons-material";
+import {  CheckCircle, Cancel, Edit } from "@mui/icons-material";
 
 export default function VentaTable({
   ventas,
@@ -20,6 +20,7 @@ export default function VentaTable({
   onView,
   onDeactivate,
   onActivate,
+  onCambiarMetodoPago,
   visibleColumns,
   loading
 }) {
@@ -48,7 +49,31 @@ export default function VentaTable({
 
     { field: "nombreCajero", headerName: "Cajero", width: 160 },
 
-    { field: "metodoPago", headerName: "Método Pago", width: 150 },
+    {
+      field: "metodoPago",
+      headerName: "Método Pago",
+      width: 190,
+      renderCell: (params) => {
+        const v = params.row;
+
+        return (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {params.value}
+
+            {v.estado && (
+              <Tooltip title="Cambiar método de pago (cruce contable)" arrow>
+                <IconButton
+                  size="small"
+                  onClick={() => onCambiarMetodoPago(v)}   // ✅ SOLO PASA LA VENTA
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        );
+      }
+    },
 
     {
       field: "total",

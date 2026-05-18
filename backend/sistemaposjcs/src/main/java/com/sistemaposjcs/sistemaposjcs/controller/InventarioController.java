@@ -1,7 +1,7 @@
 package com.sistemaposjcs.sistemaposjcs.controller;
 
-import com.sistemaposjcs.sistemaposjcs.dto.MovimientoInventarioDTO;
-import com.sistemaposjcs.sistemaposjcs.model.MovimientoInventario;
+import com.sistemaposjcs.sistemaposjcs.dto.MovimientoInventarioResponseDTO;
+import com.sistemaposjcs.sistemaposjcs.dto.MovimientoInventarioResquestDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoMovimientoInventario;
 import com.sistemaposjcs.sistemaposjcs.service.InventarioService;
@@ -28,7 +28,7 @@ public class InventarioController {
 
     // ✅ RF-28 Entrada
     @PostMapping("/entrada")
-    public void registrarEntrada(@Valid @RequestBody MovimientoInventarioDTO dto) {
+    public void registrarEntrada(@Valid @RequestBody MovimientoInventarioResquestDTO dto) {
         inventarioService.registrarEntrada(
                 dto.getIdProducto(),
                 dto.getCantidad(),
@@ -38,7 +38,7 @@ public class InventarioController {
 
     // ✅ RF-29 Salida
     @PostMapping("/salida")
-    public void registrarSalida(@Valid @RequestBody MovimientoInventarioDTO dto) {
+    public void registrarSalida(@Valid @RequestBody MovimientoInventarioResquestDTO dto) {
         inventarioService.registrarSalida(
                 dto.getIdProducto(),
                 dto.getCantidad(),
@@ -53,8 +53,8 @@ public class InventarioController {
 
 
     @GetMapping("/movimientos")
-    public Page<MovimientoInventario> buscarMovimientos(
-        @RequestParam(required = false) Long idProducto,
+    public Page<MovimientoInventarioResponseDTO> buscarMovimientos(  // ← cambia el tipo
+        @RequestParam(required = false) String search,
         @RequestParam(required = false) TipoMovimientoInventario tipo,
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -65,12 +65,8 @@ public class InventarioController {
         Pageable pageable
     ) {
         return inventarioService.buscarMovimientos(
-            idProducto,
-            tipo,
-            fechaInicio,
-            fechaFin,
-            pageable
-        );
+            search, tipo, fechaInicio, fechaFin, pageable
+        ).map(MovimientoInventarioResponseDTO::from);  // ← mapea aquí
     }
 
     @GetMapping("/alertas")

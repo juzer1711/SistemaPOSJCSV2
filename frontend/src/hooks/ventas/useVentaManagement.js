@@ -5,6 +5,7 @@ import {
   deactivateVenta,
   activateVenta,
   searchVentas,
+  cambiarMetodoPago,
 } from "../../services/ventaService";
 import { useSnackbar } from "../../context/SnackBarProvider";
 
@@ -130,18 +131,61 @@ export const useVentaManagement = () => {
 
   const handleConfirm = async () => {
     setDialogOpen(false);
-    if (dialogInfo.confirmText === "Desactivar") {
-      await deactivateVenta(selectedId);
-      showSnackbar("Venta desactivada");
-    } else {
-      await activateVenta(selectedId);
-      showSnackbar("Venta activada");
+
+    try {
+      // 👇 NUEVO: si existe una acción personalizada, ejecútala
+      if (dialogInfo.action) {
+        await dialogInfo.action();
+        showSnackbar("Método de pago actualizado correctamente");
+        return;
+      }
+
+      // 👇 lógica vieja (activar/desactivar)
+      if (dialogInfo.confirmText === "Desactivar") {
+        await deactivateVenta(selectedId);
+        showSnackbar("Venta desactivada");
+      } else {
+        await activateVenta(selectedId);
+        showSnackbar("Venta activada");
+      }
+
+      loadVentas();
+    } catch (error) {
+      console.error(error);
+      showSnackbar("Ocurrió un error", "error");
     }
-    loadVentas();
   };
 
   const handleInactive = (id) => openDeactivateDialog(id);
   const handleActivate = (id) => openActivateDialog(id);
+
+  const handleCambiarMetodoPago = (venta) => {
+
+    const nuevoMetodo =
+      venta.metodoPago === "EFECTIVO"
+        ? "TRANSFERENCIA"
+        : "EFECTIVO";
+
+    setDialogInfo({
+      title: "Cambiar método de pago",
+      message: `Vas a cambiar el método de pago de la venta #${venta.idVenta}
+      
+  De: ${venta.metodoPago}
+  A: ${nuevoMetodo}
+
+  Esto afectará el cuadre contable de la caja.`,
+      confirmText: "Cambiar método",
+      confirmColor: "warning",
+      action: () => cambiarMetodoPagoBackend(venta.idVenta, nuevoMetodo)
+    });
+
+    setDialogOpen(true);
+  };
+
+  const cambiarMetodoPagoBackend = async (idVenta, nuevoMetodo) => {
+    await cambiarMetodoPago(idVenta, nuevoMetodo);
+    await loadVentas(); 
+  };
 
   const verDetalle = async (id) => {
     const res = await getVentaById(id);
@@ -186,6 +230,7 @@ export const useVentaManagement = () => {
     handleOpenPOS,
     handleInactive,
     handleActivate,
+    handleCambiarMetodoPago,
     verDetalle,
   };
 };

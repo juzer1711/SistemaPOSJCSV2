@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Join;
 
 
 import org.slf4j.Logger;
@@ -118,20 +119,35 @@ public class InventarioService {
     }
 
     public Page<MovimientoInventario> buscarMovimientos(
-        Long idProducto,
+        String search,                        // ← nuevo: nombre o código de barras
         TipoMovimientoInventario tipo,
         LocalDateTime fechaInicio,
         LocalDateTime fechaFin,
         Pageable pageable
     ) {
+        Specification<MovimientoInventario> spec = buildSpec(search, tipo, fechaInicio, fechaFin);
+        return movimientoRepository.findAll(spec, pageable);
+    }
 
-        Specification<MovimientoInventario> spec = (root, query, cb) -> {
-
+    private Specification<MovimientoInventario> buildSpec(
+        String search,
+        TipoMovimientoInventario tipo,
+        LocalDateTime fechaInicio,
+        LocalDateTime fechaFin
+    ) {
+        return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 🔍 filtro por producto
-            if (idProducto != null) {
-                predicates.add(cb.equal(root.get("producto").get("idProducto"), idProducto));
+            // 🔍 búsqueda por nombre o código de barras del producto
+            if (search != null && !search.isBlank()) {
+                String like = "%" + search.toLowerCase().trim() + "%";
+
+                Join<MovimientoInventario, Producto> producto = root.join("producto");
+
+                predicates.add(cb.or(
+                    cb.like(cb.lower(producto.get("nombre")),       like),
+                    cb.like(cb.lower(producto.get("codigoBarras")), like)
+                ));
             }
 
             // 🔍 filtro por tipo
@@ -139,17 +155,18 @@ public class InventarioService {
                 predicates.add(cb.equal(root.get("tipo"), tipo));
             }
 
-            // 🔍 rango fechas
+            // 🔍 rango de fechas
             if (fechaInicio != null && fechaFin != null) {
                 predicates.add(cb.between(root.get("fecha"), fechaInicio, fechaFin));
+            } else if (fechaInicio != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("fecha"), fechaInicio));
+            } else if (fechaFin != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("fecha"), fechaFin));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-
-        return movimientoRepository.findAll(spec, pageable);
     }
-
     public List<Producto> obtenerProductosBajoStock() {
         return productoRepository.findProductosBajoStock();
     }

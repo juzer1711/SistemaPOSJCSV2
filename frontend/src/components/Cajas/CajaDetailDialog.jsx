@@ -16,6 +16,8 @@ import { useCajaDetail }    from "../../hooks/cajas/useCajaDetail";
 import VentaDetailDialog    from "../Ventas/VentaDetailDialog";
 import { formatDateTime, formatMoney } from "../../utils/formats";
 import { styles }           from "../../styles/cajas/stylesCaja";
+import { Edit } from "@mui/icons-material";
+import ConfirmDialog from "../ConfirmDialog";
 
 // ── Tarjeta de stat reutilizable ──────────────────────────────────────
 const StatCard = ({ label, value, color }) => (
@@ -34,7 +36,8 @@ const StatCard = ({ label, value, color }) => (
 export default function CajaDetailDialog({ open, onClose, caja }) {
   const {
     ventas, loadingVentas, ventaSeleccionada, ventaOpen, setVentaOpen,
-    movimientos, verDetalleVenta, diferenciaEfectivo, diferenciaTransferencia,
+    movimientos, verDetalleVenta, dialogOpen, setDialogOpen, dialogInfo, handleConfirm,
+    solicitarCambioMetodoPago, diferenciaEfectivo, diferenciaTransferencia,
   } = useCajaDetail({ open, caja });
 
   if (!caja) return null;
@@ -217,9 +220,20 @@ export default function CajaDetailDialog({ open, onClose, caja }) {
                     {formatMoney(venta.total)}
                   </TableCell>
                   <TableCell align="center">
-                    <IconButton size="small" color="primary"
-                      onClick={() => verDetalleVenta(venta.idVenta)}>
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      onClick={() => verDetalleVenta(venta.idVenta)}
+                    >
                       <VisibilityIcon fontSize="small" />
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      color="warning"
+                      onClick={() => solicitarCambioMetodoPago(venta)}
+                    >
+                      <Edit fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -296,6 +310,16 @@ export default function CajaDetailDialog({ open, onClose, caja }) {
           venta={ventaSeleccionada}
         />
       )}
+      <ConfirmDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onConfirm={handleConfirm}
+        title={dialogInfo.title}
+        message={dialogInfo.message}
+        confirmText={dialogInfo.confirmText}
+        confirmColor={dialogInfo.confirmColor}
+      />
     </Dialog>
+    
   );
 }

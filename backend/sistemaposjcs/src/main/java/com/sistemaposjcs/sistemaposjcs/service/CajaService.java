@@ -24,6 +24,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
+import static com.sistemaposjcs.sistemaposjcs.specification.SpecificationUtils.nombreCompleto;
+
 @Service
 public class CajaService {
 
@@ -115,19 +117,21 @@ public class CajaService {
         return cajaRepository.save(caja);
     }
 
-        public Page<Caja> searchCajas(
+    public Page<Caja> searchCajas(
         Pageable pageable,
         String search,
+        Long idCaja,
         LocalDate fechaApertura,
         LocalDate fechaCierre,
         EstadoCaja estado
     ) {
-        Specification<Caja> spec = buildSpec(search, fechaApertura, fechaCierre, estado);
+        Specification<Caja> spec = buildSpec(search, idCaja, fechaApertura, fechaCierre, estado);
         return cajaRepository.findAll(spec, pageable);
     }
 
     public Specification<Caja> buildSpec(
         String search,
+        Long idCaja,
         LocalDate fechaApertura,
         LocalDate fechaCierre,
         EstadoCaja estado
@@ -137,25 +141,20 @@ public class CajaService {
 
                 // 🔍 búsqueda global (nombre o email)
                 if (search != null && !search.isEmpty()) {
-                    String searchLower = "%" + search.toLowerCase() + "%";
+                    String like = "%" + search.toLowerCase().replace(" ", "") + "%";
 
-                    Join<Caja, Usuario> usuario = root.join("usuario"); 
+                        Join<Caja, Usuario> usuario = root.join("usuario");
+                        Expression<String> nombre = nombreCompleto(cb, usuario);
 
-                    Expression<String> nombreCompletoUsuario = cb.concat(cb.lower(usuario.get("primerNombre")), " ");
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(cb.coalesce(usuario.get("segundoNombre"), "")));
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(usuario.get("primerApellido")));
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, " ");
-                    nombreCompletoUsuario = cb.concat(nombreCompletoUsuario, cb.lower(usuario.get("segundoApellido")));
-                        predicates.add(cb.or(
-                            cb.like(nombreCompletoUsuario, searchLower)
-                        ));
+                        predicates.add(cb.like(nombre, like));
                     }
             
             if (estado != null) {
                     predicates.add(cb.equal(root.get("estadoCaja"), estado));
                 }
-
+            if (idCaja != null) {
+                predicates.add(cb.equal(root.get("idCaja"), idCaja));
+            }
             // 📅 fechas
             if (fechaApertura != null && fechaCierre != null) {
                 predicates.add(cb.between(

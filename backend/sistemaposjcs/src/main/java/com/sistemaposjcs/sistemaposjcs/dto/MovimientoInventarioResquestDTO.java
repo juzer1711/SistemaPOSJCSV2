@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class MovimientoInventarioDTO {
+public class MovimientoInventarioResquestDTO {
 
     @NotNull(message = "El producto es obligatorio")
     private Long idProducto;

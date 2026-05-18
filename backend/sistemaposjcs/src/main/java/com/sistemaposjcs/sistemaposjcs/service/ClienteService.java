@@ -18,6 +18,8 @@ import jakarta.persistence.criteria.Predicate;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import jakarta.persistence.criteria.Expression;
+import static com.sistemaposjcs.sistemaposjcs.specification.SpecificationUtils.nombreCompleto;
 
 @Service
 public class ClienteService {
@@ -119,13 +121,11 @@ public class ClienteService {
 
             // búsqueda global
             if (search != null && !search.isEmpty()) {
-                String like = "%" + search.toLowerCase() + "%";
+                String like = "%" + search.toLowerCase().replace(" ", "") + "%";
+                Expression<String> nombre = nombreCompleto(cb, root);
 
                 predicates.add(cb.or(
-                    cb.like(cb.lower(root.get("primerNombre")), like),
-                    cb.like(cb.lower(root.get("segundoNombre")), like),
-                    cb.like(cb.lower(root.get("primerApellido")), like),
-                    cb.like(cb.lower(root.get("segundoApellido")), like),
+                    cb.like(nombre, like),
                     cb.like(cb.lower(root.get("razonSocial")), like),
                     cb.like(cb.lower(root.get("documento")), like)
                 ));

@@ -115,6 +115,20 @@ public class ProductoService {
     return productoRepository.save(p);
     }
 
+    public Producto actualizarStockMinimo(Long idProducto, Integer stockMinimo) {
+
+        if (stockMinimo == null || stockMinimo < 0) {
+            throw new IllegalArgumentException("El stock mínimo no puede ser negativo");
+        }
+
+        Producto producto = productoRepository.findById(idProducto)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        producto.setStockMinimo(stockMinimo);
+
+        return productoRepository.save(producto);
+    }
+
     public Page<Producto> searchProductos(
         Pageable pageable,
         String search,
