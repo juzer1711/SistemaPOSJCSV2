@@ -16,6 +16,7 @@ import VentaManagement from "../pages/VentaManagement";
 import VentaPOS from "../pages/POSVenta";
 import CajaManagement from "../pages/CajaManagement";
 import InventarioManagement from "../pages/InventarioManagement";
+import Reportes from "../pages/Reportes";
 import PrivateRoute from "./PrivateRoute";
 
 // Componente que decide la ruta raíz según estado del sistema
@@ -94,6 +95,12 @@ function AppRoutes() {
 
         <Route path="/inventario" element={
           <PrivateRoute roles={["ADMINISTRADOR"]}><InventarioManagement /></PrivateRoute>
+        } />
+
+        <Route path="/reportes" element={
+          <PrivateRoute roles={["ADMINISTRADOR"]}>
+            <Reportes />
+          </PrivateRoute>
         } />
 
         <Route path="/empresa" element={
