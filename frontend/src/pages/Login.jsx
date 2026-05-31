@@ -77,7 +77,7 @@ export default function Login() {
               filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
             }}
           />
-          <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2, textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+          <Typography variant="h4" sx={{ color: "white", fontWeight: "bold", mb: 2, textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
             POS System
           </Typography>
           <Typography variant="body1" sx={{ opacity: 0.92, textAlign: "center", maxWidth: 320, textShadow: "0 1px 4px rgba(0,0,0,0.25)" }}>

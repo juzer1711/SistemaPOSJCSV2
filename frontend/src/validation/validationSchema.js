@@ -253,3 +253,43 @@ export const abrirCajaSchema = yup.object().shape({
     .required("El monto inicial es obligatorio"),
 });
 
+export const empresaSchema = yup.object().shape({
+
+  nombreComercial: yup
+    .string()
+    .required("El nombre comercial es obligatorio")
+    .max(100, "Máximo 100 caracteres"),
+
+  razonSocial: yup
+    .string()
+    .required("La razón social es obligatoria")
+    .max(150, "Máximo 150 caracteres"),
+
+  nit: yup
+    .string()
+    .required("El NIT es obligatorio")
+    .matches(
+      /^[0-9]{6,15}(-[0-9]{1})?$/,
+      "El NIT debe tener entre 6 y 15 dígitos, opcionalmente seguido de un guion y un dígito verificador"
+    ),
+
+
+  direccion: yup
+    .string()
+    .required("La dirección es obligatoria")
+    .max(200, "Máximo 200 caracteres"),
+
+  telefono: yup
+    .string()
+    .required("El teléfono es obligatorio")
+    .matches(
+      /^[0-9]{7,10}$/,
+      "El teléfono debe tener entre 7 y 10 dígitos"
+    ),
+
+  correo: yup
+    .string()
+    .email("Correo inválido")
+    .required("El correo es obligatorio")
+
+});

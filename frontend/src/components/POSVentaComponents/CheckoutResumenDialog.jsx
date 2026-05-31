@@ -11,7 +11,7 @@ import {
   Print as PrintIcon,
   CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
-import { NEGOCIO } from "../../config/businessConfig";
+import { useEmpresa } from "../../context/EmpresaContext";
 
 // ── Helper: nombre del cliente ────────────────────────────────────────
 const getClientName = (c) =>
@@ -34,7 +34,7 @@ const getNow = () => {
 // ════════════════════════════════════════════════════════════════
 // Componente interno: Ticket térmico imprimible
 // ════════════════════════════════════════════════════════════════
-const TicketContent = ({ cliente, metodoPago, items, total,
+const TicketContent = ({ empresa, cliente, metodoPago, items, total,
   totalIVA, totalSinIVA, montoRecibido, cambio, cajaActiva }) => {
   const { fecha, hora } = getNow();
   const cajero  = localStorage.getItem("username") ?? "";
@@ -52,10 +52,13 @@ const TicketContent = ({ cliente, metodoPago, items, total,
     >
       {/* Encabezado del negocio */}
       <Box sx={{ textAlign: "center", mb: 0.5 }}>
-        <div style={{ fontWeight: "bold", fontSize: 13 }}>{NEGOCIO.nombre}</div>
-        <div>NIT: {NEGOCIO.nit}</div>
-        <div>Tel: {NEGOCIO.telefono}</div>
-        <div>{NEGOCIO.direccion}</div>
+        <div style={{ fontWeight: "bold", fontSize: 13 }}>
+          {empresa?.nombreComercial}
+        </div>
+
+        <div>NIT: {empresa?.nit}</div>
+        <div>Tel: {empresa?.telefono}</div>
+        <div>{empresa?.direccion}</div>
       </Box>
 
       <hr style={{ border: "none", borderTop: "1px dashed #000", margin: "6px 0" }} />
@@ -124,8 +127,8 @@ const TicketContent = ({ cliente, metodoPago, items, total,
       <hr style={{ border: "none", borderTop: "1px dashed #000", margin: "6px 0" }} />
 
       <Box sx={{ textAlign: "center" }}>
-        <div>{NEGOCIO.gracias}</div>
-        <div>{NEGOCIO.eslogan}</div>
+        <div>¡Gracias por su compra!</div>
+        <div>Vuelva pronto</div>
       </Box>
     </Box>
   );
@@ -140,9 +143,13 @@ const CheckoutResumenDialog = ({
   cambio, loadingVenta, onConfirm, cajaActiva,
 }) => {
   if (!cliente) return null;
+  
 
   const { fechaHora } = getNow();
   const idCaja = cajaActiva?.idCaja ?? "—";
+  const { empresa } = useEmpresa();
+  const context = useEmpresa();
+
 
   // ── Lógica de impresión — es presentación pura, va aquí ──────────
   const handlePrint = () => {
@@ -151,7 +158,7 @@ const CheckoutResumenDialog = ({
     win.document.write(`
       <html>
         <head>
-          <title>Ticket · ${NEGOCIO.nombre}</title>
+          <title>Ticket · ${empresa?.nombreComercial}</title>
           <style>
             body { font-family: monospace; padding: 16px; width: 360px; margin: 0 auto; }
             hr   { border: none; border-top: 1px dashed #000; margin: 6px 0; }
@@ -376,6 +383,7 @@ const CheckoutResumenDialog = ({
           <Box sx={{ backgroundColor: "white", width: "100%", px: 2, py: 1.5,
             boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>
             <TicketContent
+              empresa={empresa}
               cliente={cliente}
               metodoPago={metodoPago}
               items={items}

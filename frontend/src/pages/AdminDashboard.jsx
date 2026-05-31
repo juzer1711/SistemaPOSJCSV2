@@ -16,6 +16,7 @@ import WarehouseIcon     from "@mui/icons-material/Warehouse";
 import ReceiptLongIcon   from "@mui/icons-material/ReceiptLong";
 import BarChartIcon      from "@mui/icons-material/BarChart";
 import ArrowForwardIcon  from "@mui/icons-material/ArrowForward";
+import BusinessIcon from "@mui/icons-material/Business";
 
 import { styles } from "../styles/dashboard/stylesAdminDashboard";
 
@@ -48,6 +49,14 @@ const MODULE_SECTIONS = [
         iconBg: "#fff3e0",   // naranja suave
         iconColor: "#e65100",
         route: "/gestion-productos",
+      },
+      {
+        title: "Empresa",
+        description: "Configura la información general del negocio.",
+        icon: BusinessIcon,
+        iconBg: "#e8f5e9",
+        iconColor: "#2e7d32",
+        route: "/empresa",
       },
     ],
   },

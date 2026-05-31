@@ -18,9 +18,11 @@ import {
   BarChart as BarChartIcon,
   ShoppingCart as ShoppingCartIcon,
   Logout as LogoutIcon,
+  Business as BusinessIcon
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
+import { useEmpresa } from "../context/EmpresaContext";
 
 // ── Rutas por rol ────────────────────────────────────────────────────
 const NAV_ADMIN = [
@@ -32,6 +34,7 @@ const NAV_ADMIN = [
   { label: "Cajas",       path: "/gestion-cajas",     icon: PointOfSaleIcon },
   { label: "Inventario",  path: "/inventario",        icon: WarehouseIcon },
   { label: "Reportes",    path: "/reportes",          icon: BarChartIcon },
+  { label: "Empresa",    path: "/empresa",          icon: BusinessIcon },
 ];
 
 const NAV_CAJERO = [
@@ -60,6 +63,8 @@ const Navbar = () => {
 
   const role     = localStorage.getItem("role");
   const username = localStorage.getItem("username") || "";
+
+  const { empresa } = useEmpresa();
 
   const navItems = role === "ADMINISTRADOR" ? NAV_ADMIN : NAV_CAJERO;
   const initials = getInitials(username);
@@ -113,7 +118,7 @@ const Navbar = () => {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mr: 2 }}>
             <StorefrontIcon sx={{ fontSize: 22, opacity: 0.9 }} />
             <Typography variant="h6" fontWeight={700} letterSpacing={-0.3} noWrap color="white">
-              POS JCS
+                {empresa?.nombreComercial || "POS JCS"}
             </Typography>
           </Box>
 

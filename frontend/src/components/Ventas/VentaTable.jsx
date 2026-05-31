@@ -10,6 +10,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import { dataGridStyles } from "../../styles/dataGridStyles";
 import {  CheckCircle, Cancel, Edit } from "@mui/icons-material";
 
+
 export default function VentaTable({
   ventas,
   page,
