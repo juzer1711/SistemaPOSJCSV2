@@ -18,6 +18,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long>, JpaSp
     Page<Producto> findByEstadoTrue(Pageable pageable);
     Page<Producto> findByEstadoFalse(Pageable pageable);
 
-    @Query("SELECT p FROM Producto p WHERE p.stockActual <= p.stockMinimo")
+    @Query("""
+        SELECT p
+        FROM Producto p
+        WHERE p.stockMinimo > 0
+        AND p.stockActual <= p.stockMinimo
+    """)
     List<Producto> findProductosBajoStock();
+    
 }
