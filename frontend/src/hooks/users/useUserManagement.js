@@ -6,6 +6,8 @@ import {
 } from "../../services/userService";
 
 import { useSnackbar } from "../../context/SnackBarProvider";
+import { useExport } from "../export/useExport";
+import { exportUsuariosExcel, exportUsuariosCSV } from "../../services/exportService";
 
 export default function useUsers() {
   const [users, setUsers] = useState([]);
@@ -55,6 +57,12 @@ export default function useUsers() {
     tipoDocumento: "",
     estado: "",
   });
+
+      const { handleExport: handleExportExcel, loadingExport: loadingExcel } =
+      useExport(exportUsuariosExcel, "usuarios.xlsx");
+  
+    const { handleExport: handleExportCSV, loadingExport: loadingCSV } =
+      useExport(exportUsuariosCSV, "usuarios.csv");
 
   const handleShowAll = () => {
     const all = {};
@@ -157,6 +165,15 @@ export default function useUsers() {
     showSnackbar(msg, type);
   };
 
+  const getExportParams = () => ({
+    search:        debouncedFilter              || undefined,
+    rol:           advancedFilters.rol          || undefined,
+    tipoDocumento: advancedFilters.tipoDocumento || undefined,
+    estado:        showInactive ? false : true,
+  });
+
+  const exportExcel = () => handleExportExcel(getExportParams());
+  const exportCSV   = () => handleExportCSV(getExportParams());
   return {
     users, page, setPage, pageSize, setPageSize, totalRows,
     filter, setFilter, open, editing, selectedUser,
@@ -174,6 +191,10 @@ export default function useUsers() {
     setDialogOpen,
     showMessage,
     loadUsers,
-    ALL_COLUMNS
+    ALL_COLUMNS,
+    exportExcel,
+    exportCSV,
+    loadingExcel,
+    loadingCSV
   };
 }

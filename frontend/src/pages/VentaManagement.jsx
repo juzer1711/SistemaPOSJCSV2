@@ -48,6 +48,10 @@ export default function VentaManagement() {
     handleActivate,
     handleCambiarMetodoPago,
     verDetalle,
+    exportExcel,
+    exportCSV,
+    loadingExcel,
+    loadingCSV,
   } = useVentaManagement();
 
   return (
@@ -72,6 +76,10 @@ export default function VentaManagement() {
           setAdvancedFilters={setAdvancedFilters}
           handleShowAll={handleShowAll}
           ALL_COLUMNS={ALL_COLUMNS}
+          onExportExcel={exportExcel}
+          onExportCSV={exportCSV}
+          loadingExcel={loadingExcel}
+          loadingCSV={loadingCSV}
         />
       </ManagementToolbar>
       

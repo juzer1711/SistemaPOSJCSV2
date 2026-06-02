@@ -38,6 +38,10 @@ const ProductManagement = () => {
           categorias={p.categorias}
           onEditCategoria={p.handleEditCategoria}
           onAddCategoria={p.handleAddCategoria}
+          onExportExcel={p.exportExcel}
+          onExportCSV={p.exportCSV}
+          loadingExcel={p.loadingExcel}
+          loadingCSV={p.loadingCSV}
         />
       </ManagementToolbar>
 

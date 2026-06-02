@@ -7,6 +7,9 @@ import {
   History     as HistoryIcon,
   LockOpen    as LockOpenIcon,
 } from "@mui/icons-material";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import TableViewIcon    from "@mui/icons-material/TableView";
+import { CircularProgress } from "@mui/material";
 import { useState } from "react";
 import { useCajaManagement }   from "../hooks/cajas/useCajaManagement";
 import CajaDetailDialog        from "../components/Cajas/CajaDetailDialog";
@@ -28,6 +31,12 @@ export default function CajaManagement() {
     loadingAbiertas, loadingCerradas,
     detailOpen, setDetailOpen,
     handleAbrirCaja, handleCerrarCaja, verDetalleCaja,
+    exportAbiertas,
+    loadingAbiertasExcel,
+    loadingAbiertasCSV,
+    exportHistorial,
+    loadingHistorialExcel,
+    loadingHistorialCSV,
   } = useCajaManagement();
 
   // ── Estado local de la página ────────────────────────────────────
@@ -111,6 +120,33 @@ export default function CajaManagement() {
             </Box>
           </Box>
 
+          {/* ── NUEVO: botones exportar ── */}
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={loadingAbiertasExcel
+                ? <CircularProgress size={14} color="inherit" />
+                : <FileDownloadIcon />}
+              onClick={() => exportAbiertas("excel")}
+              disabled={loadingAbiertasExcel}
+            >
+              Excel
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={loadingAbiertasCSV
+                ? <CircularProgress size={14} color="inherit" />
+                : <TableViewIcon />}
+              onClick={() => exportAbiertas("csv")}
+              disabled={loadingAbiertasCSV}
+            >
+              CSV
+            </Button>
+
+            </Box>
+
           {/* Filtros */}
           <Box sx={{ px: 2.5, pt: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>
              <TextField
@@ -165,6 +201,32 @@ export default function CajaManagement() {
               </Typography>
             </Box>
           </Box>
+
+        {/* ── NUEVO: botones exportar ── */}
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={loadingHistorialExcel
+              ? <CircularProgress size={14} color="inherit" />
+              : <FileDownloadIcon />}
+            onClick={() => exportHistorial("excel")}
+            disabled={loadingHistorialExcel}
+          >
+            Excel
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={loadingHistorialCSV
+              ? <CircularProgress size={14} color="inherit" />
+              : <TableViewIcon />}
+            onClick={() => exportHistorial("csv")}
+            disabled={loadingHistorialCSV}
+          >
+            CSV
+          </Button>
+        </Box>
 
           {/* Filtros */}
           <Box sx={{ px: 2.5, pt: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>

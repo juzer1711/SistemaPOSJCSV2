@@ -32,6 +32,10 @@ const ClientManagement = () => {
         setAdvancedFilters={c.setAdvancedFilters}
         handleShowAll={c.handleShowAll}
         ALL_COLUMNS={c.ALL_COLUMNS}
+        onExportExcel={c.exportExcel}
+        onExportCSV={c.exportCSV}
+        loadingExcel={c.loadingExcel}
+        loadingCSV={c.loadingCSV}
       />
       
       <TableContainer>

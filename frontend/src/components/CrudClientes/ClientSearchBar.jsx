@@ -4,6 +4,9 @@ import {
   Menu, MenuItem, Checkbox, FormControlLabel, Chip, Tooltip
 } from "@mui/material";
 import { Add, Search, Settings } from "@mui/icons-material";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import TableViewIcon    from "@mui/icons-material/TableView";
+import { CircularProgress } from "@mui/material";
 
 const SORT_FIELDS = [
   { value: "primerNombre", label: "Primer Nombre" },
@@ -18,7 +21,11 @@ const ClientSearchBar = ({
   visibleColumns, setVisibleColumns,
   sortBy, setSortBy,
   advancedFilters, setAdvancedFilters,
-  handleShowAll, ALL_COLUMNS
+  handleShowAll, ALL_COLUMNS,
+  onExportExcel,
+  onExportCSV,
+  loadingExcel,
+  loadingCSV
 }) => {
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -213,6 +220,30 @@ const ClientSearchBar = ({
         </Tooltip>
 
       </Box>
+
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={loadingExcel
+          ? <CircularProgress size={14} color="inherit" />
+          : <FileDownloadIcon />}
+        onClick={onExportExcel}
+        disabled={loadingExcel}
+      >
+        Excel
+      </Button>
+
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={loadingCSV
+          ? <CircularProgress size={14} color="inherit" />
+          : <TableViewIcon />}
+        onClick={onExportCSV}
+        disabled={loadingCSV}
+      >
+        CSV
+      </Button>
 
       {/* BOTÓN */}
       <Tooltip title="Registrar nuevo cliente" arrow>

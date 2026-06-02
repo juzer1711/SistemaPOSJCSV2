@@ -8,6 +8,8 @@ import {
 import { searchUsers } from "../../services/userService";
 import { abrirCajaSchema } from "../../validation/validationSchema";
 import { useSnackbar } from "../../context/SnackBarProvider";
+import { useExport } from "../export/useExport";
+import { exportCajasExcel, exportCajasCSV } from "../../services/exportService";
 
 export const useCajaManagement = () => {
   // 🔹 Estados principales
@@ -181,6 +183,46 @@ export const useCajaManagement = () => {
     }
   };
 
+  // Un par de hooks por cada vista — abiertas y historial
+  const { handleExport: handleExportAbiertasExcel, loadingExport: loadingAbiertasExcel } =
+    useExport(exportCajasExcel, "cajas-abiertas.xlsx");
+
+  const { handleExport: handleExportAbiertasCSV, loadingExport: loadingAbiertasCSV } =
+    useExport(exportCajasCSV, "cajas-abiertas.csv");
+
+  const { handleExport: handleExportHistorialExcel, loadingExport: loadingHistorialExcel } =
+    useExport(exportCajasExcel, "cajas-historial.xlsx");
+
+  const { handleExport: handleExportHistorialCSV, loadingExport: loadingHistorialCSV } =
+    useExport(exportCajasCSV, "cajas-historial.csv");
+
+  // Params de cada vista con sus filtros correspondientes
+  const exportAbiertas = (formato) => {
+    const params = {
+      search:       filtroAbiertas.cajero  || undefined,
+      idCaja:       filtroAbiertas.idCaja  || undefined,
+      fechaApertura: filtroAbiertas.fecha  || undefined,
+      estado:       "ABIERTA",             // siempre fijo
+    };
+    formato === "excel"
+      ? handleExportAbiertasExcel(params)
+      : handleExportAbiertasCSV(params);
+  };
+
+  const exportHistorial = (formato) => {
+    const params = {
+      search:        filtroHistorial.cajero     || undefined,
+      idCaja:        filtroHistorial.idCaja     || undefined,
+      fechaApertura: filtroHistorial.fechaInicio || undefined,
+      fechaCierre:   filtroHistorial.fechaFin   || undefined,
+      estado:        "CERRADA",                 // siempre fijo
+    };
+    formato === "excel"
+      ? handleExportHistorialExcel(params)
+      : handleExportHistorialCSV(params);
+  };
+
+
   return {
     // Datos
     usuarios,
@@ -219,5 +261,8 @@ export const useCajaManagement = () => {
     handleAbrirCaja,
     handleCerrarCaja,
     verDetalleCaja,
+
+    exportAbiertas, loadingAbiertasExcel, loadingAbiertasCSV,
+    exportHistorial, loadingHistorialExcel, loadingHistorialCSV,
   };
 };

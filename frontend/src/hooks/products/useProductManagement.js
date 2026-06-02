@@ -5,6 +5,8 @@ import {
   activateProduct,
   getCategorias
 } from "../../services/productService";
+import { useExport } from "../export/useExport";
+import { exportProductosExcel, exportProductosCSV } from "../../services/exportService";
 
 export default function useProducts() {
   const [products, setProducts] = useState([]);
@@ -61,6 +63,12 @@ export default function useProducts() {
     categoria: "",
     estado: "",
   });
+
+    const { handleExport: handleExportExcel, loadingExport: loadingExcel } =
+      useExport(exportProductosExcel, "productos.xlsx");
+  
+    const { handleExport: handleExportCSV, loadingExport: loadingCSV } =
+      useExport(exportProductosCSV, "productos.csv");
 
   const handleShowAll = () => {
     const all = {};
@@ -174,6 +182,15 @@ export default function useProducts() {
     setSnackbar({ open: true, message: msg, severity: type });
   };
 
+  const getExportParams = () => ({
+    search:    filter            || undefined,
+    categoria: advancedFilters.categoria  || undefined,
+    estado:    showInactive ? false : true,
+  });
+
+  const exportExcel = () => handleExportExcel(getExportParams());
+  const exportCSV   = () => handleExportCSV(getExportParams());
+
   return {
     products,
     categorias,
@@ -212,6 +229,10 @@ export default function useProducts() {
     handleAddCategoria,
     handleEditCategoria,
     openDeactivateDialog,
-    openActivateDialog
+    openActivateDialog,
+    exportExcel,
+    exportCSV,
+    loadingExcel,
+    loadingCSV
   };
 }

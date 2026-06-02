@@ -4,6 +4,8 @@ import {
   deactivateClient,
   activateClient
 } from "../../services/clientService";
+import { useExport } from "../export/useExport";
+import { exportClientesExcel, exportClientesCSV } from "../../services/exportService";
 
 export default function useClients() {
   const [clients, setClients] = useState([]);
@@ -64,6 +66,11 @@ export default function useClients() {
     Object.keys(ALL_COLUMNS).forEach((k) => (defaults[k] = true));
     return defaults;
   });
+
+  const { handleExport: handleExportExcel, loadingExport: loadingExcel } =
+    useExport(exportClientesExcel, "clientes.xlsx");
+  const { handleExport: handleExportCSV, loadingExport: loadingCSV } =
+    useExport(exportClientesCSV, "clientes.csv");
 
   const handleShowAll = () => {
     const all = {};
@@ -153,6 +160,16 @@ export default function useClients() {
     setSnackbar({ open: true, message: msg, severity: type });
   };
 
+  const getExportParams = () => ({
+    search:        filter          || undefined,
+    tipoCliente:   advancedFilters.tipoCliente   || undefined,
+    tipoDocumento: advancedFilters.tipoDocumento || undefined,
+    estado:        showInactive ? false : true,
+  });
+
+  const exportExcel = () => handleExportExcel(getExportParams());
+  const exportCSV   = () => handleExportCSV(getExportParams());
+
   return {
     clients,
     page, setPage,
@@ -183,6 +200,10 @@ export default function useClients() {
     handleAdd,
     handleEdit,
     openDeactivateDialog,
-    openActivateDialog
+    openActivateDialog,
+    exportExcel,
+    exportCSV,
+    loadingExcel,
+    loadingCSV
   };
 }

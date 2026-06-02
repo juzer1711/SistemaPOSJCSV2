@@ -11,6 +11,9 @@ import {
 import { Search, Add } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import TableViewIcon    from "@mui/icons-material/TableView";
+import { CircularProgress } from "@mui/material";
 
 const VentaSearchBar = ({
   filter,
@@ -19,7 +22,11 @@ const VentaSearchBar = ({
   showInactive,
   onToggleInactive,
   advancedFilters,
-  setAdvancedFilters
+  setAdvancedFilters,
+  onExportExcel, 
+  onExportCSV, 
+  loadingExcel,
+  loadingCSV
 }) => {
 
   const handleChange = (field, value) => {
@@ -117,6 +124,29 @@ const VentaSearchBar = ({
           />
         </Tooltip>
       </Box>
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={loadingExcel
+          ? <CircularProgress size={14} color="inherit" />
+          : <FileDownloadIcon />}
+        onClick={onExportExcel}
+        disabled={loadingExcel}
+      >
+        Excel
+      </Button>
+
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={loadingCSV
+          ? <CircularProgress size={14} color="inherit" />
+          : <TableViewIcon />}
+        onClick={onExportCSV}
+        disabled={loadingCSV}
+      >
+        CSV
+      </Button>
         {/* BOTÓN */}
         <Tooltip title="Registrar nueva venta" arrow>
           <Button

@@ -7,6 +7,9 @@ import {
 } from "@mui/material";
 import { Add, Search, Settings } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import TableViewIcon    from "@mui/icons-material/TableView";
+import { CircularProgress } from "@mui/material";
 
 const SORT_FIELDS = [
   { value: "nombre", label: "Nombre Producto" },
@@ -19,7 +22,11 @@ const ProductSearchBar = ({
   visibleColumns, setVisibleColumns,
   sortBy, setSortBy,
   advancedFilters, setAdvancedFilters, handleShowAll, ALL_COLUMNS, 
-  categorias, onEditCategoria, onAddCategoria
+  categorias, onEditCategoria, onAddCategoria,
+  onExportExcel,
+  onExportCSV,
+    loadingExcel,
+    loadingCSV
 }) => {
       const [anchorEl, setAnchorEl] = useState(null);
     
@@ -170,6 +177,30 @@ const ProductSearchBar = ({
         }}
       />
     </Tooltip>
+
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={loadingExcel
+              ? <CircularProgress size={14} color="inherit" />
+              : <FileDownloadIcon />}
+            onClick={onExportExcel}
+            disabled={loadingExcel}
+          >
+            Excel
+          </Button>
+    
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={loadingCSV
+              ? <CircularProgress size={14} color="inherit" />
+              : <TableViewIcon />}
+            onClick={onExportCSV}
+            disabled={loadingCSV}
+          >
+            CSV
+          </Button>
   </Box>
       {/* Botones */}
       <Tooltip title="Agregar nueva categoria" arrow>

@@ -8,6 +8,8 @@ import {
   cambiarMetodoPago,
 } from "../../services/ventaService";
 import { useSnackbar } from "../../context/SnackBarProvider";
+import { useExport } from "../export/useExport";
+import { exportVentasExcel, exportVentasCSV } from "../../services/exportService";
 
 const ALL_COLUMNS = {
   idVenta: "ID",
@@ -55,6 +57,12 @@ export const useVentaManagement = () => {
 
   const [sortBy, setSortBy] = useState({ key: "fecha", direction: "desc" });
   const [advancedFilters, setAdvancedFilters] = useState({ metodoPago: "" });
+
+  const { handleExport: handleExportExcel, loadingExport: loadingExcel } =
+    useExport(exportVentasExcel, "ventas.xlsx");
+
+  const { handleExport: handleExportCSV, loadingExport: loadingCSV } =
+    useExport(exportVentasCSV, "ventas.csv");
 
   // ================= EFECTOS =================
 
@@ -193,6 +201,19 @@ export const useVentaManagement = () => {
     setDetailOpen(true);
   };
 
+  // Función que arma los params con los filtros activos — igual que loadVentas
+  const getExportParams = () => ({
+    search:      debouncedFilter  || undefined,
+    metodoPago:  advancedFilters.metodoPago  || undefined,
+    fechaInicio: advancedFilters.fechaInicio || undefined,
+    fechaFin:    advancedFilters.fechaFin    || undefined,
+    estado:      showInactive ? false : true,
+    // sin page/size → trae todo
+  });
+
+  const exportExcel = () => handleExportExcel(getExportParams());
+  const exportCSV   = () => handleExportCSV(getExportParams());
+
   return {
     // Datos
     ventas,
@@ -232,5 +253,10 @@ export const useVentaManagement = () => {
     handleActivate,
     handleCambiarMetodoPago,
     verDetalle,
+
+    exportExcel,
+    exportCSV,
+    loadingExcel,
+    loadingCSV,
   };
 };

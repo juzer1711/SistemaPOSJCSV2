@@ -12,6 +12,7 @@ import {
   CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import { useEmpresa } from "../../context/EmpresaContext";
+import TicketContent from "../TicketContent";
 
 // ── Helper: nombre del cliente ────────────────────────────────────────
 const getClientName = (c) =>
@@ -29,109 +30,6 @@ const getNow = () => {
     hora: d.toLocaleTimeString("es-CO"),
     fechaHora: d.toLocaleString("es-CO"),
   };
-};
-
-// ════════════════════════════════════════════════════════════════
-// Componente interno: Ticket térmico imprimible
-// ════════════════════════════════════════════════════════════════
-const TicketContent = ({ empresa, cliente, metodoPago, items, total,
-  totalIVA, totalSinIVA, montoRecibido, cambio, cajaActiva }) => {
-  const { fecha, hora } = getNow();
-  const cajero  = localStorage.getItem("username") ?? "";
-  const idCaja  = cajaActiva?.idCaja ?? "—";
-
-  return (
-    <Box
-      id="ticket-print"
-      sx={{
-        fontFamily: "monospace",
-        fontSize: "11px",
-        width: "100%",
-        lineHeight: 1.6,
-      }}
-    >
-      {/* Encabezado del negocio */}
-      <Box sx={{ textAlign: "center", mb: 0.5 }}>
-        <div style={{ fontWeight: "bold", fontSize: 13 }}>
-          {empresa?.nombreComercial}
-        </div>
-
-        <div>NIT: {empresa?.nit}</div>
-        <div>Tel: {empresa?.telefono}</div>
-        <div>{empresa?.direccion}</div>
-      </Box>
-
-      <hr style={{ border: "none", borderTop: "1px dashed #000", margin: "6px 0" }} />
-
-      <Box sx={{ textAlign: "center", mb: 0.5 }}>
-        <div style={{ fontWeight: "bold" }}>COMPROBANTE DE VENTA</div>
-        <div>{fecha} {hora}</div>
-        <div>Caja #{idCaja} · {cajero}</div>
-      </Box>
-
-      <hr style={{ border: "none", borderTop: "1px dashed #000", margin: "6px 0" }} />
-
-      {/* Cliente */}
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>Cliente:</span>
-        <span>{getClientName(cliente)}</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>Doc:</span>
-        <span>{cliente?.documento}</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>Pago:</span>
-        <span>{metodoPago}</span>
-      </div>
-
-      <hr style={{ border: "none", borderTop: "1px dashed #000", margin: "6px 0" }} />
-
-      {/* Items */}
-      {items.map((i) => (
-        <div key={i.idProducto} style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ maxWidth: "65%", overflow: "hidden" }}>
-            {i.nombre} x{i.cantidad}
-          </span>
-          <span>${fmt(i.precioUnitario * i.cantidad)}</span>
-        </div>
-      ))}
-
-      <hr style={{ border: "none", borderTop: "1px dashed #000", margin: "6px 0" }} />
-
-      {/* Totales */}
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>Subtotal:</span><span>${fmt(totalSinIVA)}</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>IVA:</span><span>${fmt(totalIVA)}</span>
-      </div>
-
-      <hr style={{ border: "none", borderTop: "1px dashed #000", margin: "6px 0" }} />
-
-      <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", fontSize: 13 }}>
-        <span>TOTAL:</span><span>${fmt(total)}</span>
-      </div>
-
-      {metodoPago === "EFECTIVO" && (
-        <>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Recibido:</span><span>${fmt(montoRecibido)}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Cambio:</span><span>${fmt(cambio)}</span>
-          </div>
-        </>
-      )}
-
-      <hr style={{ border: "none", borderTop: "1px dashed #000", margin: "6px 0" }} />
-
-      <Box sx={{ textAlign: "center" }}>
-        <div>¡Gracias por su compra!</div>
-        <div>Vuelva pronto</div>
-      </Box>
-    </Box>
-  );
 };
 
 // ════════════════════════════════════════════════════════════════

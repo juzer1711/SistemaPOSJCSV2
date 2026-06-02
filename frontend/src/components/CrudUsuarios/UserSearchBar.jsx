@@ -16,6 +16,10 @@ import {
   Search,
 } from "@mui/icons-material";
 
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import TableViewIcon    from "@mui/icons-material/TableView";
+import { CircularProgress } from "@mui/material";
+
 const UserSearchBar = ({
   filter,
   onFilterChange,
@@ -24,6 +28,10 @@ const UserSearchBar = ({
   onToggleInactive,
   advancedFilters,
   setAdvancedFilters,
+    onExportExcel,
+  onExportCSV,
+    loadingExcel,
+    loadingCSV
 }) => {
 
   const handleChange = (field, value) =>
@@ -127,6 +135,30 @@ const UserSearchBar = ({
         </Tooltip>
 
       </Stack>
+
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={loadingExcel
+                ? <CircularProgress size={14} color="inherit" />
+                : <FileDownloadIcon />}
+              onClick={onExportExcel}
+              disabled={loadingExcel}
+            >
+              Excel
+            </Button>
+      
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={loadingCSV
+                ? <CircularProgress size={14} color="inherit" />
+                : <TableViewIcon />}
+              onClick={onExportCSV}
+              disabled={loadingCSV}
+            >
+              CSV
+            </Button>
 
       {/* RIGHT SIDE */}
       <Tooltip title="Registrar nuevo usuario" arrow>

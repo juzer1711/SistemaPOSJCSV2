@@ -49,6 +49,10 @@ export default function UserManagement() {
           setAdvancedFilters={u.setAdvancedFilters}
           handleShowAll={u.handleShowAll}
           ALL_COLUMNS={u.ALL_COLUMNS}
+          onExportExcel={u.exportExcel}
+          onExportCSV={u.exportCSV}
+          loadingExcel={u.loadingExcel}
+          loadingCSV={u.loadingCSV}
         />
       </ManagementToolbar>
 
