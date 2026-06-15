@@ -3,6 +3,7 @@ package com.sistemaposjcs.sistemaposjcs.service;
 import com.sistemaposjcs.sistemaposjcs.dto.MovimientoCajaDTO;
 import com.sistemaposjcs.sistemaposjcs.model.*;
 import com.sistemaposjcs.sistemaposjcs.repository.*;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class MovimientoCajaService {
     private final MovimientoCajaRepository movimientoRepo;
     private final CajaRepository cajaRepo;
     private final UserRepository usuarioRepo;
+    private final AuditoriaService auditoriaService;
 
     @Transactional
     public MovimientoCajaDTO registrarMovimiento(MovimientoCajaDTO dto) {
@@ -39,17 +41,38 @@ public class MovimientoCajaService {
         mov.setMonto(dto.getMonto());
         mov.setMotivo(dto.getMotivo());
 
-        // 🔥 Lógica contable real
-        BigDecimal montoFinal = caja.getMontoFinal();
+        // Saldo antes del movimiento
+        BigDecimal saldoAnterior = caja.getMontoFinal();
+
+        String accion;
+        String descripcion;
 
         if (dto.getTipo().name().equals("ENTRADA")) {
-            caja.setMontoFinal(montoFinal.add(dto.getMonto()));
+            caja.setMontoFinal(saldoAnterior.add(dto.getMonto()));
+            accion = "ENTRADA";
+            descripcion = "Entrada de caja registrada.";
         } else {
-            caja.setMontoFinal(montoFinal.subtract(dto.getMonto()));
+            caja.setMontoFinal(saldoAnterior.subtract(dto.getMonto()));
+            accion = "SALIDA";
+            descripcion = "Salida de caja registrada.";
         }
 
-        cajaRepo.save(caja);
         movimientoRepo.save(mov);
+        cajaRepo.save(caja);
+
+        auditoriaService.registrar(
+            usuario,
+            "MOVIMIENTO CAJA",
+            accion,
+            String.format(
+                "%s\nMonto: %s\nSaldo: %s → %s\nMotivo: %s",
+                descripcion,
+                dto.getMonto(),
+                saldoAnterior,
+                caja.getMontoFinal(),
+                dto.getMotivo()
+            )
+        );
 
         return toDTO(mov);
     }

@@ -7,6 +7,8 @@ import jakarta.validation.groups.Default;
 import lombok.*;
 import jakarta.validation.constraints.Pattern;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(
@@ -37,6 +39,7 @@ public class Usuario {
     private String username;
 
     // 🔹 Solo obligatorio al CREAR
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotBlank(message = "La contraseña es obligatoria", groups = OnCreate.class)
     @Size(min = 4, message = "La contraseña debe tener al menos 4 caracteres", groups = OnCreate.class)
     @Column(nullable = false)

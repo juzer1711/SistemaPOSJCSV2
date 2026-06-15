@@ -14,6 +14,7 @@ import com.sistemaposjcs.sistemaposjcs.repository.ClienteRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.CajaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.UserRepository;
+import com.sistemaposjcs.sistemaposjcs.seguridad.UsuarioAuthService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.math.RoundingMode;
 
 @Service
 public class VentaService {
@@ -37,15 +39,28 @@ public class VentaService {
     private final CajaRepository cajaRepository;
     private final UserRepository userRepository;
     private final InventarioService inventarioService;
+    private final UsuarioAuthService usuarioAuthService;
+    private final AuditoriaService auditoriaService;
 
 
-    public VentaService(VentaRepository ventaRepository, ClienteRepository clienteRepository, ProductoRepository productoRepository, CajaRepository cajaRepository, UserRepository userRepository, InventarioService inventarioService) {
+    public VentaService(
+            VentaRepository ventaRepository,
+            ClienteRepository clienteRepository,
+            ProductoRepository productoRepository,
+            CajaRepository cajaRepository,
+            UserRepository userRepository,
+            InventarioService inventarioService,
+            UsuarioAuthService usuarioAuthService,
+            AuditoriaService auditoriaService
+    ) {
         this.ventaRepository = ventaRepository;
         this.clienteRepository = clienteRepository;
         this.productoRepository = productoRepository;
         this.cajaRepository = cajaRepository;
         this.userRepository = userRepository;
         this.inventarioService = inventarioService;
+        this.usuarioAuthService = usuarioAuthService;
+        this.auditoriaService = auditoriaService;
     }
     
     // ✅ Obtener venta por ID
@@ -77,9 +92,7 @@ public Venta createVenta(Venta venta) {
     venta.setCliente(clienteReal);
 
     // 🔥 Obtener usuario real
-    Usuario usuario = userRepository.findById(
-            venta.getUsuario().getIdUsuario()
-    ).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    Usuario usuario = usuarioAuthService.getUsuarioLogueado();
 
     venta.setUsuario(usuario);
 
@@ -181,9 +194,32 @@ public Venta createVenta(Venta venta) {
     );
     }
 
+    try {
+
+        int cantidadProductos = ventaGuardada.getItems().stream()
+                .mapToInt(ItemFactura::getCantidad)
+                .sum();
+
+        String descripcion =
+                "Venta #" + ventaGuardada.getIdVenta() + " registrada.\n" +
+                "Cliente: " + ventaGuardada.getCliente().getNombreCompleto() + ".\n" +
+                "Productos: " + cantidadProductos + ".\n" +
+                "Total: $" + ventaGuardada.getTotal().setScale(0, java.math.RoundingMode.HALF_UP) + ".\n" +
+                "Método de pago: " + ventaGuardada.getMetodoPago() + ".";
+
+        auditoriaService.registrar(
+                usuario,
+                "VENTA",
+                "CREAR",
+                descripcion
+        );
+
+    } catch (Exception e) {
+        System.out.println("Error auditoría venta: " + e.getMessage());
+    }
+
     return ventaGuardada;
 }
-
 
 @Transactional
 public void desactivarVenta(Long id) {
@@ -219,6 +255,27 @@ public void desactivarVenta(Long id) {
     v.setEstado(false);
 
     ventaRepository.save(v);
+
+    try {
+
+        Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+        String descripcion =
+                "Venta #" + v.getIdVenta() + " desactivada.\n" +
+                "Cliente: " + v.getCliente().getNombreCompleto() + ".\n" +
+                "Total: $" + v.getTotal().setScale(0, RoundingMode.HALF_UP) + ".\n" +
+                "Método de pago: " + v.getMetodoPago() + ".";
+
+        auditoriaService.registrar(
+                usuario,
+                "VENTA",
+                "DESACTIVAR",
+                descripcion
+        );
+
+    } catch (Exception e) {
+        System.out.println("Error auditoría venta: " + e.getMessage());
+    }
 }
 
 @Transactional
@@ -253,7 +310,30 @@ public Venta activarVenta(Long id) {
 
     v.setEstado(true);
 
-    return ventaRepository.save(v);
+    Venta ventaActivada = ventaRepository.save(v);
+
+    try {
+
+        Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+        String descripcion =
+                "Venta #" + ventaActivada.getIdVenta() + " reactivada.\n" +
+                "Cliente: " + ventaActivada.getCliente().getNombreCompleto() + ".\n" +
+                "Total: $" + ventaActivada.getTotal().setScale(0, RoundingMode.HALF_UP) + ".\n" +
+                "Método de pago: " + ventaActivada.getMetodoPago() + ".";
+
+        auditoriaService.registrar(
+                usuario,
+                "VENTA",
+                "ACTIVAR",
+                descripcion
+        );
+
+    } catch (Exception e) {
+        System.out.println("Error auditoría venta: " + e.getMessage());
+    }
+
+    return ventaActivada;
 }
 
 @Transactional
@@ -285,7 +365,30 @@ public Venta cambiarMetodoPago(Long id, MetodoPago nuevoMetodo) {
 
     venta.setMetodoPago(nuevoMetodo);
 
-    return ventaRepository.save(venta);
+    Venta ventaActualizada = ventaRepository.save(venta);
+
+    try {
+
+        Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+        String descripcion =
+                "Venta #" + ventaActualizada.getIdVenta() + ".\n" +
+                "Cliente: " + ventaActualizada.getCliente().getNombreCompleto() + ".\n" +
+                "Método de pago cambiado de " +
+                metodoAnterior + " a " + nuevoMetodo + ".";
+
+        auditoriaService.registrar(
+                usuario,
+                "VENTA",
+                "CAMBIAR MÉTODO DE PAGO",
+                descripcion
+        );
+
+    } catch (Exception e) {
+        System.out.println("Error auditoría venta: " + e.getMessage());
+    }
+
+    return ventaActualizada;
 }
 
 public Page<Venta> searchVentas(
