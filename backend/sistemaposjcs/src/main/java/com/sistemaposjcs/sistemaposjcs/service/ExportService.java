@@ -1,12 +1,10 @@
 package com.sistemaposjcs.sistemaposjcs.service;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 // Clases nativas de Java (JDK)
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;

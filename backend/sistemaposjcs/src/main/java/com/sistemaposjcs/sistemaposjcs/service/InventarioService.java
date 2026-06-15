@@ -2,6 +2,7 @@ package com.sistemaposjcs.sistemaposjcs.service;
 
 import com.sistemaposjcs.sistemaposjcs.model.*;
 import com.sistemaposjcs.sistemaposjcs.repository.*;
+import com.sistemaposjcs.sistemaposjcs.seguridad.UsuarioAuthService;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoMovimientoInventario;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -26,14 +27,20 @@ public class InventarioService {
 
     private final ProductoRepository productoRepository;
     private final MovimientoInventarioRepository movimientoRepository;
+    private final AuditoriaService auditoriaService;
+    private final UsuarioAuthService usuarioAuthService;
     private static final Logger log = LoggerFactory.getLogger(InventarioService.class);
 
     public InventarioService(
-        ProductoRepository productoRepository,
-        MovimientoInventarioRepository movimientoRepository
+            ProductoRepository productoRepository,
+            MovimientoInventarioRepository movimientoRepository,
+            AuditoriaService auditoriaService,
+            UsuarioAuthService usuarioAuthService
     ) {
         this.productoRepository = productoRepository;
         this.movimientoRepository = movimientoRepository;
+        this.auditoriaService = auditoriaService;
+        this.usuarioAuthService = usuarioAuthService;
     }
 
     @Transactional
@@ -46,7 +53,9 @@ public class InventarioService {
             throw new RuntimeException("La cantidad debe ser mayor a 0");
         }
 
-        producto.setStockActual(producto.getStockActual() + cantidad);
+        int stockAnterior = producto.getStockActual();
+        producto.setStockActual(stockAnterior + cantidad);
+        producto.setStockActual(producto.getStockActual() + cantidad);  
 
         MovimientoInventario movimiento = new MovimientoInventario();
         movimiento.setProducto(producto);
@@ -56,6 +65,28 @@ public class InventarioService {
 
         movimientoRepository.save(movimiento);
         productoRepository.save(producto);
+
+        try {
+
+            Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+            String descripcion =
+                    "Entrada de inventario.\n" +
+                    "Producto: " + producto.getNombre() + ".\n" +
+                    "Cantidad: +" + cantidad + ".\n" +
+                    "Stock: " + stockAnterior + " → " + producto.getStockActual() + ".\n" +
+                    "Motivo: " + motivo + ".";
+
+            auditoriaService.registrar(
+                    usuario,
+                    "INVENTARIO",
+                    "ENTRADA",
+                    descripcion
+            );
+
+        } catch (Exception e) {
+            log.warn("Error auditoría inventario: {}", e.getMessage());
+        }
     }
 
     @Transactional
@@ -72,6 +103,8 @@ public class InventarioService {
             log.warn("Stock negativo permitido para producto: {}", producto.getNombre());
         }
 
+        int stockAnterior = producto.getStockActual();
+        producto.setStockActual(stockAnterior - cantidad);
         producto.setStockActual(producto.getStockActual() - cantidad);
 
 
@@ -83,6 +116,28 @@ public class InventarioService {
 
         movimientoRepository.save(movimiento);
         productoRepository.save(producto);
+
+        try {
+
+            Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+            String descripcion =
+                    "Salida de inventario.\n" +
+                    "Producto: " + producto.getNombre() + ".\n" +
+                    "Cantidad: -" + cantidad + ".\n" +
+                    "Stock: " + stockAnterior + " → " + producto.getStockActual() + ".\n" +
+                    "Motivo: " + motivo + ".";
+
+            auditoriaService.registrar(
+                    usuario,
+                    "INVENTARIO",
+                    "SALIDA",
+                    descripcion
+            );
+
+        } catch (Exception e) {
+            log.warn("Error auditoría inventario: {}", e.getMessage());
+        }
     }
 
     @Transactional
@@ -150,12 +205,12 @@ public class InventarioService {
                 ));
             }
 
-            // 🔍 filtro por tipo
+            // filtro por tipo
             if (tipo != null) {
                 predicates.add(cb.equal(root.get("tipo"), tipo));
             }
 
-            // 🔍 rango de fechas
+            // rango de fechas
             if (fechaInicio != null && fechaFin != null) {
                 predicates.add(cb.between(root.get("fecha"), fechaInicio, fechaFin));
             } else if (fechaInicio != null) {

@@ -8,6 +8,8 @@ import com.sistemaposjcs.sistemaposjcs.model.Enum.MetodoPago;
 import com.sistemaposjcs.sistemaposjcs.repository.CajaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.UserRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.VentaRepository;
+import com.sistemaposjcs.sistemaposjcs.seguridad.UsuarioAuthService;
+
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.math.RoundingMode;
 
 import static com.sistemaposjcs.sistemaposjcs.specification.SpecificationUtils.nombreCompleto;
 
@@ -32,22 +35,30 @@ public class CajaService {
     private final CajaRepository cajaRepository;
     private final UserRepository userRepository;
     private final VentaRepository ventaRepository;
+    private final AuditoriaService auditoriaService;
+    private final UsuarioAuthService usuarioAuthService;
 
-    public CajaService(CajaRepository cajaRepository,
-                       UserRepository userRepository,
-                    VentaRepository ventaRepository) {
+    public CajaService(
+            CajaRepository cajaRepository,
+            UserRepository userRepository,
+            VentaRepository ventaRepository,
+            AuditoriaService auditoriaService,
+            UsuarioAuthService usuarioAuthService
+    ) {
         this.cajaRepository = cajaRepository;
         this.userRepository = userRepository;
         this.ventaRepository = ventaRepository;
+        this.auditoriaService = auditoriaService;
+        this.usuarioAuthService = usuarioAuthService;
     }
 
-    // ✅ Obtener caja por ID
+    // Obtener caja por ID
     public Caja getCajaById(Long id) {
         return cajaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Caja no encontrada"));
     }
 
-    // ✅ Obtener caja por ID usuario
+    // Obtener caja por ID usuario
     public Caja obtenerCajaActivaPorUsuario(Long idUsuario) {
 
         return cajaRepository
@@ -56,16 +67,16 @@ public class CajaService {
 
     }
 
-    // ✅ Listar cajas abiertas
+    // Listar cajas abiertas
     public Page<Caja> getCajasAbiertas(Pageable pageable) {
         return cajaRepository.findByEstadoCaja(pageable, EstadoCaja.ABIERTA);
     }
-    // ✅ Listar cajas cerradas
+    // Listar cajas cerradas
     public Page<Caja> getCajasCerradas(Pageable pageable) {
         return cajaRepository.findByEstadoCaja(pageable, EstadoCaja.CERRADA);
     }
 
-    // ✅ Abrir caja
+    // Abrir caja
     public Caja abrirCaja(Long idUsuario, BigDecimal montoInicial) {
 
         Usuario usuario = userRepository.findById(idUsuario)
@@ -82,10 +93,32 @@ public class CajaService {
         caja.setEstadoCaja(EstadoCaja.ABIERTA);
         caja.setFechaApertura(LocalDateTime.now());
 
-        return cajaRepository.save(caja);
+        Caja cajaGuardada = cajaRepository.save(caja);
+
+        try {
+
+            Usuario usuarioLogueado = usuarioAuthService.getUsuarioLogueado();
+
+            String descripcion =
+                    "Caja #" + cajaGuardada.getIdCaja() + " abierta.\n" +
+                    "Cajero: " + usuario.getNombreCompleto() + ".\n" +
+                    "Monto inicial: $" + montoInicial.setScale(0, RoundingMode.HALF_UP) + ".";
+
+            auditoriaService.registrar(
+                    usuarioLogueado,
+                    "CAJA",
+                    "ABRIR",
+                    descripcion
+            );
+
+        } catch (Exception e) {
+            System.out.println("Error auditoría caja: " + e.getMessage());
+        }
+
+        return cajaGuardada;
     }
 
-    // ✅ Cerrar caja
+    // Cerrar caja
     @Transactional
     public Caja cerrarCaja(Long idUsuario, BigDecimal efectivoReal, BigDecimal transferenciaReal) {
 
@@ -97,7 +130,7 @@ public class CajaService {
             throw new RuntimeException("La caja ya está cerrada");
         }
 
-        // 🔥 Calcular diferencias
+        // Calcular diferencias
         BigDecimal diferenciaEfectivo = efectivoReal.subtract(caja.getTotalEfectivo());
         BigDecimal diferenciaTransferencia = transferenciaReal.subtract(caja.getTotalTransferencia());
 
@@ -114,7 +147,32 @@ public class CajaService {
         caja.setFechaCierre(LocalDateTime.now());
         caja.setEstadoCaja(EstadoCaja.CERRADA);
 
-        return cajaRepository.save(caja);
+        Caja cajaCerrada = cajaRepository.save(caja);
+
+        try {
+
+            Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+            String descripcion =
+                    "Caja #" + cajaCerrada.getIdCaja() + " cerrada.\n" +
+                    "Total ventas: $" + cajaCerrada.getTotalVentas().setScale(0, RoundingMode.HALF_UP) + ".\n" +
+                    "Efectivo esperado: $" + cajaCerrada.getTotalEfectivo().setScale(0, RoundingMode.HALF_UP) + ".\n" +
+                    "Transferencia esperada: $" + cajaCerrada.getTotalTransferencia().setScale(0, RoundingMode.HALF_UP) + ".\n" +
+                    "Diferencia efectivo: $" + cajaCerrada.getDiferenciaEfectivo().setScale(0, RoundingMode.HALF_UP) + ".\n" +
+                    "Diferencia transferencia: $" + cajaCerrada.getDiferenciaTransferencia().setScale(0, RoundingMode.HALF_UP) + ".";
+
+            auditoriaService.registrar(
+                    usuario,
+                    "CAJA",
+                    "CERRAR",
+                    descripcion
+            );
+
+        } catch (Exception e) {
+            System.out.println("Error auditoría caja: " + e.getMessage());
+        }
+
+        return cajaCerrada;
     }
 
     public Page<Caja> searchCajas(
@@ -139,7 +197,7 @@ public class CajaService {
         return (root, query, cb) -> {
                 List<Predicate> predicates = new ArrayList<>();
 
-                // 🔍 búsqueda global (nombre o email)
+                // búsqueda global (nombre o email)
                 if (search != null && !search.isEmpty()) {
                     String like = "%" + search.toLowerCase().replace(" ", "") + "%";
 
@@ -155,7 +213,7 @@ public class CajaService {
             if (idCaja != null) {
                 predicates.add(cb.equal(root.get("idCaja"), idCaja));
             }
-            // 📅 fechas
+            // fechas
             if (fechaApertura != null && fechaCierre != null) {
                 predicates.add(cb.between(
                     root.get("fecha"),
@@ -186,7 +244,7 @@ public void cerrarCajaForzadoAdmin(Long idCaja) {
         throw new RuntimeException("La caja ya está cerrada");
     }
 
-    // 🔥 1. Traer todas las ventas de esa caja
+    // Traer todas las ventas de esa caja
     List<Venta> ventas = ventaRepository.findByCajaIdCaja(idCaja);
 
     BigDecimal totalVentas = BigDecimal.ZERO;
@@ -205,19 +263,40 @@ public void cerrarCajaForzadoAdmin(Long idCaja) {
 }
 
 
-    // 🔥 2. Llenar datos de cierre AUTOMÁTICOS
+    // Llenar datos de cierre AUTOMÁTICOS
     caja.setFechaCierre(LocalDateTime.now());
     caja.setTotalVentas(totalVentas);
     caja.setTotalEfectivo(totalEfectivo);
     caja.setTotalTransferencia(totalTransferencia);
 
-    // ⚠️ No hay conteo real, entonces son iguales
+    // No hay conteo real, entonces son iguales
     caja.setEfectivoReal(totalEfectivo);
     caja.setTransferenciaReal(totalTransferencia);
 
     caja.setEstadoCaja(EstadoCaja.CERRADA);
 
     cajaRepository.save(caja);
+
+    try {
+
+        Usuario administrador = usuarioAuthService.getUsuarioLogueado();
+
+        String descripcion =
+                "Caja #" + caja.getIdCaja() + " cerrada de forma forzada.\n" +
+                "Administrador: " + administrador.getNombreCompleto() + ".\n" +
+                "Cajero: " + caja.getUsuario().getNombreCompleto() + ".\n" +
+                "Total ventas: $" + caja.getTotalVentas().setScale(0, RoundingMode.HALF_UP) + ".";
+
+        auditoriaService.registrar(
+                administrador,
+                "CAJA",
+                "CIERRE FORZADO",
+                descripcion
+        );
+
+    } catch (Exception e) {
+        System.out.println("Error auditoría caja: " + e.getMessage());
+    }
 }
 
 

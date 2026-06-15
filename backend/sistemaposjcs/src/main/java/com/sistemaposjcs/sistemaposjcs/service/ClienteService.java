@@ -3,6 +3,7 @@ package com.sistemaposjcs.sistemaposjcs.service;
 import com.sistemaposjcs.sistemaposjcs.model.Cliente;
 import com.sistemaposjcs.sistemaposjcs.repository.ClienteRepository;
 
+
 import jakarta.validation.Validator;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import com.sistemaposjcs.sistemaposjcs.model.Usuario;
+import com.sistemaposjcs.sistemaposjcs.seguridad.UsuarioAuthService;
 
 import jakarta.persistence.criteria.Predicate;
 
@@ -25,12 +28,20 @@ import static com.sistemaposjcs.sistemaposjcs.specification.SpecificationUtils.n
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
+    private final UsuarioAuthService usuarioAuthService;
+    private final AuditoriaService auditoriaService;
 
     @Autowired
     private Validator validator;
 
-    public ClienteService(ClienteRepository clienteRepository) {
+    public ClienteService(
+            ClienteRepository clienteRepository,
+            AuditoriaService auditoriaService,
+            UsuarioAuthService usuarioAuthService
+    ) {
         this.clienteRepository = clienteRepository;
+        this.auditoriaService = auditoriaService;
+        this.usuarioAuthService = usuarioAuthService;
     }
 
     // Obtener cliente por ID
@@ -49,15 +60,98 @@ public class ClienteService {
     }
 
     public Cliente createCliente(Cliente cliente) {
+
         if (cliente.getEstado() == null) {
             cliente.setEstado(true);
         }
-        return clienteRepository.save(cliente);
+
+        Cliente clienteGuardado = clienteRepository.save(cliente);
+
+        try {
+
+            Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+            String descripcion =
+                    "Cliente creado.\n" +
+                    "Nombre: " + clienteGuardado.getNombreCompleto() + ".\n" +
+                    "Documento: " + clienteGuardado.getDocumento() + ".";
+
+            auditoriaService.registrar(
+                    usuario,
+                    "CLIENTE",
+                    "CREAR",
+                    descripcion
+            );
+
+        } catch (Exception e) {
+            System.out.println("Error auditoría cliente: " + e.getMessage());
+        }
+
+        return clienteGuardado;
     }
 
     // Actualizar cliente
     public Cliente updateCliente(Long id, Cliente data) {
+
         Cliente c = getClienteById(id);
+
+        StringBuilder cambios = new StringBuilder();
+
+        if (!java.util.Objects.equals(c.getPrimerNombre(), data.getPrimerNombre())) {
+            cambios.append("Primer nombre: '").append(c.getPrimerNombre())
+                    .append("' → '").append(data.getPrimerNombre()).append("', ");
+        }
+
+        if (!java.util.Objects.equals(c.getSegundoNombre(), data.getSegundoNombre())) {
+            cambios.append("Segundo nombre: '").append(c.getSegundoNombre())
+                    .append("' → '").append(data.getSegundoNombre()).append("', ");
+        }
+
+        if (!java.util.Objects.equals(c.getPrimerApellido(), data.getPrimerApellido())) {
+            cambios.append("Primer apellido: '").append(c.getPrimerApellido())
+                    .append("' → '").append(data.getPrimerApellido()).append("', ");
+        }
+
+        if (!java.util.Objects.equals(c.getSegundoApellido(), data.getSegundoApellido())) {
+            cambios.append("Segundo apellido: '").append(c.getSegundoApellido())
+                    .append("' → '").append(data.getSegundoApellido()).append("', ");
+        }
+
+        if (!java.util.Objects.equals(c.getDocumento(), data.getDocumento())) {
+            cambios.append("Documento: '").append(c.getDocumento())
+                    .append("' → '").append(data.getDocumento()).append("', ");
+        }
+
+        if (!java.util.Objects.equals(c.getTelefono(), data.getTelefono())) {
+            cambios.append("Teléfono: '").append(c.getTelefono())
+                    .append("' → '").append(data.getTelefono()).append("', ");
+        }
+
+        if (!java.util.Objects.equals(c.getEmail(), data.getEmail())) {
+            cambios.append("Email actualizado, ");
+        }
+
+        if (!java.util.Objects.equals(c.getDireccion(), data.getDireccion())) {
+            cambios.append("Dirección actualizada, ");
+        }
+
+        if (!java.util.Objects.equals(c.getTipoCliente(), data.getTipoCliente())) {
+            cambios.append("Tipo cliente: '").append(c.getTipoCliente())
+                    .append("' → '").append(data.getTipoCliente()).append("', ");
+        }
+
+        if (!java.util.Objects.equals(c.getTipoDocumento(), data.getTipoDocumento())) {
+            cambios.append("Tipo documento: '").append(c.getTipoDocumento())
+                    .append("' → '").append(data.getTipoDocumento()).append("', ");
+        }
+
+        if (!java.util.Objects.equals(c.getRazonSocial(), data.getRazonSocial())) {
+            cambios.append("Razón social actualizada, ");
+        }
+
+        if (!java.util.Objects.equals(c.getIdentificadorNit(), data.getIdentificadorNit())) {
+            cambios.append("NIT actualizado, ");
+        }
 
         c.setTipoCliente(data.getTipoCliente());
 
@@ -76,27 +170,97 @@ public class ClienteService {
         c.setDireccion(data.getDireccion());
 
         Set<ConstraintViolation<Cliente>> violations = validator.validate(c);
+
         if (!violations.isEmpty()) {
             throw new ConstraintViolationException(violations);
         }
 
-        return clienteRepository.save(c);
+        Cliente clienteActualizado = clienteRepository.save(c);
+
+        try {
+
+            Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+            String descripcion =
+                    "Cliente '" + clienteActualizado.getNombreCompleto() + "'.\n" +
+                    (cambios.length() > 2
+                            ? cambios.substring(0, cambios.length() - 2)
+                            : "Sin cambios relevantes.");
+
+            auditoriaService.registrar(
+                    usuario,
+                    "CLIENTE",
+                    "ACTUALIZAR",
+                    descripcion
+            );
+
+        } catch (Exception e) {
+            System.out.println("Error auditoría cliente: " + e.getMessage());
+        }
+
+        return clienteActualizado;
     }
 
     public void desactivarCliente(Long id) {
+
         Cliente c = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
         c.setEstado(false);
+
         clienteRepository.save(c);
+
+        try {
+
+            Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+            String descripcion =
+                    "Cliente desactivado.\n" +
+                    "Nombre: " + c.getNombreCompleto() + ".\n" +
+                    "Documento: " + c.getDocumento() + ".";
+
+            auditoriaService.registrar(
+                    usuario,
+                    "CLIENTE",
+                    "DESACTIVAR",
+                    descripcion
+            );
+
+        } catch (Exception e) {
+            System.out.println("Error auditoría cliente: " + e.getMessage());
+        }
     }
 
     public Cliente activarCliente(Long id) {
+
         Cliente c = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
         c.setEstado(true);
-        return clienteRepository.save(c);
+
+        Cliente clienteActivado = clienteRepository.save(c);
+
+        try {
+
+            Usuario usuario = usuarioAuthService.getUsuarioLogueado();
+
+            String descripcion =
+                    "Cliente reactivado.\n" +
+                    "Nombre: " + clienteActivado.getNombreCompleto() + ".\n" +
+                    "Documento: " + clienteActivado.getDocumento() + ".";
+
+            auditoriaService.registrar(
+                    usuario,
+                    "CLIENTE",
+                    "ACTIVAR",
+                    descripcion
+            );
+
+        } catch (Exception e) {
+            System.out.println("Error auditoría cliente: " + e.getMessage());
+        }
+
+        return clienteActivado;
     }
 
     public Page<Cliente> searchClientes(

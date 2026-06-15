@@ -34,9 +34,9 @@ export const getInactiveUsers = async (page, size) => {
 
 // Desactivar usuario (borrado lógico)
 export const deactivateUser = async (id) => {
-  return await axios.patch(`${API_URL}/desactivar/${id}`, {
-    headers: getAuthHeaders()
-  });
+  return await axios.patch(`${API_URL}/desactivar/${id}`,{},{
+      headers: getAuthHeaders()
+    });
 };
 
 // Activar usuario
