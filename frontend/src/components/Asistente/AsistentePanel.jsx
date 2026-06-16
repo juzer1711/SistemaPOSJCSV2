@@ -67,6 +67,7 @@ const AsistentePanel = () => {
   return (
     <Card
       sx={{
+        width: "100%",
         borderRadius: 3,
         boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
         border: "1px solid #eee",

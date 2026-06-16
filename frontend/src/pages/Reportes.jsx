@@ -1,16 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
-  Chip,
   Button,
-  Divider,
   CircularProgress,
+  Stack,
+  Chip,
+  LinearProgress,
+  Avatar,
+  Paper,
 } from "@mui/material";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import TodayIcon from "@mui/icons-material/Today";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 import {
   getReporteResumen,
@@ -22,11 +35,25 @@ import {
 import AsistentePanel from "../components/Asistente/AsistentePanel";
 
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
 } from "recharts";
 
+const money = (value) => `$${Number(value || 0).toLocaleString("es-CO")}`;
+const number = (value) => Number(value || 0).toLocaleString("es-CO");
+
+const panelSx = {
+  borderRadius: 2,
+  border: "1px solid",
+  borderColor: "divider",
+  boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
+  backgroundColor: "background.paper",
+};
+
 const Reportes = () => {
-  // ── Estados ─────────────────────────────────────
   const navigate = useNavigate();
 
   const [resumen, setResumen] = useState(null);
@@ -35,23 +62,36 @@ const Reportes = () => {
   const [cajeros, setCajeros] = useState([]);
   const [stock, setStock] = useState([]);
 
-  const [tipoStock, setTipoStock] = useState("bajo");
   const [loading, setLoading] = useState(true);
   const [filtroStock, setFiltroStock] = useState("BAJO");
 
-  const stockFiltrado = stock.filter((p) => {
-    if (filtroStock === "CRITICO") return p.stockActual <= 0;
+  const stockFiltrado = useMemo(
+    () =>
+      stock.filter((p) => {
+        if (filtroStock === "CRITICO") return p.stockActual <= 0;
+        if (filtroStock === "BAJO")
+          return p.stockActual > 0 && p.stockActual <= p.stockMinimo;
+        if (filtroStock === "NORMAL")
+          return p.stockMinimo > 0 && p.stockActual > p.stockMinimo;
+        return true;
+      }),
+    [stock, filtroStock]
+  );
 
-    if (filtroStock === "BAJO")
-      return p.stockActual > 0 && p.stockActual <= p.stockMinimo;
+  const stockCounts = useMemo(
+    () => ({
+      CRITICO: stock.filter((p) => p.stockActual <= 0).length,
+      BAJO: stock.filter((p) => p.stockActual > 0 && p.stockActual <= p.stockMinimo).length,
+      NORMAL: stock.filter((p) => p.stockMinimo > 0 && p.stockActual > p.stockMinimo).length,
+    }),
+    [stock]
+  );
 
-    if (filtroStock === "NORMAL")
-      return p.stockMinimo > 0 && p.stockActual > p.stockMinimo;
+  const maxProducto = useMemo(
+    () => Math.max(...topProductos.map((p) => p.cantidad || 0), 0),
+    [topProductos]
+  );
 
-    return true;
-  });
-
-  // ── Cargar datos ───────────────────────────────
   const loadData = async () => {
     setLoading(true);
     try {
@@ -78,434 +118,521 @@ const Reportes = () => {
 
   useEffect(() => {
     loadData();
-  }, [tipoStock]);
-
-  if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  }, []);
 
   const COLORS = {
-    EFECTIVO: "#2e7d32",     
-    TRANSFERENCIA: "#1976d2", 
+    EFECTIVO: "#1f9d55",
+    TRANSFERENCIA: "#2563eb",
   };
 
   const fecha = new Date();
-
   const fechafull = fecha.toLocaleDateString("es-CO", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-
   const horafull = fecha.toLocaleTimeString("es-CO", {
     hour: "2-digit",
     minute: "2-digit",
   });
 
-  return (
-    <Box sx={{ p: 3 }}>
+  const summaryCards = [
+    {
+      label: "Ventas hoy",
+      value: number(resumen?.ventasHoy),
+      icon: TodayIcon,
+      color: "#2563eb",
+      bg: "#eff6ff",
+    },
+    {
+      label: "Ventas mes",
+      value: number(resumen?.ventasMes),
+      icon: CalendarMonthIcon,
+      color: "#7c3aed",
+      bg: "#f5f3ff",
+    },
+    {
+      label: "Total facturado",
+      value: money(resumen?.totalFacturado),
+      icon: PaymentsIcon,
+      color: "#059669",
+      bg: "#ecfdf5",
+    },
+    {
+      label: "IVA recaudado",
+      value: money(resumen?.ivaRecaudado),
+      icon: ReceiptLongIcon,
+      color: "#ea580c",
+      bg: "#fff7ed",
+    },
+  ];
 
-      {/* ── HEADER ── */}
-      <Typography variant="h5" fontWeight={700}>
-        📊 Reportes del sistema
-      </Typography>
-      <Typography variant="body2" color="text.secondary" mb={3}>
-        Análisis general del negocio
-      </Typography>
-
-      {/* ── RESUMEN CARDS ── */}
-      <Grid container spacing={2} mb={3}>
-
-        {/* VENTAS HOY */}
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card
-            sx={{
-              height: "100%",
-              borderRadius: 3,
-              boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-              border: "1px solid #eee",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                transform: "translateY(-3px)",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.10)",
-              },
-            }}
-          >
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                Ventas hoy
-              </Typography>
-              <Typography variant="h5" fontWeight={700}>
-                {resumen?.ventasHoy?.toLocaleString("es-CO") || 0}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* VENTAS MES */}
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card
-            sx={{
-              height: "100%",
-              borderRadius: 3,
-              boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-              border: "1px solid #eee",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                transform: "translateY(-3px)",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.10)",
-              },
-            }}
-          >
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                Ventas mes
-              </Typography>
-              <Typography variant="h5" fontWeight={700}>
-                {resumen?.ventasMes?.toLocaleString("es-CO") || 0}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* TOTAL FACTURADO */}
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card
-            sx={{
-              height: "100%",
-              borderRadius: 3,
-              boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-              border: "1px solid #eee",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                transform: "translateY(-3px)",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.10)",
-              },
-            }}
-          >
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                Total facturado
-              </Typography>
-              <Typography variant="h5" fontWeight={700}>
-                ${resumen?.totalFacturado?.toLocaleString("es-CO") || 0}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* IVA */}
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card
-            sx={{
-              height: "100%",
-              borderRadius: 3,
-              boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-              border: "1px solid #eee",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                transform: "translateY(-3px)",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.10)",
-              },
-            }}
-          >
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                IVA recaudado
-              </Typography>
-              <Typography variant="h5" fontWeight={700}>
-                ${resumen?.ivaRecaudado?.toLocaleString("es-CO") || 0}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* 🕒 FECHA Y HORA */}
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card
-            sx={{
-              height: "100%",
-              borderRadius: 3,
-              boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-              border: "1px solid #eee",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                transform: "translateY(-3px)",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.10)",
-              },
-            }}
-          >
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                Fecha actual
-              </Typography>
-
-              <Typography variant="body1" fontWeight={600}>
-                {fechafull}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary">
-                {horafull}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-      </Grid>
-
-      <Divider sx={{ my: 3 }} />
-
-      {/* ── STOCK PRODUCTOS ── */}
-      <Typography fontWeight={700} mb={1}>
-         Stock de productos
-      </Typography>
-
-      {/* BOTONES FILTRO */}
-      <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-        <Button
-          variant={filtroStock === "CRITICO" ? "contained" : "outlined"}
-          color="error"
-          onClick={() => setFiltroStock("CRITICO")}
-        >
-          🔴 Crítico
-        </Button>
-
-        <Button
-          variant={filtroStock === "BAJO" ? "contained" : "outlined"}
-          color="warning"
-          onClick={() => setFiltroStock("BAJO")}
-        >
-          🟡 Bajo
-        </Button>
-
-        <Button
-          variant={filtroStock === "NORMAL" ? "contained" : "outlined"}
-          color="success"
-          onClick={() => setFiltroStock("NORMAL")}
-        >
-          🟢 Normal
-        </Button>
+  if (loading) {
+    return (
+      <Box sx={{ display: "grid", placeItems: "center", minHeight: 420 }}>
+        <Stack alignItems="center" spacing={2}>
+          <CircularProgress />
+          <Typography color="text.secondary">Cargando reportes...</Typography>
+        </Stack>
       </Box>
-        {filtroStock === "CRITICO" && (
-          <Box sx={{ mb: 2 }}>
-            
-            <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-              Estos productos necesitan reposición inmediata
-            </Typography>
+    );
+  }
 
-          </Box>
-        )}
-
-      
-
-      {/* LISTA FILTRADA */}
-      {stockFiltrado.map((p, i) => (
+  return (
+    <Box
+      sx={{
+        p: { xs: 2, md: 3 },
+        backgroundColor: "#f6f8fb",
+        minHeight: "calc(100vh - 56px)",
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        overflowX: "hidden",
+      }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          ...panelSx,
+          p: { xs: 2, md: 3 },
+          mb: 3,
+          overflow: "hidden",
+          position: "relative",
+          background:
+            "linear-gradient(135deg, #ffffff 0%, #f8fbff 58%, #eef6f1 100%)",
+        }}
+      >
         <Box
-          key={i}
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "flex-start", md: "center" },
             justifyContent: "space-between",
-            py: 1,
-            borderBottom: "1px solid #eee",
+            gap: 2,
           }}
         >
-          <Typography>{p.producto}</Typography>
-
-          <Typography fontWeight={700}>
-            {p.stockActual} / {p.stockMinimo}
-          </Typography>
-        </Box>
-      ))}
-
-      {/* BOTÓN FINAL */}
-      {filtroStock === "CRITICO" && (
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-start" }}>
-          <Button
-            variant="contained"
-            onClick={() => navigate("/inventario")}
-            sx={{
-              backgroundColor: "#f9a825",
-              color: "#ffffff",
-              fontWeight: 600,
-              "&:hover": {
-                backgroundColor: "#f57f17",
-              },
-            }}
-          >
-            Ir a inventario
-          </Button>
-        </Box>
-      )}
-
-      <Divider sx={{ my: 3 }} />
-
-      {/* ── TOP PRODUCTOS ── */}
-      <Typography fontWeight={700} mb={1}>
-         Top productos
-      </Typography>
-
-      {topProductos?.length > 0 && (() => {
-        const maxValue = Math.max(...topProductos.map(p => p.cantidad || 0));
-
-        return topProductos.map((p, i) => {
-          const percent = maxValue ? (p.cantidad / maxValue) * 100 : 0;
-
-          return (
-            <Box key={i} sx={{ mb: 2 }}>
-
-              {/* Nombre + valor */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-                <Typography fontSize={14}>
-                  {p.producto}
-                </Typography>
-
-                <Typography fontWeight={700} fontSize={14}>
-                  {p.cantidad}
-                </Typography>
-              </Box>
-
-              {/* Barra de fondo */}
-              <Box
-                sx={{
-                  height: 10,
-                  backgroundColor: "#e0e0e0",
-                  borderRadius: 5,
-                  overflow: "hidden",
-                }}
-              >
-                {/* Barra activa */}
-                <Box
-                  sx={{
-                    height: "100%",
-                    width: `${percent}%`,
-                    backgroundColor: "#1976d2",
-                    borderRadius: 5,
-                    transition: "width 0.5s ease",
-                  }}
-                />
-              </Box>
-
-            </Box>
-          );
-        });
-      })()}
-
-      <Divider sx={{ my: 3 }} />
-
-      {/* ── MÉTODOS DE PAGO ── */}
-      <Typography fontWeight={700} mt={4} mb={1}>
-         Métodos de pago
-      </Typography>
-
-      <Box sx={{ width: "100%", height: 320, backgroundColor: "background.paper", p: 2, borderRadius: 3, boxShadow: 1 }}>
-
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-
-            <Pie
-              data={metodos}
-              dataKey="total"
-              nameKey="metodoPago"
-              outerRadius={110}
-              label
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Avatar
+              sx={{
+                width: 52,
+                height: 52,
+                color: "#0f172a",
+                backgroundColor: "#dbeafe",
+              }}
             >
-              {metodos.map((entry) => (
-                <Cell
-                  key={entry.metodoPago}
-                  fill={COLORS[entry.metodoPago]}
-                />
-              ))}
-            </Pie>
-
-          </PieChart>
-        </ResponsiveContainer>
-
-        <Box sx={{ display: "flex", gap: 3, justifyContent: "center", mt: 2 }}>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Box sx={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#2e7d32" }} />
-            <span>Efectivo</span>
-          </Box>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Box sx={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#1976d2" }} />
-            <span>Transferencia</span>
-          </Box>
-
-        </Box>
-
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
-
-      {/* ── CAJEROS ── */}
-      <Typography fontWeight={700} mt={4} mb={1}>
-         Ventas por cajero
-      </Typography>
-
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.2 }}>
-        {cajeros.map((c, i) => (
-          <Box
-            key={i}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              p: 1.5,
-              borderRadius: 2,
-              backgroundColor: "background.paper",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-              border: "1px solid",
-              borderColor: "divider",
-              transition: "0.2s",
-              "&:hover": {
-                transform: "translateY(-2px)",
-                boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-              },
-            }}
-          >
-            {/* IZQUIERDA: ranking + nombre */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Box
-                sx={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: "50%",
-                  backgroundColor: i === 0 ? "#ffd700" : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : "primary.light",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "#fff",
-                }}
-              >
-                {i + 1}
-              </Box>
-
-              <Typography fontWeight={600}>
-                {c.cajero}
+              <AssessmentIcon />
+            </Avatar>
+            <Box>
+              <Typography variant="h5" fontWeight={800}>
+                Reportes del sistema
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Análisis general del negocio
               </Typography>
             </Box>
+          </Stack>
 
-            {/* DERECHA: ventas */}
-            <Typography fontWeight={700} color="primary.main">
-              ${Number(c.ventas).toLocaleString("es-CO")}
+          <Stack alignItems={{ xs: "flex-start", md: "flex-end" }} spacing={0.5}>
+            <Typography variant="body2" color="text.secondary" sx={{ textTransform: "capitalize" }}>
+              {fechafull}
             </Typography>
+            <Chip
+              size="small"
+              icon={<PointOfSaleIcon />}
+              label={horafull}
+              sx={{ fontWeight: 700, backgroundColor: "#eef2ff", color: "#3730a3" }}
+            />
+          </Stack>
+        </Box>
+      </Paper>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, minmax(0, 1fr))",
+            lg: "repeat(4, minmax(0, 1fr))",
+          },
+          gap: 2.5,
+          mb: 3,
+          width: "100%",
+        }}
+      >
+        {summaryCards.map(({ label, value, icon: Icon, color, bg }) => (
+          <Box key={label} sx={{ minWidth: 0, width: "100%" }}>
+            <Card
+              sx={{
+                ...panelSx,
+                width: "100%",
+                height: "100%",
+                transition: "transform 160ms ease, box-shadow 160ms ease",
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 14px 30px rgba(15, 23, 42, 0.10)",
+                },
+              }}
+            >
+              <CardContent sx={{ p: 2.25 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" fontWeight={700}>
+                      {label}
+                    </Typography>
+                    <Typography variant="h5" fontWeight={850} sx={{ mt: 1, lineHeight: 1.15 }}>
+                      {value}
+                    </Typography>
+                  </Box>
+                  <Avatar sx={{ backgroundColor: bg, color, width: 46, height: 46 }}>
+                    <Icon />
+                  </Avatar>
+                </Stack>
+              </CardContent>
+            </Card>
           </Box>
         ))}
       </Box>
 
-      <Divider sx={{ my: 3 }} />
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            md: "repeat(2, minmax(0, 1fr))",
+          },
+          gap: 2.5,
+          width: "100%",
+          alignItems: "stretch",
+        }}
+      >
+        <Box sx={{ minWidth: 0, width: "100%" }}>
+          <Paper elevation={0} sx={{ ...panelSx, p: 2.5, width: "100%", height: "100%" }}>
+            <SectionHeader
+              icon={<Inventory2Icon />}
+              title="Stock de productos"
+              action={
+                filtroStock === "CRITICO" ? (
+                  <Button
+                    variant="contained"
+                    endIcon={<ArrowForwardIcon />}
+                    onClick={() => navigate("/inventario")}
+                    sx={{ fontWeight: 800 }}
+                  >
+                    Inventario
+                  </Button>
+                ) : null
+              }
+            />
 
-      <AsistentePanel />
+            <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap", rowGap: 1 }}>
+              <StockFilterChip
+                label="Crítico"
+                count={stockCounts.CRITICO}
+                active={filtroStock === "CRITICO"}
+                color="error"
+                icon={<WarningAmberIcon />}
+                onClick={() => setFiltroStock("CRITICO")}
+              />
+              <StockFilterChip
+                label="Bajo"
+                count={stockCounts.BAJO}
+                active={filtroStock === "BAJO"}
+                color="warning"
+                icon={<Inventory2Icon />}
+                onClick={() => setFiltroStock("BAJO")}
+              />
+              <StockFilterChip
+                label="Normal"
+                count={stockCounts.NORMAL}
+                active={filtroStock === "NORMAL"}
+                color="success"
+                icon={<CheckCircleIcon />}
+                onClick={() => setFiltroStock("NORMAL")}
+              />
+            </Stack>
+
+            {filtroStock === "CRITICO" && (
+              <Box
+                sx={{
+                  p: 1.5,
+                  mb: 2,
+                  borderRadius: 2,
+                  backgroundColor: "#fff7ed",
+                  border: "1px solid #fed7aa",
+                }}
+              >
+                <Typography variant="body2" color="#9a3412" fontWeight={700}>
+                  Estos productos necesitan reposición inmediata
+                </Typography>
+              </Box>
+            )}
+
+            <Stack spacing={1.25}>
+              {stockFiltrado.length === 0 ? (
+                <EmptyState text="No hay productos en esta categoría." />
+              ) : (
+                stockFiltrado.map((p, i) => {
+                  const percent = p.stockMinimo > 0 ? Math.min((p.stockActual / p.stockMinimo) * 100, 140) : 0;
+                  const barColor =
+                    p.stockActual <= 0 ? "error" : p.stockActual <= p.stockMinimo ? "warning" : "success";
+
+                  return (
+                    <Box
+                      key={`${p.producto}-${i}`}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        backgroundColor: "#fff",
+                      }}
+                    >
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                        <Typography fontWeight={750} noWrap>
+                          {p.producto}
+                        </Typography>
+                        <Typography fontWeight={850} color="text.primary">
+                          {p.stockActual} / {p.stockMinimo}
+                        </Typography>
+                      </Stack>
+                      <LinearProgress
+                        variant="determinate"
+                        value={Math.min(percent, 100)}
+                        color={barColor}
+                        sx={{ mt: 1.25, height: 7, borderRadius: 999, backgroundColor: "#e5e7eb" }}
+                      />
+                    </Box>
+                  );
+                })
+              )}
+            </Stack>
+          </Paper>
+        </Box>
+
+        <Box sx={{ minWidth: 0, width: "100%" }}>
+          <Paper elevation={0} sx={{ ...panelSx, p: 2.5, width: "100%", height: "100%" }}>
+            <SectionHeader icon={<StorefrontIcon />} title="Top productos" />
+
+            <Stack spacing={2}>
+              {topProductos?.length > 0 ? (
+                topProductos.map((p, i) => {
+                  const percent = maxProducto ? (p.cantidad / maxProducto) * 100 : 0;
+                  return (
+                    <Box key={`${p.producto}-${i}`}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                        <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0 }}>
+                          <Avatar
+                            sx={{
+                              width: 28,
+                              height: 28,
+                              fontSize: 13,
+                              fontWeight: 850,
+                              backgroundColor: i === 0 ? "#f59e0b" : "#e0f2fe",
+                              color: i === 0 ? "#fff" : "#075985",
+                            }}
+                          >
+                            {i + 1}
+                          </Avatar>
+                          <Typography fontWeight={750} noWrap>
+                            {p.producto}
+                          </Typography>
+                        </Stack>
+                        <Typography fontWeight={850}>{number(p.cantidad)}</Typography>
+                      </Stack>
+                      <LinearProgress
+                        variant="determinate"
+                        value={percent}
+                        sx={{
+                          mt: 1,
+                          height: 8,
+                          borderRadius: 999,
+                          backgroundColor: "#e5e7eb",
+                          "& .MuiLinearProgress-bar": {
+                            borderRadius: 999,
+                            backgroundColor: i === 0 ? "#f59e0b" : "#2563eb",
+                          },
+                        }}
+                      />
+                    </Box>
+                  );
+                })
+              ) : (
+                <EmptyState text="No hay productos vendidos para mostrar." />
+              )}
+            </Stack>
+          </Paper>
+        </Box>
+
+        <Box sx={{ minWidth: 0, width: "100%" }}>
+          <Paper elevation={0} sx={{ ...panelSx, p: 2.5, width: "100%", height: "100%" }}>
+            <SectionHeader icon={<PaymentsIcon />} title="Métodos de pago" />
+
+            <Box sx={{ height: 290 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={metodos}
+                    dataKey="total"
+                    nameKey="metodoPago"
+                    innerRadius={58}
+                    outerRadius={96}
+                    paddingAngle={4}
+                  >
+                    {metodos.map((entry) => (
+                      <Cell
+                        key={entry.metodoPago}
+                        fill={COLORS[entry.metodoPago] || "#64748b"}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => money(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+            </Box>
+
+            <Stack spacing={1}>
+              {metodos.map((m) => (
+                <Stack
+                  key={m.metodoPago}
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={2}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: COLORS[m.metodoPago] || "#64748b",
+                      }}
+                    />
+                    <Typography variant="body2" fontWeight={700}>
+                      {m.metodoPago}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" fontWeight={850}>
+                    {money(m.total)}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Paper>
+        </Box>
+
+        <Box sx={{ minWidth: 0, width: "100%" }}>
+          <Paper elevation={0} sx={{ ...panelSx, p: 2.5, width: "100%", height: "100%" }}>
+            <SectionHeader icon={<PointOfSaleIcon />} title="Ventas por cajero" />
+
+            <Stack spacing={1.25}>
+              {cajeros.length > 0 ? (
+                cajeros.map((c, i) => (
+                  <Box
+                    key={`${c.cajero}-${i}`}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      backgroundColor: i === 0 ? "#f8fafc" : "#fff",
+                      border: "1px solid",
+                      borderColor: i === 0 ? "#cbd5e1" : "divider",
+                    }}
+                  >
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+                        <Avatar
+                          sx={{
+                            width: 34,
+                            height: 34,
+                            fontSize: 14,
+                            fontWeight: 900,
+                            backgroundColor:
+                              i === 0 ? "#f59e0b" : i === 1 ? "#64748b" : i === 2 ? "#b45309" : "#dbeafe",
+                            color: i <= 2 ? "#fff" : "#1e3a8a",
+                          }}
+                        >
+                          {i + 1}
+                        </Avatar>
+                        <Typography fontWeight={800} noWrap>
+                          {c.cajero}
+                        </Typography>
+                      </Stack>
+                      <Typography fontWeight={900} color="primary.main">
+                        {money(c.ventas)}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))
+              ) : (
+                <EmptyState text="No hay ventas por cajero para mostrar." />
+              )}
+            </Stack>
+          </Paper>
+        </Box>
+
+        <Box sx={{ gridColumn: "1 / -1", minWidth: 0, width: "100%" }}>
+          <AsistentePanel />
+        </Box>
+      </Box>
     </Box>
   );
 };
+
+function SectionHeader({ icon, title, action }) {
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      justifyContent="space-between"
+      spacing={2}
+      sx={{ mb: 2 }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1.25}>
+        <Avatar sx={{ width: 34, height: 34, backgroundColor: "#f1f5f9", color: "#0f172a" }}>
+          {icon}
+        </Avatar>
+        <Typography variant="subtitle1" fontWeight={850}>
+          {title}
+        </Typography>
+      </Stack>
+      {action}
+    </Stack>
+  );
+}
+
+function StockFilterChip({ label, count, active, color, icon, onClick }) {
+  return (
+    <Chip
+      icon={icon}
+      label={`${label} (${count})`}
+      clickable
+      color={active ? color : "default"}
+      variant={active ? "filled" : "outlined"}
+      onClick={onClick}
+      sx={{ fontWeight: 800 }}
+    />
+  );
+}
+
+function EmptyState({ text }) {
+  return (
+    <Box
+      sx={{
+        py: 4,
+        px: 2,
+        borderRadius: 2,
+        border: "1px dashed",
+        borderColor: "divider",
+        textAlign: "center",
+        backgroundColor: "#f8fafc",
+      }}
+    >
+      <Typography variant="body2" color="text.secondary" fontWeight={650}>
+        {text}
+      </Typography>
+    </Box>
+  );
+}
 
 export default Reportes;
