@@ -17,6 +17,7 @@ import ReceiptLongIcon   from "@mui/icons-material/ReceiptLong";
 import BarChartIcon      from "@mui/icons-material/BarChart";
 import ArrowForwardIcon  from "@mui/icons-material/ArrowForward";
 import BusinessIcon from "@mui/icons-material/Business";
+import HistoryIcon from "@mui/icons-material/History";
 
 import { styles } from "../styles/dashboard/stylesAdminDashboard";
 
@@ -107,6 +108,14 @@ const MODULE_SECTIONS = [
         iconBg: "#e8eaf6",   // índigo suave
         iconColor: "#283593",
         route: "/reportes",
+      },
+      {
+        title: "Auditoría",
+        description: "Consulta el historial de acciones realizadas en el sistema.",
+        icon: HistoryIcon,
+        iconBg: "#e3f2fd",
+        iconColor: "#1565c0",
+        route: "/auditoria",
       },
     ],
   },

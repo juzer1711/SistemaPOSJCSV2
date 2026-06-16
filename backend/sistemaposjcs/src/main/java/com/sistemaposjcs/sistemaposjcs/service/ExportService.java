@@ -8,12 +8,15 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.Sort;
 
 import com.sistemaposjcs.sistemaposjcs.repository.VentaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.CajaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ClienteRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.UserRepository;
+import com.sistemaposjcs.sistemaposjcs.repository.AuditoriaRepository;
+import com.sistemaposjcs.sistemaposjcs.model.Auditoria;
 import com.sistemaposjcs.sistemaposjcs.model.Caja;
 import com.sistemaposjcs.sistemaposjcs.model.Cliente;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
@@ -38,17 +41,21 @@ public class ExportService {
     private final ProductoService    productoService;
     private final UserRepository     userRepository;
     private final UserService        userService;
+    private final AuditoriaRepository auditoriaRepository;
+    private final AuditoriaService auditoriaService;
 
     public ExportService(VentaRepository ventaRepository, VentaService ventaService, 
         CajaRepository cajaRepository, CajaService cajaService, 
         ClienteRepository clienteRepository, ClienteService clienteService,
         ProductoRepository productoRepository, ProductoService productoService,
-        UserRepository   userRepository,   UserService   userService) {
+        UserRepository userRepository, UserService userService,
+        AuditoriaRepository auditoriaRepository, AuditoriaService auditoriaService) {
         this.ventaRepository = ventaRepository; this.ventaService = ventaService;
         this.cajaRepository = cajaRepository; this.cajaService = cajaService;
         this.clienteRepository = clienteRepository; this.clienteService = clienteService;
         this.productoRepository= productoRepository;this.productoService= productoService;
         this.userRepository    = userRepository;    this.userService    = userService;
+        this.auditoriaRepository = auditoriaRepository; this.auditoriaService = auditoriaService;
     }
 
     // ── VENTAS → EXCEL ───────────────────────────────────────────────
@@ -549,5 +556,96 @@ public byte[] exportUsuariosCSV(
     }
 
     return sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+}
+
+public byte[] exportAuditoriaExcel(
+        String search,
+        String usuario,
+        String modulo,
+        String accion,
+        String fechaInicio,
+        String fechaFin
+) throws IOException {
+
+    List<Auditoria> auditorias = auditoriaRepository.findAll(
+        auditoriaService.buildSpec(search, usuario, modulo, accion, fechaInicio, fechaFin),
+        Sort.by(Sort.Direction.DESC, "fecha")
+    );
+
+    Workbook workbook = new XSSFWorkbook();
+    Sheet sheet = workbook.createSheet("Auditoria");
+
+    CellStyle headerStyle = workbook.createCellStyle();
+    Font headerFont = workbook.createFont();
+    headerFont.setBold(true);
+    headerStyle.setFont(headerFont);
+    headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+    headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+    String[] cols = {
+        "ID", "Fecha", "Usuario", "Nombre Completo", "Modulo", "Accion", "Descripcion"
+    };
+
+    Row header = sheet.createRow(0);
+    for (int i = 0; i < cols.length; i++) {
+        Cell cell = header.createCell(i);
+        cell.setCellValue(cols[i]);
+        cell.setCellStyle(headerStyle);
+    }
+
+    int rowIdx = 1;
+    for (Auditoria a : auditorias) {
+        Usuario u = a.getUsuario();
+        Row row = sheet.createRow(rowIdx++);
+        row.createCell(0).setCellValue(a.getId());
+        row.createCell(1).setCellValue(a.getFecha() != null ? a.getFecha().toString() : "");
+        row.createCell(2).setCellValue(u != null ? u.getUsername() : "");
+        row.createCell(3).setCellValue(u != null ? u.getNombreCompleto() : "");
+        row.createCell(4).setCellValue(a.getModulo() != null ? a.getModulo() : "");
+        row.createCell(5).setCellValue(a.getAccion() != null ? a.getAccion() : "");
+        row.createCell(6).setCellValue(a.getDescripcion() != null ? a.getDescripcion() : "");
+    }
+
+    for (int i = 0; i < cols.length; i++) sheet.autoSizeColumn(i);
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    workbook.write(out);
+    workbook.close();
+    return out.toByteArray();
+}
+
+public byte[] exportAuditoriaCSV(
+        String search,
+        String usuario,
+        String modulo,
+        String accion,
+        String fechaInicio,
+        String fechaFin
+) {
+    List<Auditoria> auditorias = auditoriaRepository.findAll(
+        auditoriaService.buildSpec(search, usuario, modulo, accion, fechaInicio, fechaFin),
+        Sort.by(Sort.Direction.DESC, "fecha")
+    );
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("ID,Fecha,Usuario,NombreCompleto,Modulo,Accion,Descripcion\n");
+
+    for (Auditoria a : auditorias) {
+        Usuario u = a.getUsuario();
+        sb.append(csv(a.getId())).append(",")
+          .append(csv(a.getFecha() != null ? a.getFecha().toString() : "")).append(",")
+          .append(csv(u != null ? u.getUsername() : "")).append(",")
+          .append(csv(u != null ? u.getNombreCompleto() : "")).append(",")
+          .append(csv(a.getModulo())).append(",")
+          .append(csv(a.getAccion())).append(",")
+          .append(csv(a.getDescripcion())).append("\n");
+    }
+
+    return sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+}
+
+private String csv(Object value) {
+    String text = value == null ? "" : value.toString();
+    return "\"" + text.replace("\"", "\"\"") + "\"";
 }
 }
