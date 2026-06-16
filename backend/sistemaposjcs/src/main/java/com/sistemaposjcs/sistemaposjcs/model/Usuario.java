@@ -7,7 +7,6 @@ import jakarta.validation.groups.Default;
 import lombok.*;
 import jakarta.validation.constraints.Pattern;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoDocumento;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity

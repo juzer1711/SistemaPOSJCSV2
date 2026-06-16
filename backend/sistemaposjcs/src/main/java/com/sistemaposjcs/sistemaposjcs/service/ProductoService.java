@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Join;
