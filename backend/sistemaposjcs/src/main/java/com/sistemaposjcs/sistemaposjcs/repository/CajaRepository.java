@@ -16,10 +16,18 @@ public interface CajaRepository extends JpaRepository<Caja, Long>, JpaSpecificat
 
     Page<Caja> findByEstadoCaja(Pageable Pageable, EstadoCaja estadoCaja);
 
+    List<Caja> findByEstadoCaja(EstadoCaja estadoCaja);
+
     List<Caja> findByUsuarioIdUsuario(Long idUsuario);
 
     Optional<Caja> findByEstadoCajaAndUsuarioIdUsuario(EstadoCaja estadoCaja, Long idUsuario);
 
     boolean existsByUsuarioIdUsuarioAndEstadoCaja(Long idUsuario, EstadoCaja estadoCaja);
+
+    long countByEstadoCaja(EstadoCaja estadoCaja);
+
+    List<Caja> findTop5ByEstadoCajaOrderByFechaAperturaDesc(EstadoCaja estadoCaja);
+
+    Optional<Caja> findTopByEstadoCajaOrderByFechaCierreDesc(EstadoCaja estadoCaja);
 
 }

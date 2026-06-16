@@ -7,8 +7,12 @@ import com.sistemaposjcs.sistemaposjcs.model.Venta;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface VentaRepository extends JpaRepository<Venta, Long>, JpaSpecificationExecutor<Venta> {
 
@@ -30,8 +34,26 @@ public interface VentaRepository extends JpaRepository<Venta, Long>, JpaSpecific
     long countByEstadoTrue();
 
     long countByEstadoTrueAndFechaBetween(
-            java.time.LocalDateTime inicio,
-            java.time.LocalDateTime fin
+            LocalDateTime inicio,
+            LocalDateTime fin
+    );
+
+    @Query("""
+        SELECT COALESCE(SUM(v.total), 0)
+        FROM Venta v
+        WHERE v.estado = true
+        AND v.fecha BETWEEN :inicio AND :fin
+    """)
+    BigDecimal sumTotalVentasBetween(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
+
+    List<Venta> findTop5ByEstadoTrueOrderByFechaDesc();
+
+    Optional<Venta> findTopByEstadoTrueAndFechaBetweenOrderByTotalDesc(
+            LocalDateTime inicio,
+            LocalDateTime fin
     );
 
     @org.springframework.data.jpa.repository.Query("""
@@ -53,10 +75,24 @@ public interface VentaRepository extends JpaRepository<Venta, Long>, JpaSpecific
             i.producto.nombre,
             SUM(i.cantidad)
         FROM ItemFactura i
+        JOIN i.venta v
+        WHERE v.estado = true
         GROUP BY i.producto.nombre
         ORDER BY SUM(i.cantidad) DESC
     """)
     List<Object[]> obtenerTopProductosVendidos();
+
+    @Query("""
+        SELECT
+            i.producto.nombre,
+            SUM(i.cantidad)
+        FROM ItemFactura i
+        JOIN i.venta v
+        WHERE v.estado = true
+        GROUP BY i.producto.nombre
+        ORDER BY SUM(i.cantidad) ASC
+    """)
+    List<Object[]> obtenerProductosMenosVendidos();
 
     @Query("""
         SELECT
@@ -72,5 +108,24 @@ public interface VentaRepository extends JpaRepository<Venta, Long>, JpaSpecific
         ORDER BY COALESCE(SUM(v.total),0) DESC
     """)
     List<Object[]> obtenerVentasPorCajero();
+
+    @Query("""
+        SELECT
+            CONCAT(u.primerNombre, ' ', u.primerApellido),
+            COALESCE(SUM(v.total),0)
+        FROM Venta v
+        JOIN v.usuario u
+        WHERE v.estado = true
+        AND v.fecha BETWEEN :inicio AND :fin
+        GROUP BY
+            u.idUsuario,
+            u.primerNombre,
+            u.primerApellido
+        ORDER BY COALESCE(SUM(v.total),0) DESC
+    """)
+    List<Object[]> obtenerVentasPorCajeroEntre(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
 
 }
