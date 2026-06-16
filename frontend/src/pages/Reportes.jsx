@@ -19,6 +19,7 @@ import {
   getVentasPorCajero,
   getStock,
 } from "../services/reportesService";
+import AsistentePanel from "../components/Asistente/AsistentePanel";
 
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
@@ -499,6 +500,10 @@ const Reportes = () => {
           </Box>
         ))}
       </Box>
+
+      <Divider sx={{ my: 3 }} />
+
+      <AsistentePanel />
     </Box>
   );
 };

@@ -10,11 +10,13 @@ import com.sistemaposjcs.sistemaposjcs.dto.ReporteProductoDTO;
 import com.sistemaposjcs.sistemaposjcs.dto.ReporteStockBajoDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Caja;
 import com.sistemaposjcs.sistemaposjcs.model.Cliente;
+import com.sistemaposjcs.sistemaposjcs.model.Empresa;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
 import com.sistemaposjcs.sistemaposjcs.model.Venta;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.EstadoCaja;
 import com.sistemaposjcs.sistemaposjcs.repository.CajaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ClienteRepository;
+import com.sistemaposjcs.sistemaposjcs.repository.EmpresaRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.MovimientoInventarioRepository;
 import com.sistemaposjcs.sistemaposjcs.repository.ProductoRepository;
 
@@ -35,19 +37,22 @@ public class ReporteService {
     private final MovimientoInventarioRepository movimientoInventarioRepository;
     private final ClienteRepository clienteRepository;
     private final CajaRepository cajaRepository;
+    private final EmpresaRepository empresaRepository;
 
     public ReporteService(
             VentaRepository ventaRepository,
             ProductoRepository productoRepository,
             MovimientoInventarioRepository movimientoInventarioRepository,
             ClienteRepository clienteRepository,
-            CajaRepository cajaRepository
+            CajaRepository cajaRepository,
+            EmpresaRepository empresaRepository
     ) {
         this.ventaRepository = ventaRepository;
         this.productoRepository = productoRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
         this.clienteRepository = clienteRepository;
         this.cajaRepository = cajaRepository;
+        this.empresaRepository = empresaRepository;
     }
 
     public ReporteResumenDTO obtenerResumen() {
@@ -185,6 +190,20 @@ public class ReporteService {
                         (BigDecimal) r[1]
                 ))
                 .toList();
+    }
+
+    public BigDecimal obtenerIngresosPorMetodoPago(String metodoPago) {
+        return ventaRepository.sumTotalVentasByMetodoPago(metodoPago);
+    }
+
+    public Optional<ReporteMetodoPagoDTO> obtenerMetodoPagoMasUsado() {
+        return ventaRepository.obtenerMetodoPagoMasUsado()
+                .stream()
+                .findFirst()
+                .map(r -> new ReporteMetodoPagoDTO(
+                        r[0].toString(),
+                        BigDecimal.valueOf(((Number) r[1]).longValue())
+                ));
     }
 
     public List<ReporteProductoDTO> obtenerTopProductosVendidos() {
@@ -390,5 +409,9 @@ public class ReporteService {
 
     private List<Caja> obtenerTodasCajasAbiertas() {
         return cajaRepository.findByEstadoCaja(EstadoCaja.ABIERTA);
+    }
+
+    public Optional<Empresa> obtenerEmpresaActiva() {
+        return empresaRepository.findFirstByEstadoTrue();
     }
 }

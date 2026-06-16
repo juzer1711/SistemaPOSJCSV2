@@ -10,10 +10,12 @@ import java.util.Locale;
 import org.springframework.stereotype.Service;
 
 import com.sistemaposjcs.sistemaposjcs.dto.ReporteCajeroDTO;
+import com.sistemaposjcs.sistemaposjcs.dto.ReporteMetodoPagoDTO;
 import com.sistemaposjcs.sistemaposjcs.dto.ReporteProductoDTO;
 import com.sistemaposjcs.sistemaposjcs.dto.ReporteStockBajoDTO;
 import com.sistemaposjcs.sistemaposjcs.model.Caja;
 import com.sistemaposjcs.sistemaposjcs.model.Cliente;
+import com.sistemaposjcs.sistemaposjcs.model.Empresa;
 import com.sistemaposjcs.sistemaposjcs.model.Producto;
 import com.sistemaposjcs.sistemaposjcs.model.Venta;
 import com.sistemaposjcs.sistemaposjcs.model.Enum.TipoConsulta;
@@ -70,6 +72,12 @@ public class QueryExecutorService {
             case CAJERO_MAS_VENTAS_HOY -> responderCajeroMasVentasHoy();
             case VENTAS_POR_CAJERO -> responderVentasPorCajero();
             case RANKING_CAJEROS -> responderRankingCajeros();
+            case INGRESOS_EFECTIVO -> responderIngresosMetodoPago("EFECTIVO", "efectivo");
+            case INGRESOS_TRANSFERENCIA -> responderIngresosMetodoPago("TRANSFERENCIA", "transferencia");
+            case METODO_PAGO_MAS_USADO -> responderMetodoPagoMasUsado();
+            case NOMBRE_EMPRESA -> responderNombreEmpresa();
+            case NIT_EMPRESA -> responderNitEmpresa();
+            case TELEFONO_EMPRESA -> responderTelefonoEmpresa();
             default -> "No pude entender la consulta. Intenta preguntar, por ejemplo: cuantas ventas hay hoy.";
         };
     }
@@ -515,6 +523,58 @@ public class QueryExecutorService {
         );
     }
 
+    private String responderIngresosMetodoPago(String metodoPago, String nombreMetodo) {
+        BigDecimal ingresos = reporteService.obtenerIngresosPorMetodoPago(metodoPago);
+
+        return "Los ingresos por " + nombreMetodo + " son "
+                + formatearMoneda(ingresos)
+                + ".";
+    }
+
+    private String responderMetodoPagoMasUsado() {
+        return reporteService.obtenerMetodoPagoMasUsado()
+                .map(this::formatearMetodoPagoMasUsado)
+                .orElse("No hay ventas registradas para identificar el metodo de pago mas usado.");
+    }
+
+    private String formatearMetodoPagoMasUsado(ReporteMetodoPagoDTO metodoPago) {
+        long cantidadVentas = metodoPago.getTotal().longValue();
+
+        if (cantidadVentas == 1) {
+            return "El metodo de pago mas usado es "
+                    + formatearMetodoPago(metodoPago.getMetodoPago())
+                    + " con 1 venta.";
+        }
+
+        return "El metodo de pago mas usado es "
+                + formatearMetodoPago(metodoPago.getMetodoPago())
+                + " con "
+                + cantidadVentas
+                + " ventas.";
+    }
+
+    private String responderNombreEmpresa() {
+        return reporteService.obtenerEmpresaActiva()
+                .map(empresa -> "El nombre de la empresa es " + empresa.getNombreComercial() + ".")
+                .orElse("No hay una empresa activa registrada.");
+    }
+
+    private String responderNitEmpresa() {
+        return reporteService.obtenerEmpresaActiva()
+                .map(empresa -> "El NIT de la empresa es " + empresa.getNit() + ".")
+                .orElse("No hay una empresa activa registrada.");
+    }
+
+    private String responderTelefonoEmpresa() {
+        return reporteService.obtenerEmpresaActiva()
+                .map(this::formatearTelefonoEmpresa)
+                .orElse("No hay una empresa activa registrada.");
+    }
+
+    private String formatearTelefonoEmpresa(Empresa empresa) {
+        return "El telefono de la empresa es " + empresa.getTelefono() + ".";
+    }
+
     private String formatearReporteCajeros(
             String titulo,
             List<ReporteCajeroDTO> cajeros
@@ -545,6 +605,15 @@ public class QueryExecutorService {
 
     private String formatearMoneda(BigDecimal valor) {
         return formatoMoneda.format(valor);
+    }
+
+    private String formatearMetodoPago(String metodoPago) {
+        if (metodoPago == null || metodoPago.isBlank()) {
+            return "desconocido";
+        }
+
+        String texto = metodoPago.replace("_", " ").toLowerCase(Locale.ROOT);
+        return texto.substring(0, 1).toUpperCase(Locale.ROOT) + texto.substring(1);
     }
 
     private String formatearFecha(Venta venta) {

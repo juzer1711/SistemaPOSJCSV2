@@ -47,7 +47,6 @@ public enum TipoConsulta {
     // Métodos de pago
     INGRESOS_EFECTIVO,
     INGRESOS_TRANSFERENCIA,
-    INGRESOS_NEQUI,
     METODO_PAGO_MAS_USADO,
 
     // Empresa

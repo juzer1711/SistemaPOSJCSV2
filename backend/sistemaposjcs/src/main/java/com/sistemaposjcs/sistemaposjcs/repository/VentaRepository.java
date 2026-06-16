@@ -31,6 +31,26 @@ public interface VentaRepository extends JpaRepository<Venta, Long>, JpaSpecific
     """)
     List<Object[]> obtenerVentasPorMetodoPago();
 
+    @Query(value = """
+        SELECT COALESCE(SUM(total), 0)
+        FROM ventas
+        WHERE estado = true
+        AND metodo_pago = :metodoPago
+    """, nativeQuery = true)
+    BigDecimal sumTotalVentasByMetodoPago(
+            @Param("metodoPago") String metodoPago
+    );
+
+    @Query(value = """
+        SELECT metodo_pago, COUNT(*)
+        FROM ventas
+        WHERE estado = true
+        GROUP BY metodo_pago
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    """, nativeQuery = true)
+    List<Object[]> obtenerMetodoPagoMasUsado();
+
     long countByEstadoTrue();
 
     long countByEstadoTrueAndFechaBetween(
