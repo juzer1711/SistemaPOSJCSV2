@@ -208,4 +208,43 @@ public ResponseEntity<byte[]> usuariosCSV(
         .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
         .body(bytes);
 }
+
+@GetMapping("/auditoria/excel")
+public ResponseEntity<byte[]> auditoriaExcel(
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String usuario,
+        @RequestParam(required = false) String modulo,
+        @RequestParam(required = false) String accion,
+        @RequestParam(required = false) String fechaInicio,
+        @RequestParam(required = false) String fechaFin
+) throws IOException {
+    byte[] bytes = exportService.exportAuditoriaExcel(
+        search, usuario, modulo, accion, fechaInicio, fechaFin
+    );
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=auditoria.xlsx")
+        .contentType(MediaType.parseMediaType(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+        .body(bytes);
+}
+
+@GetMapping("/auditoria/csv")
+public ResponseEntity<byte[]> auditoriaCSV(
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String usuario,
+        @RequestParam(required = false) String modulo,
+        @RequestParam(required = false) String accion,
+        @RequestParam(required = false) String fechaInicio,
+        @RequestParam(required = false) String fechaFin
+) {
+    byte[] bytes = exportService.exportAuditoriaCSV(
+        search, usuario, modulo, accion, fechaInicio, fechaFin
+    );
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=auditoria.csv")
+        .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+        .body(bytes);
+}
 }

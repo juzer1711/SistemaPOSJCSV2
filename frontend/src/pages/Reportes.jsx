@@ -262,7 +262,7 @@ const Reportes = () => {
 
       {/* ── STOCK PRODUCTOS ── */}
       <Typography fontWeight={700} mb={1}>
-        📦 Stock de productos
+         Stock de productos
       </Typography>
 
       {/* BOTONES FILTRO */}
@@ -346,7 +346,7 @@ const Reportes = () => {
 
       {/* ── TOP PRODUCTOS ── */}
       <Typography fontWeight={700} mb={1}>
-        🏆 Top productos
+         Top productos
       </Typography>
 
       {topProductos?.length > 0 && (() => {
@@ -399,7 +399,7 @@ const Reportes = () => {
 
       {/* ── MÉTODOS DE PAGO ── */}
       <Typography fontWeight={700} mt={4} mb={1}>
-        💳 Métodos de pago
+         Métodos de pago
       </Typography>
 
       <Box sx={{ width: "100%", height: 320, backgroundColor: "background.paper", p: 2, borderRadius: 3, boxShadow: 1 }}>
@@ -445,7 +445,7 @@ const Reportes = () => {
 
       {/* ── CAJEROS ── */}
       <Typography fontWeight={700} mt={4} mb={1}>
-        📊 Ventas por cajero
+         Ventas por cajero
       </Typography>
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.2 }}>

@@ -66,3 +66,14 @@ export const exportUsuariosCSV = (params) =>
   axios.get(`${API_URL}/usuarios/csv`, {
     params, headers: getAuthHeaders(), responseType: "blob",
   });
+
+// AUDITORIA
+export const exportAuditoriaExcel = (params) =>
+  axios.get(`${API_URL}/auditoria/excel`, {
+    params, headers: getAuthHeaders(), responseType: "blob",
+  });
+
+export const exportAuditoriaCSV = (params) =>
+  axios.get(`${API_URL}/auditoria/csv`, {
+    params, headers: getAuthHeaders(), responseType: "blob",
+  });

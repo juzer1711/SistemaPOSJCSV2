@@ -13,6 +13,7 @@ import UserManagement from "../pages/UserManagement";
 import ProductManagement from "../pages/ProductManagement";
 import ClientManagement from "../pages/ClientManagement";
 import VentaManagement from "../pages/VentaManagement";
+import AuditoriaManagement from "../pages/AuditoriaManagement";
 import VentaPOS from "../pages/POSVenta";
 import CajaManagement from "../pages/CajaManagement";
 import InventarioManagement from "../pages/InventarioManagement";
@@ -101,6 +102,10 @@ function AppRoutes() {
           <PrivateRoute roles={["ADMINISTRADOR"]}>
             <Reportes />
           </PrivateRoute>
+        } />
+
+        <Route path="/auditoria" element={
+          <PrivateRoute roles={["ADMINISTRADOR"]}><AuditoriaManagement /></PrivateRoute>
         } />
 
         <Route path="/empresa" element={

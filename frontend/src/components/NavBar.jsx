@@ -18,7 +18,8 @@ import {
   BarChart as BarChartIcon,
   ShoppingCart as ShoppingCartIcon,
   Logout as LogoutIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  History as HistoryIcon
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
@@ -34,7 +35,8 @@ const NAV_ADMIN = [
   { label: "Cajas",       path: "/gestion-cajas",     icon: PointOfSaleIcon },
   { label: "Inventario",  path: "/inventario",        icon: WarehouseIcon },
   { label: "Reportes",    path: "/reportes",          icon: BarChartIcon },
-  { label: "Empresa",    path: "/empresa",          icon: BusinessIcon },
+  { label: "Empresa",     path: "/empresa",           icon: BusinessIcon },
+  { label: "Auditoria",   path: "/auditoria",         icon: HistoryIcon },
 ];
 
 const NAV_CAJERO = [
