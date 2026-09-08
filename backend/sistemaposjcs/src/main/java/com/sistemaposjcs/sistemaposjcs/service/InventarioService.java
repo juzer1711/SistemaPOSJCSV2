@@ -55,7 +55,6 @@ public class InventarioService {
 
         int stockAnterior = producto.getStockActual();
         producto.setStockActual(stockAnterior + cantidad);
-        producto.setStockActual(producto.getStockActual() + cantidad);//posible causante de error
 
         MovimientoInventario movimiento = new MovimientoInventario();
         movimiento.setProducto(producto);
@@ -105,8 +104,6 @@ public class InventarioService {
 
         int stockAnterior = producto.getStockActual();
         producto.setStockActual(stockAnterior - cantidad);
-        producto.setStockActual(producto.getStockActual() - cantidad);//posible causante de error
-
 
         MovimientoInventario movimiento = new MovimientoInventario();
         movimiento.setProducto(producto);
