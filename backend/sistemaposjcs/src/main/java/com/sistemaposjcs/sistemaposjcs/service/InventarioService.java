@@ -55,7 +55,7 @@ public class InventarioService {
 
         int stockAnterior = producto.getStockActual();
         producto.setStockActual(stockAnterior + cantidad);
-        producto.setStockActual(producto.getStockActual() + cantidad);  
+        producto.setStockActual(producto.getStockActual() + cantidad);//posible causante de error
 
         MovimientoInventario movimiento = new MovimientoInventario();
         movimiento.setProducto(producto);
@@ -105,7 +105,7 @@ public class InventarioService {
 
         int stockAnterior = producto.getStockActual();
         producto.setStockActual(stockAnterior - cantidad);
-        producto.setStockActual(producto.getStockActual() - cantidad);
+        producto.setStockActual(producto.getStockActual() - cantidad);//posible causante de error
 
 
         MovimientoInventario movimiento = new MovimientoInventario();
@@ -159,7 +159,7 @@ public class InventarioService {
         MovimientoInventario movimiento = new MovimientoInventario();
         movimiento.setProducto(producto);
         movimiento.setCantidad(cantidad);
-        movimiento.setTipo(TipoMovimientoInventario.VENTA); // 🔥 AQUÍ ESTÁ LA CLAVE
+        movimiento.setTipo(TipoMovimientoInventario.VENTA); 
         movimiento.setMotivo(motivo);
 
         movimientoRepository.save(movimiento);
